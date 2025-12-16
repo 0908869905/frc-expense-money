@@ -26,10 +26,11 @@ export default async function DashboardLayout({
   }
 
   const userName = session.user?.name || session.user?.email || "User"
+  const userRole = session.user?.role || "USER"
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar />
+      <AppSidebar userRole={userRole} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background/50 backdrop-blur transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

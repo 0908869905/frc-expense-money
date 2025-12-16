@@ -1,13 +1,13 @@
+"use client"
+
 import * as React from "react"
 import {
-  Briefcase,
   CheckSquare,
   CreditCard,
   FileText,
   LayoutDashboard,
   Settings,
   Shield,
-  User,
 } from "lucide-react"
 
 import {
@@ -18,11 +18,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { auth } from "@/auth"
 
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const session = await auth()
-  const user = session?.user
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  userRole?: string
+}
+
+export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
+  const role = userRole || "USER"
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -64,7 +66,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
           </SidebarMenuItem>
 
           {/* Manager / Admin Items */}
-          {(user?.role === "MANAGER" || user?.role === "FINANCE" || user?.role === "ADMIN") && (
+          {(role === "MANAGER" || role === "FINANCE" || role === "ADMIN") && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Approvals">
                 <a href="/dashboard/approvals">
@@ -75,8 +77,8 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
             </SidebarMenuItem>
           )}
 
-           {/* Finance / Admin Items */}
-           {(user?.role === "FINANCE" || user?.role === "ADMIN") && (
+          {/* Finance / Admin Items */}
+          {(role === "FINANCE" || role === "ADMIN") && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="All Reports">
                 <a href="/dashboard/reports">
