@@ -6,8 +6,14 @@ import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/Button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
-import { Dashboard } from "@/components/Dashboard"
-import { Transaction, ExpenseCategory } from "@/types"
+import dynamic from "next/dynamic"
+import { Transaction, ExpenseCategory } from "../../types"
+
+// Dynamic import to avoid SSR issues with recharts
+const Dashboard = dynamic(() => import("@/components/Dashboard").then(mod => mod.Dashboard), {
+  ssr: false,
+  loading: () => <div className="h-[400px] flex items-center justify-center text-muted-foreground">Loading charts...</div>
+})
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -30,7 +36,7 @@ export default async function DashboardPage() {
       ]
     }
   } else if (role === "FINANCE") {
-     whereClause = {
+    whereClause = {
       OR: [
         { submitterId: session.user.id },
         { status: "PENDING_FINANCE" },
@@ -105,8 +111,8 @@ export default async function DashboardPage() {
       <div className="rounded-xl border bg-card text-card-foreground shadow">
         <div className="p-6">
           <div className="mb-4">
-             <h3 className="text-lg font-medium leading-6">Recent Reports</h3>
-             <p className="text-sm text-muted-foreground">A list of all your submitted expense reports.</p>
+            <h3 className="text-lg font-medium leading-6">Recent Reports</h3>
+            <p className="text-sm text-muted-foreground">A list of all your submitted expense reports.</p>
           </div>
           <DataTable columns={getColumns(role)} data={tableData} />
         </div>
