@@ -2,32 +2,6 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-import dynamic from "next/dynamic"
-
-// Dynamic imports with ssr: false to avoid server-side rendering issues
-const DashboardCharts = dynamic(
-  () => import("@/components/Dashboard").then(mod => mod.Dashboard),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[300px] flex items-center justify-center text-muted-foreground border rounded-xl">
-        Loading charts...
-      </div>
-    )
-  }
-)
-
-const DashboardTable = dynamic(
-  () => import("./dashboard-table").then(mod => mod.DashboardTable),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-        Loading table...
-      </div>
-    )
-  }
-)
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -64,11 +38,11 @@ export default async function DashboardPage() {
   }
 
   // Fetch data with error handling
-  let tableData: any[] = []
-  let transactions: any[] = []
+  let reports: any[] = []
+  let errorMessage = ""
 
   try {
-    const reports = await prisma.expenseReport.findMany({
+    reports = await prisma.expenseReport.findMany({
       where: whereClause,
       include: {
         submitter: {
@@ -77,31 +51,11 @@ export default async function DashboardPage() {
         items: true,
       },
       orderBy: { createdAt: "desc" },
+      take: 10,
     })
-
-    tableData = reports.map(r => ({
-      id: r.id,
-      title: r.title,
-      totalAmount: r.totalAmount,
-      status: r.status,
-      createdAt: r.createdAt,
-      submitter: r.submitter
-    }))
-
-    reports.forEach(report => {
-      report.items.forEach((item: any) => {
-        transactions.push({
-          id: item.id,
-          date: item.date,
-          amount: item.amount,
-          category: item.category,
-          description: item.description,
-          type: 'EXPENSE'
-        })
-      })
-    })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching reports:", error)
+    errorMessage = error.message || "Failed to fetch reports"
   }
 
   return (
@@ -121,22 +75,52 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Analytics Section */}
-      <DashboardCharts transactions={transactions} />
+      {errorMessage && (
+        <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
+          Error: {errorMessage}
+        </div>
+      )}
 
-      {/* Data Table Section */}
-      <div className="rounded-xl border bg-card text-card-foreground shadow">
+      {/* Simple Stats */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-xl border bg-card p-6">
+          <h3 className="text-sm font-medium text-muted-foreground">Total Reports</h3>
+          <p className="text-2xl font-bold">{reports.length}</p>
+        </div>
+        <div className="rounded-xl border bg-card p-6">
+          <h3 className="text-sm font-medium text-muted-foreground">Total Items</h3>
+          <p className="text-2xl font-bold">
+            {reports.reduce((acc, r) => acc + (r.items?.length || 0), 0)}
+          </p>
+        </div>
+        <div className="rounded-xl border bg-card p-6">
+          <h3 className="text-sm font-medium text-muted-foreground">Total Amount</h3>
+          <p className="text-2xl font-bold">
+            ${reports.reduce((acc, r) => acc + (Number(r.totalAmount) || 0), 0).toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      {/* Simple Reports List */}
+      <div className="rounded-xl border bg-card">
         <div className="p-6">
-          <div className="mb-4">
-            <h3 className="text-lg font-medium leading-6">Recent Reports</h3>
-            <p className="text-sm text-muted-foreground">
-              {tableData.length > 0
-                ? `You have ${tableData.length} expense report(s).`
-                : "No expense reports yet. Create your first one!"}
-            </p>
-          </div>
-          {tableData.length > 0 && (
-            <DashboardTable data={tableData} userRole={role} />
+          <h3 className="text-lg font-medium mb-4">Recent Reports</h3>
+          {reports.length === 0 ? (
+            <p className="text-muted-foreground">No expense reports yet. Create your first one!</p>
+          ) : (
+            <div className="space-y-2">
+              {reports.map((report) => (
+                <div key={report.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">{report.title}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {report.submitter?.name || report.submitter?.email} • {report.status}
+                    </p>
+                  </div>
+                  <p className="font-medium">${Number(report.totalAmount).toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
