@@ -10,13 +10,22 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const cookieStore = await cookies()
-  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true"
+  let defaultOpen = true
+
+  try {
+    const cookieStore = await cookies()
+    defaultOpen = cookieStore.get("sidebar:state")?.value !== "false"
+  } catch (e) {
+    // Ignore cookie errors
+  }
+
   const session = await auth()
 
-  if (!session) {
+  if (!session?.user) {
     redirect("/login")
   }
+
+  const userName = session.user?.name || session.user?.email || "User"
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
@@ -27,7 +36,7 @@ export default async function DashboardLayout({
             <SidebarTrigger className="-ml-1" />
             <div className="h-4 w-[1px] bg-border mx-2" />
             <span className="text-sm font-medium text-muted-foreground">
-              Welcome back, {session.user?.name || session.user?.email}
+              Welcome back, {userName}
             </span>
           </div>
         </header>

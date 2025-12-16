@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/Button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { Transaction, ExpenseCategory } from "../../types"
 
 // Dynamic imports to avoid SSR issues with client-side hooks
 const Dashboard = dynamic(() => import("@/components/Dashboard").then(mod => mod.Dashboard), {
@@ -25,23 +24,26 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  // Fetch Logic based on Role
+  // Safe access to user properties
+  const userId = session.user.id
   const role = session.user.role || "USER"
+
+  // Build where clause based on role
   let whereClause: any = {}
 
   if (role === "USER") {
-    whereClause = { submitterId: session.user.id }
+    whereClause = { submitterId: userId }
   } else if (role === "MANAGER") {
     whereClause = {
       OR: [
-        { submitterId: session.user.id },
+        { submitterId: userId },
         { status: "PENDING_MANAGER" }
       ]
     }
   } else if (role === "FINANCE") {
     whereClause = {
       OR: [
-        { submitterId: session.user.id },
+        { submitterId: userId },
         { status: "PENDING_FINANCE" },
         { status: "PAID" }
       ]
@@ -50,45 +52,50 @@ export default async function DashboardPage() {
     whereClause = {}
   }
 
-  // Fetch Reports AND Items for charts
-  const reports = await prisma.expenseReport.findMany({
-    where: whereClause,
-    include: {
-      submitter: {
-        select: { name: true, email: true },
+  // Fetch Reports with error handling
+  let reports: any[] = []
+  let tableData: any[] = []
+  let transactions: any[] = []
+
+  try {
+    reports = await prisma.expenseReport.findMany({
+      where: whereClause,
+      include: {
+        submitter: {
+          select: { name: true, email: true },
+        },
+        items: true,
       },
-      items: true, // Needed for charts
-    },
-    orderBy: { createdAt: "desc" },
-  })
+      orderBy: { createdAt: "desc" },
+    })
 
-  // Normalize data for the table
-  const tableData = reports.map(r => ({
-    id: r.id,
-    title: r.title,
-    totalAmount: r.totalAmount,
-    status: r.status,
-    createdAt: r.createdAt,
-    submitter: r.submitter
-  }))
+    // Normalize data for the table
+    tableData = reports.map(r => ({
+      id: r.id,
+      title: r.title,
+      totalAmount: r.totalAmount,
+      status: r.status,
+      createdAt: r.createdAt,
+      submitter: r.submitter
+    }))
 
-  // Prepare data for Dashboard Charts (Flatten Items)
-  const transactions: Transaction[] = [];
-  reports.forEach(report => {
-    // Only include valid/approved expenses in stats if we wanted to be strict,
-    // but usually users want to see what they submitted.
-    // Let's include everything for now.
-    report.items.forEach(item => {
-      transactions.push({
-        id: item.id,
-        date: item.date,
-        amount: item.amount,
-        category: item.category as ExpenseCategory, // Ensure enum match
-        description: item.description,
-        type: 'EXPENSE'
-      });
-    });
-  });
+    // Prepare data for Dashboard Charts (Flatten Items)
+    reports.forEach(report => {
+      report.items.forEach((item: any) => {
+        transactions.push({
+          id: item.id,
+          date: item.date,
+          amount: item.amount,
+          category: item.category,
+          description: item.description,
+          type: 'EXPENSE'
+        })
+      })
+    })
+  } catch (error) {
+    console.error("Error fetching reports:", error)
+    // Continue with empty data rather than throwing
+  }
 
   return (
     <div className="flex flex-col gap-6">
