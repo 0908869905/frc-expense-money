@@ -1,7 +1,5 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { DataTable } from "@/components/ui/data-table"
-import { getColumns } from "./columns"
 import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/Button"
 import { Plus } from "lucide-react"
@@ -9,10 +7,15 @@ import Link from "next/link"
 import dynamic from "next/dynamic"
 import { Transaction, ExpenseCategory } from "../../types"
 
-// Dynamic import to avoid SSR issues with recharts
+// Dynamic imports to avoid SSR issues with client-side hooks
 const Dashboard = dynamic(() => import("@/components/Dashboard").then(mod => mod.Dashboard), {
   ssr: false,
   loading: () => <div className="h-[400px] flex items-center justify-center text-muted-foreground">Loading charts...</div>
+})
+
+const DashboardTable = dynamic(() => import("./dashboard-table").then(mod => mod.DashboardTable), {
+  ssr: false,
+  loading: () => <div className="h-[200px] flex items-center justify-center text-muted-foreground">Loading table...</div>
 })
 
 export default async function DashboardPage() {
@@ -114,7 +117,7 @@ export default async function DashboardPage() {
             <h3 className="text-lg font-medium leading-6">Recent Reports</h3>
             <p className="text-sm text-muted-foreground">A list of all your submitted expense reports.</p>
           </div>
-          <DataTable columns={getColumns(role)} data={tableData} />
+          <DashboardTable data={tableData} userRole={role} />
         </div>
       </div>
     </div>
