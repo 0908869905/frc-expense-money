@@ -123,10 +123,58 @@ export async function deleteUser(userId: string) {
         throw new Error("Cannot delete yourself")
     }
 
-    await prisma.user.delete({
-        where: { id: userId }
-    })
+    try {
+        // Use transaction to delete all related data first
+        await prisma.$transaction(async (tx) => {
+            // Delete expense items related to user's reports
+            await tx.expenseItem.deleteMany({
+                where: {
+                    report: { submitterId: userId }
+                }
+            })
 
-    revalidatePath("/dashboard/users")
-    return { success: true }
+            // Delete approval actions by user
+            await tx.approvalAction.deleteMany({
+                where: { actorId: userId }
+            })
+
+            // Delete approval actions on user's reports
+            await tx.approvalAction.deleteMany({
+                where: {
+                    report: { submitterId: userId }
+                }
+            })
+
+            // Delete user's expense reports
+            await tx.expenseReport.deleteMany({
+                where: { submitterId: userId }
+            })
+
+            // Delete audit logs by user
+            await tx.auditLog.deleteMany({
+                where: { actorId: userId }
+            })
+
+            // Delete user's accounts (OAuth)
+            await tx.account.deleteMany({
+                where: { userId }
+            })
+
+            // Delete user's sessions
+            await tx.session.deleteMany({
+                where: { userId }
+            })
+
+            // Finally delete the user
+            await tx.user.delete({
+                where: { id: userId }
+            })
+        })
+
+        revalidatePath("/dashboard/users")
+        return { success: true }
+    } catch (error) {
+        console.error("Delete user error:", error)
+        throw new Error("Failed to delete user. User may have associated data.")
+    }
 }
