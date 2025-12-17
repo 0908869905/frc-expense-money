@@ -308,6 +308,21 @@ const SidebarContent = React.forwardRef<
 })
 SidebarContent.displayName = "SidebarContent"
 
+const SidebarFooter = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div">
+>(({ className, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      data-sidebar="footer"
+      className={cn("flex flex-col gap-2 p-2 mt-auto", className)}
+      {...props}
+    />
+  )
+})
+SidebarFooter.displayName = "SidebarFooter"
+
 const SidebarMenu = React.forwardRef<
   HTMLUListElement,
   React.ComponentProps<"ul">
@@ -386,6 +401,7 @@ import { Button } from "./Button"
 export {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
