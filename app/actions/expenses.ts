@@ -89,6 +89,67 @@ export async function createExpense(prevState: State, formData: FormData): Promi
   }
 }
 
+// Update report (Admin only)
+export async function updateReport(
+  reportId: string,
+  data: {
+    title?: string;
+    description?: string;
+    status?: string;
+  }
+): Promise<State> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  // Only ADMIN can update any report
+  if (session.user.role !== "ADMIN") {
+    return { success: false, message: "Only admins can edit reports" };
+  }
+
+  try {
+    const report = await prisma.expenseReport.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      return { success: false, message: "Report not found" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.expenseReport.update({
+        where: { id: reportId },
+        data: {
+          ...(data.title && { title: data.title }),
+          ...(data.description !== undefined && { description: data.description }),
+          ...(data.status && { status: data.status as any }),
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          entityType: "ExpenseReport",
+          entityId: reportId,
+          action: "UPDATE",
+          actorId: session.user.id!,
+          oldData: JSON.parse(JSON.stringify(report)) as any,
+          newData: data as any,
+        },
+      });
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/reports");
+
+    return { success: true, message: "Report updated successfully!" };
+  } catch (error) {
+    console.error("Failed to update report:", error);
+    return { success: false, message: "Database error: Failed to update report." };
+  }
+}
+
 // Submit a draft report for approval
 export async function submitReport(reportId: string): Promise<State> {
   const session = await auth();

@@ -41,6 +41,7 @@ export default async function ReportsPage() {
         <ReportsContent
             reports={reports}
             stats={stats}
+            userRole={role}
         />
     )
 }

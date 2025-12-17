@@ -1,8 +1,10 @@
 "use client"
 
 import { useLanguage } from "@/lib/language-context"
-import { FileText, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react"
-import { useState } from "react"
+import { FileText, DollarSign, Clock, CheckCircle, XCircle, Edit2, Check, X, Trash2 } from "lucide-react"
+import { useState, useTransition } from "react"
+import { approveReport, rejectReport } from "@/app/actions/approvals"
+import { updateReport, deleteReport } from "@/app/actions/expenses"
 
 interface ReportsContentProps {
     reports: any[]
@@ -13,11 +15,19 @@ interface ReportsContentProps {
         rejected: number
         totalAmount: number
     }
+    userRole: string
 }
 
-export function ReportsContent({ reports, stats }: ReportsContentProps) {
+export function ReportsContent({ reports, stats, userRole }: ReportsContentProps) {
     const { language } = useLanguage()
     const [filter, setFilter] = useState<string>("all")
+    const [isPending, startTransition] = useTransition()
+    const [localReports, setLocalReports] = useState(reports)
+    const [editingId, setEditingId] = useState<string | null>(null)
+    const [editData, setEditData] = useState<{ title: string; status: string }>({ title: "", status: "" })
+    const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
+
+    const isAdmin = userRole === "ADMIN"
 
     const formatDate = (date: Date) => {
         return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US')
@@ -26,6 +36,7 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
     const getStatusColor = (status: string) => {
         if (status === "PAID" || status === "APPROVED") return "text-green-600 bg-green-100"
         if (status === "REJECTED") return "text-red-600 bg-red-100"
+        if (status === "DRAFT") return "text-gray-600 bg-gray-100"
         return "text-yellow-600 bg-yellow-100"
     }
 
@@ -41,13 +52,97 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
         return labels[status]?.[language] || status
     }
 
-    const filteredReports = reports.filter(r => {
+    const showMessage = (type: "success" | "error", text: string) => {
+        setMessage({ type, text })
+        setTimeout(() => setMessage(null), 3000)
+    }
+
+    const handleApprove = async (reportId: string) => {
+        startTransition(async () => {
+            try {
+                await approveReport(reportId)
+                // Update local state
+                setLocalReports(prev => prev.map(r => {
+                    if (r.id === reportId) {
+                        const newStatus = r.status === "PENDING_MANAGER" ? "PENDING_FINANCE" : "PAID"
+                        return { ...r, status: newStatus }
+                    }
+                    return r
+                }))
+                showMessage("success", language === "zh" ? "已批准" : "Approved")
+            } catch (error: any) {
+                showMessage("error", error.message)
+            }
+        })
+    }
+
+    const handleReject = async (reportId: string) => {
+        const reason = prompt(language === "zh" ? "請輸入拒絕原因：" : "Please enter rejection reason:")
+        if (!reason) return
+
+        startTransition(async () => {
+            try {
+                await rejectReport(reportId, reason)
+                setLocalReports(prev => prev.map(r =>
+                    r.id === reportId ? { ...r, status: "REJECTED" } : r
+                ))
+                showMessage("success", language === "zh" ? "已拒絕" : "Rejected")
+            } catch (error: any) {
+                showMessage("error", error.message)
+            }
+        })
+    }
+
+    const handleEdit = (report: any) => {
+        setEditingId(report.id)
+        setEditData({ title: report.title, status: report.status })
+    }
+
+    const handleSaveEdit = async (reportId: string) => {
+        startTransition(async () => {
+            const result = await updateReport(reportId, editData)
+            if (result.success) {
+                setLocalReports(prev => prev.map(r =>
+                    r.id === reportId ? { ...r, ...editData } : r
+                ))
+                setEditingId(null)
+                showMessage("success", language === "zh" ? "已更新" : "Updated")
+            } else {
+                showMessage("error", result.message || "Failed")
+            }
+        })
+    }
+
+    const handleDelete = async (reportId: string) => {
+        if (!confirm(language === "zh" ? "確定要刪除此報帳單嗎？" : "Are you sure you want to delete this report?")) {
+            return
+        }
+        startTransition(async () => {
+            const result = await deleteReport(reportId)
+            if (result.success) {
+                setLocalReports(prev => prev.filter(r => r.id !== reportId))
+                showMessage("success", language === "zh" ? "已刪除" : "Deleted")
+            } else {
+                showMessage("error", result.message || "Failed")
+            }
+        })
+    }
+
+    const filteredReports = localReports.filter(r => {
         if (filter === "all") return true
         if (filter === "pending") return r.status.includes("PENDING")
         if (filter === "approved") return r.status === "PAID" || r.status === "APPROVED"
         if (filter === "rejected") return r.status === "REJECTED"
         return true
     })
+
+    const statusOptions = [
+        { value: "DRAFT", label: language === "zh" ? "草稿" : "Draft" },
+        { value: "PENDING_MANAGER", label: language === "zh" ? "待主管審核" : "Pending Manager" },
+        { value: "PENDING_FINANCE", label: language === "zh" ? "待財務審核" : "Pending Finance" },
+        { value: "PAID", label: language === "zh" ? "已付款" : "Paid" },
+        { value: "REJECTED", label: language === "zh" ? "已拒絕" : "Rejected" }
+    ]
 
     return (
         <div className="flex flex-col gap-6">
@@ -60,6 +155,13 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                 </p>
             </div>
 
+            {/* Message */}
+            {message && (
+                <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                    {message.text}
+                </div>
+            )}
+
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-5">
                 <div className="rounded-xl border bg-card p-4">
@@ -69,7 +171,7 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                             {language === "zh" ? "總計" : "Total"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{stats.total}</p>
+                    <p className="text-2xl font-bold mt-1">{localReports.length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
@@ -78,7 +180,7 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                             {language === "zh" ? "待審核" : "Pending"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{stats.pending}</p>
+                    <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status.includes("PENDING")).length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
@@ -87,7 +189,7 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                             {language === "zh" ? "已核准" : "Approved"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{stats.approved}</p>
+                    <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status === "PAID").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
@@ -96,7 +198,7 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                             {language === "zh" ? "已拒絕" : "Rejected"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{stats.rejected}</p>
+                    <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status === "REJECTED").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
@@ -105,7 +207,7 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                             {language === "zh" ? "總金額" : "Total"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">${stats.totalAmount.toFixed(2)}</p>
+                    <p className="text-2xl font-bold mt-1">${localReports.reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
                 </div>
             </div>
 
@@ -121,8 +223,8 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                         key={tab.key}
                         onClick={() => setFilter(tab.key)}
                         className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${filter === tab.key
-                                ? "border-primary text-primary"
-                                : "border-transparent text-muted-foreground hover:text-foreground"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                     >
                         {tab[language as "zh" | "en"]}
@@ -140,12 +242,13 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                             <th className="text-left p-4 font-medium">{language === "zh" ? "日期" : "Date"}</th>
                             <th className="text-left p-4 font-medium">{language === "zh" ? "金額" : "Amount"}</th>
                             <th className="text-left p-4 font-medium">{language === "zh" ? "狀態" : "Status"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "操作" : "Actions"}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {filteredReports.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                                <td colSpan={6} className="p-8 text-center text-muted-foreground">
                                     {language === "zh" ? "沒有報帳單" : "No expense reports"}
                                 </td>
                             </tr>
@@ -153,8 +256,19 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                             filteredReports.map((report) => (
                                 <tr key={report.id} className="hover:bg-muted/20">
                                     <td className="p-4">
-                                        <p className="font-medium">{report.title}</p>
-                                        <p className="text-sm text-muted-foreground">{report.items.length} {language === "zh" ? "筆項目" : "items"}</p>
+                                        {editingId === report.id ? (
+                                            <input
+                                                type="text"
+                                                value={editData.title}
+                                                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                                                className="px-2 py-1 border rounded w-full"
+                                            />
+                                        ) : (
+                                            <>
+                                                <p className="font-medium">{report.title}</p>
+                                                <p className="text-sm text-muted-foreground">{report.items.length} {language === "zh" ? "筆項目" : "items"}</p>
+                                            </>
+                                        )}
                                     </td>
                                     <td className="p-4 text-muted-foreground">
                                         {report.submitter?.name || report.submitter?.email}
@@ -166,9 +280,86 @@ export function ReportsContent({ reports, stats }: ReportsContentProps) {
                                         ${Number(report.totalAmount).toFixed(2)}
                                     </td>
                                     <td className="p-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
-                                            {getStatusLabel(report.status)}
-                                        </span>
+                                        {editingId === report.id ? (
+                                            <select
+                                                value={editData.status}
+                                                onChange={(e) => setEditData({ ...editData, status: e.target.value })}
+                                                className="px-2 py-1 border rounded text-sm"
+                                            >
+                                                {statusOptions.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                                                {getStatusLabel(report.status)}
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="flex gap-2">
+                                            {editingId === report.id ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleSaveEdit(report.id)}
+                                                        disabled={isPending}
+                                                        className="p-1.5 rounded text-green-600 hover:bg-green-50"
+                                                    >
+                                                        <Check className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setEditingId(null)}
+                                                        className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {/* Approve/Reject for pending reports */}
+                                                    {report.status.includes("PENDING") && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleApprove(report.id)}
+                                                                disabled={isPending}
+                                                                className="p-1.5 rounded text-green-600 hover:bg-green-50"
+                                                                title={language === "zh" ? "批准" : "Approve"}
+                                                            >
+                                                                <CheckCircle className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleReject(report.id)}
+                                                                disabled={isPending}
+                                                                className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                                                                title={language === "zh" ? "拒絕" : "Reject"}
+                                                            >
+                                                                <XCircle className="h-4 w-4" />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {/* Edit for Admin */}
+                                                    {isAdmin && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleEdit(report)}
+                                                                className="p-1.5 rounded hover:bg-muted"
+                                                                title={language === "zh" ? "編輯" : "Edit"}
+                                                            >
+                                                                <Edit2 className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(report.id)}
+                                                                disabled={isPending}
+                                                                className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                                                                title={language === "zh" ? "刪除" : "Delete"}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))
