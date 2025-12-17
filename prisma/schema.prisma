@@ -63,6 +63,7 @@ model User {
   email          String?          @unique
   emailVerified  DateTime?
   image          String?
+  password       String?          // Hashed password for credentials auth
   role           Role             @default(USER)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
