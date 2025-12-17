@@ -34,7 +34,7 @@ export default function LandingPage() {
                     Get Started <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="#">
+                <Link href="/about">
                   <Button variant="outline" className="h-11 px-8">Learn more</Button>
                 </Link>
               </div>
