@@ -123,17 +123,6 @@ export default function LoginPage() {
                   立即註冊
                 </Link>
               </p>
-
-              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                <p className="text-xs text-muted-foreground text-center mb-2">
-                  Demo 帳號（密碼隨便填）：
-                </p>
-                <div className="text-xs text-center space-y-1">
-                  <p>user@demo.com (一般用戶)</p>
-                  <p>manager@demo.com (主管)</p>
-                  <p>admin@demo.com (管理員)</p>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
