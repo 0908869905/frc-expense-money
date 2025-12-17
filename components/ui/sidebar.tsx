@@ -159,15 +159,19 @@ const Sidebar = React.forwardRef<
     if (isMobile) {
       return (
         <>
-          <div
-            data-state={openMobile ? "open" : "closed"}
-            className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-            onClick={() => setOpenMobile(false)}
-          />
+          {/* Overlay - only render when sidebar is open */}
+          {openMobile && (
+            <div
+              className="fixed inset-0 z-40 bg-black/80 animate-in fade-in-0"
+              onClick={() => setOpenMobile(false)}
+            />
+          )}
+          {/* Sidebar panel */}
           <div
             data-state={openMobile ? "open" : "closed"}
             className={cn(
-              "fixed inset-y-0 z-50 flex h-full w-3/4 flex-col bg-card border-r shadow-lg transition-transform duration-300 ease-in-out data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0 sm:max-w-xs",
+              "fixed inset-y-0 z-50 flex h-full w-3/4 flex-col bg-card border-r shadow-lg transition-transform duration-300 ease-in-out sm:max-w-xs",
+              openMobile ? "translate-x-0" : "-translate-x-full",
               side === "left" ? "left-0" : "right-0",
               className
             )}
@@ -175,7 +179,7 @@ const Sidebar = React.forwardRef<
             {...props}
           >
             <div className="flex flex-col h-full">
-              <div className="absolute right-4 top-4 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+              <div className="absolute right-4 top-4 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
                 <X className="h-4 w-4 cursor-pointer" onClick={() => setOpenMobile(false)} />
                 <span className="sr-only">Close</span>
               </div>
