@@ -10,6 +10,7 @@ import {
   Settings,
   Shield,
   User,
+  Users,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useLanguage } from "@/lib/language-context"
@@ -98,6 +99,18 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
                 <a href="/dashboard/reports">
                   <FileText />
                   <span>{t("所有報表", "All Reports")}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+
+          {/* Admin Only Items */}
+          {role === "ADMIN" && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={t("用戶管理", "User Management")}>
+                <a href="/dashboard/users">
+                  <Users />
+                  <span>{t("用戶管理", "Users")}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
