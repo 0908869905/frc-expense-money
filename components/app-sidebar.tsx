@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Settings,
   Shield,
+  User,
 } from "lucide-react"
 
 import {
@@ -88,6 +89,15 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Profile">
+              <a href="/dashboard/profile">
+                <User />
+                <span>Profile</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
           <SidebarMenuItem className="mt-auto">
             <SidebarMenuButton asChild tooltip="Settings">
