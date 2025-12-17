@@ -9,12 +9,14 @@ import { signIn } from "next-auth/react"
 import { Loader2, Shield } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useLanguage } from "@/lib/language-context"
 
 function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const searchParams = useSearchParams()
   const registered = searchParams.get("registered")
+  const { t } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -32,7 +34,7 @@ function LoginForm() {
     })
 
     if (result?.error) {
-      setError("電子郵件或密碼錯誤")
+      setError(t("login_error"))
       setLoading(false)
     } else {
       window.location.href = "/dashboard"
@@ -43,7 +45,7 @@ function LoginForm() {
     <>
       {registered && (
         <div className="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm">
-          註冊成功！請使用你的帳號登入
+          {t("register_success")}
         </div>
       )}
 
@@ -55,28 +57,28 @@ function LoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">電子郵件</Label>
+          <Label htmlFor="email">{t("email")}</Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder="name@example.com"
+            placeholder={t("email_placeholder")}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">密碼</Label>
+          <Label htmlFor="password">{t("password")}</Label>
           <Input
             id="password"
             name="password"
             type="password"
-            placeholder="輸入密碼"
+            placeholder={t("password_placeholder")}
             required
           />
         </div>
         <Button className="w-full" type="submit" disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          登入
+          {t("login_button")}
         </Button>
       </form>
     </>
@@ -84,6 +86,8 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const { t } = useLanguage()
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
       <div className="w-full max-w-md">
@@ -93,14 +97,14 @@ export default function LoginPage() {
             <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Shield className="size-6" />
             </div>
-            <span className="text-2xl font-bold">報帳系統</span>
+            <span className="text-2xl font-bold">{t("expense_system")}</span>
           </Link>
         </div>
 
         <Card className="border-0 shadow-lg">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">登入</CardTitle>
-            <CardDescription>輸入你的帳號密碼登入系統</CardDescription>
+            <CardTitle className="text-2xl font-bold">{t("login")}</CardTitle>
+            <CardDescription>{t("login_desc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded-lg" />}>
@@ -113,14 +117,14 @@ export default function LoginPage() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">或</span>
+                  <span className="bg-card px-2 text-muted-foreground">or</span>
                 </div>
               </div>
 
               <p className="text-center text-sm text-muted-foreground mt-4">
-                還沒有帳號？{" "}
+                {t("no_account")}{" "}
                 <Link href="/register" className="font-medium text-primary hover:underline">
-                  立即註冊
+                  {t("register_now")}
                 </Link>
               </p>
             </div>
@@ -128,7 +132,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2024 報帳系統. All rights reserved.
+          {t("footer_rights")}
         </p>
       </div>
     </div>

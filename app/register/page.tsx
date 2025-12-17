@@ -1,8 +1,13 @@
+"use client"
+
 import { RegisterForm } from "@/components/register-form"
 import { Shield } from "lucide-react"
 import Link from "next/link"
+import { useLanguage } from "@/lib/language-context"
 
 export default function RegisterPage() {
+    const { t } = useLanguage()
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
             <div className="w-full max-w-md">
@@ -12,16 +17,16 @@ export default function RegisterPage() {
                         <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                             <Shield className="size-6" />
                         </div>
-                        <span className="text-2xl font-bold">報帳系統</span>
+                        <span className="text-2xl font-bold">{t("expense_system")}</span>
                     </Link>
                 </div>
 
                 {/* Register Card */}
                 <div className="bg-card border rounded-2xl shadow-lg p-8">
                     <div className="text-center mb-6">
-                        <h1 className="text-2xl font-bold text-foreground">建立帳號</h1>
+                        <h1 className="text-2xl font-bold text-foreground">{t("register")}</h1>
                         <p className="text-muted-foreground mt-1">
-                            填寫以下資訊來創建你的帳號
+                            {t("register_desc")}
                         </p>
                     </div>
 
@@ -30,7 +35,7 @@ export default function RegisterPage() {
 
                 {/* Footer */}
                 <p className="text-center text-xs text-muted-foreground mt-6">
-                    © 2024 報帳系統. All rights reserved.
+                    {t("footer_rights")}
                 </p>
             </div>
         </div>

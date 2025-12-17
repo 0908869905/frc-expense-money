@@ -6,9 +6,11 @@ import { registerUser, RegisterState } from "@/app/actions/register"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2, UserPlus, Mail, Lock, User } from "lucide-react"
+import { useLanguage } from "@/lib/language-context"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
+    const { t } = useLanguage()
 
     return (
         <button
@@ -19,12 +21,12 @@ function SubmitButton() {
             {pending ? (
                 <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    處理中...
+                    {t("loading")}
                 </>
             ) : (
                 <>
                     <UserPlus className="h-4 w-4" />
-                    註冊
+                    {t("register_button")}
                 </>
             )}
         </button>
@@ -33,6 +35,7 @@ function SubmitButton() {
 
 export function RegisterForm() {
     const router = useRouter()
+    const { t } = useLanguage()
     const [state, formAction] = useFormState<RegisterState, FormData>(registerUser, {
         success: false,
         message: null,
@@ -47,8 +50,8 @@ export function RegisterForm() {
         <form action={formAction} className="space-y-5">
             {state.message && (
                 <div className={`p-4 rounded-lg text-sm ${state.success
-                        ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-red-50 text-red-700 border border-red-200"
+                    ? "bg-green-50 text-green-700 border border-green-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
                     }`}>
                     {state.message}
                 </div>
@@ -56,7 +59,7 @@ export function RegisterForm() {
 
             <div>
                 <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1.5">
-                    姓名
+                    {t("name")}
                 </label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -68,7 +71,7 @@ export function RegisterForm() {
                         type="text"
                         required
                         className="block w-full pl-10 pr-3 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                        placeholder="輸入你的姓名"
+                        placeholder={t("name")}
                     />
                 </div>
                 {state.errors?.name && (
@@ -78,7 +81,7 @@ export function RegisterForm() {
 
             <div>
                 <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
-                    電子郵件
+                    {t("email")}
                 </label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -91,7 +94,7 @@ export function RegisterForm() {
                         autoComplete="email"
                         required
                         className="block w-full pl-10 pr-3 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                        placeholder="name@example.com"
+                        placeholder={t("email_placeholder")}
                     />
                 </div>
                 {state.errors?.email && (
@@ -101,7 +104,7 @@ export function RegisterForm() {
 
             <div>
                 <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
-                    密碼
+                    {t("password")}
                 </label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -115,7 +118,7 @@ export function RegisterForm() {
                         required
                         minLength={6}
                         className="block w-full pl-10 pr-3 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                        placeholder="至少 6 個字元"
+                        placeholder={t("password_min_6")}
                     />
                 </div>
                 {state.errors?.password && (
@@ -125,7 +128,7 @@ export function RegisterForm() {
 
             <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
-                    確認密碼
+                    {t("confirm_password")}
                 </label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -138,7 +141,7 @@ export function RegisterForm() {
                         autoComplete="new-password"
                         required
                         className="block w-full pl-10 pr-3 py-2.5 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
-                        placeholder="再次輸入密碼"
+                        placeholder={t("confirm_password_placeholder")}
                     />
                 </div>
                 {state.errors?.confirmPassword && (
@@ -149,9 +152,9 @@ export function RegisterForm() {
             <SubmitButton />
 
             <p className="text-center text-sm text-muted-foreground">
-                已有帳號？{" "}
+                {t("have_account")}{" "}
                 <Link href="/login" className="font-medium text-primary hover:underline">
-                    登入
+                    {t("login_now")}
                 </Link>
             </p>
         </form>
