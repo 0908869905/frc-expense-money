@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, Suspense } from "react"
 import { Button } from "@/components/ui/Button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import { Loader2, Shield } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 
-export default function LoginPage() {
+function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const searchParams = useSearchParams()
@@ -40,6 +40,51 @@ export default function LoginPage() {
   }
 
   return (
+    <>
+      {registered && (
+        <div className="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm">
+          註冊成功！請使用你的帳號登入
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">電子郵件</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">密碼</Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="輸入密碼"
+            required
+          />
+        </div>
+        <Button className="w-full" type="submit" disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          登入
+        </Button>
+      </form>
+    </>
+  )
+}
+
+export default function LoginPage() {
+  return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
@@ -58,44 +103,9 @@ export default function LoginPage() {
             <CardDescription>輸入你的帳號密碼登入系統</CardDescription>
           </CardHeader>
           <CardContent>
-            {registered && (
-              <div className="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded-lg text-sm">
-                註冊成功！請使用你的帳號登入
-              </div>
-            )}
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">電子郵件</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">密碼</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="輸入密碼"
-                  required
-                />
-              </div>
-              <Button className="w-full" type="submit" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                登入
-              </Button>
-            </form>
+            <Suspense fallback={<div className="animate-pulse h-48 bg-muted rounded-lg" />}>
+              <LoginForm />
+            </Suspense>
 
             <div className="mt-6">
               <div className="relative">
