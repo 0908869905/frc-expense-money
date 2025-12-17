@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma"; 
+import { prisma } from "@/lib/prisma";
 import { expenseReportSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
 
@@ -26,7 +26,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
   // or we parse standard formData naming conventions. 
   // For robustness with dynamic arrays, we expect a 'data' field containing the JSON string of values)
   const rawData = formData.get("data");
-  
+
   if (!rawData || typeof rawData !== "string") {
     return { success: false, message: "Invalid form data submission" };
   }
@@ -81,10 +81,110 @@ export async function createExpense(prevState: State, formData: FormData): Promi
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/expenses");
-    
+
     return { success: true, message: "Expense report created successfully!" };
   } catch (error) {
     console.error("Failed to create expense report:", error);
     return { success: false, message: "Database error: Failed to create report." };
+  }
+}
+
+// Submit a draft report for approval
+export async function submitReport(reportId: string): Promise<State> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  try {
+    const report = await prisma.expenseReport.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      return { success: false, message: "Report not found" };
+    }
+
+    if (report.submitterId !== session.user.id) {
+      return { success: false, message: "You can only submit your own reports" };
+    }
+
+    if (report.status !== "DRAFT") {
+      return { success: false, message: "Only draft reports can be submitted" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.expenseReport.update({
+        where: { id: reportId },
+        data: { status: "PENDING_MANAGER" },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          entityType: "ExpenseReport",
+          entityId: reportId,
+          action: "SUBMIT",
+          actorId: session.user.id!,
+          oldData: { status: "DRAFT" },
+          newData: { status: "PENDING_MANAGER" },
+        },
+      });
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/expenses");
+
+    return { success: true, message: "Report submitted for approval!" };
+  } catch (error) {
+    console.error("Failed to submit report:", error);
+    return { success: false, message: "Database error: Failed to submit report." };
+  }
+}
+
+// Delete a draft report
+export async function deleteReport(reportId: string): Promise<State> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, message: "Unauthorized" };
+  }
+
+  try {
+    const report = await prisma.expenseReport.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      return { success: false, message: "Report not found" };
+    }
+
+    if (report.submitterId !== session.user.id && session.user.role !== "ADMIN") {
+      return { success: false, message: "You can only delete your own reports" };
+    }
+
+    if (report.status !== "DRAFT" && session.user.role !== "ADMIN") {
+      return { success: false, message: "Only draft reports can be deleted" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Delete expense items first
+      await tx.expenseItem.deleteMany({
+        where: { reportId },
+      });
+
+      // Delete the report
+      await tx.expenseReport.delete({
+        where: { id: reportId },
+      });
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/expenses");
+
+    return { success: true, message: "Report deleted!" };
+  } catch (error) {
+    console.error("Failed to delete report:", error);
+    return { success: false, message: "Database error: Failed to delete report." };
   }
 }
