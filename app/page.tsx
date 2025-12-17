@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/Button"
 import { Shield, ArrowRight } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default function LandingPage() {
   const { t } = useLanguage()
@@ -15,7 +16,8 @@ export default function LandingPage() {
           <Shield className="h-6 w-6 mr-2" />
           <span className="font-bold">Ultimate Expense</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        <nav className="ml-auto flex items-center gap-4 sm:gap-6">
+          <LanguageSwitcher />
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/login">
             {t("sign_in")}
           </Link>
