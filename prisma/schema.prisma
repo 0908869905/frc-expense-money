@@ -79,6 +79,7 @@ enum ReportStatus {
   DRAFT
   PENDING_MANAGER
   PENDING_FINANCE
+  RETURNED        // 退回修改
   PAID
   REJECTED
 }

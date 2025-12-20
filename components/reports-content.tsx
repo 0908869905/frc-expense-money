@@ -1,9 +1,9 @@
 "use client"
 
 import { useLanguage } from "@/lib/language-context"
-import { FileText, DollarSign, Clock, CheckCircle, XCircle, Edit2, Check, X, Trash2, Download, FileSpreadsheet } from "lucide-react"
+import { FileText, DollarSign, Clock, CheckCircle, XCircle, Edit2, Check, X, Trash2, Download, FileSpreadsheet, RotateCcw } from "lucide-react"
 import { useState, useTransition } from "react"
-import { approveReport, rejectReport } from "@/app/actions/approvals"
+import { approveReport, rejectReport, returnForRevision } from "@/app/actions/approvals"
 import { updateReport, deleteReport } from "@/app/actions/expenses"
 import { getReportsForExport, getItemsForExport } from "@/app/actions/export"
 import { exportToCSV, exportToExcel, exportToExcelMultiSheet } from "@/lib/export-utils"
@@ -49,6 +49,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
             DRAFT: { zh: "草稿", en: "Draft" },
             PENDING_MANAGER: { zh: "待主管審核", en: "Pending Manager" },
             PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
+            RETURNED: { zh: "已退回", en: "Returned" },
             APPROVED: { zh: "已核准", en: "Approved" },
             REJECTED: { zh: "已拒絕", en: "Rejected" },
             PAID: { zh: "已付款", en: "Paid" }
@@ -188,9 +189,27 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
         { value: "DRAFT", label: language === "zh" ? "草稿" : "Draft" },
         { value: "PENDING_MANAGER", label: language === "zh" ? "待主管審核" : "Pending Manager" },
         { value: "PENDING_FINANCE", label: language === "zh" ? "待財務審核" : "Pending Finance" },
+        { value: "RETURNED", label: language === "zh" ? "已退回" : "Returned" },
         { value: "PAID", label: language === "zh" ? "已付款" : "Paid" },
         { value: "REJECTED", label: language === "zh" ? "已拒絕" : "Rejected" }
     ]
+
+    const handleReturn = async (reportId: string) => {
+        const reason = prompt(language === "zh" ? "請輸入退回原因：" : "Please enter return reason:")
+        if (!reason) return
+
+        startTransition(async () => {
+            try {
+                await returnForRevision(reportId, reason)
+                setLocalReports(prev => prev.map(r =>
+                    r.id === reportId ? { ...r, status: "RETURNED" } : r
+                ))
+                showMessage("success", language === "zh" ? "已退回修改" : "Returned for revision")
+            } catch (error: any) {
+                showMessage("error", error.message)
+            }
+        })
+    }
 
     return (
         <div className="flex flex-col gap-6">
