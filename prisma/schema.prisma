@@ -132,3 +132,54 @@ model AuditLog {
   newData    Json?
   createdAt  DateTime @default(now())
 }
+
+// ========== Inventory Management Models ==========
+
+// 零件類別
+enum ItemCategory {
+  MOTOR        // 馬達
+  SENSOR       // 感測器
+  PNEUMATIC    // 氣壓
+  CONTROLLER   // 控制器
+  HARDWARE     // 五金
+  RAW_MATERIAL // 原料
+  TOOL         // 工具
+}
+
+// 異動類型
+enum TransactionType {
+  PURCHASE_IN      // 採購入庫
+  PROJECT_USE      // 專案領用
+  DAMAGED          // 損壞報廢
+  LOST             // 遺失
+  AUDIT_ADJUSTMENT // 盤點調整
+}
+
+// 零件基本檔
+model InventoryItem {
+  id               String        @id @default(cuid())
+  name             String        // 品名
+  sku              String        @unique // 廠商料號 (例如 "REV-21-1650")
+  category         ItemCategory  // 類別
+  storageLocation  String        // 儲存位置 (例如 "A櫃-3層")
+  currentQuantity  Int           @default(0) // 當前數量
+  safetyStockLevel Int           @default(0) // 安全庫存水位
+  vendorLink       String?       // 購買連結
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  transactions InventoryTransaction[]
+}
+
+// 異動流水帳 (Log 表，追蹤每一次庫存變化)
+model InventoryTransaction {
+  id               String          @id @default(cuid())
+  itemId           String
+  item             InventoryItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  changeAmount     Int             // 正數=入庫/歸還，負數=領用/報廢
+  transactionType  TransactionType // 異動類型
+  relatedProjectId String?         // 關聯專案 (若為 PROJECT_USE)
+  performedBy      String          // 操作者名稱
+  timestamp        DateTime        @default(now())
+}
+

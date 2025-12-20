@@ -7,6 +7,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  Package,
   Settings,
   Shield,
   User,
@@ -76,6 +77,14 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
               <a href="/dashboard/expenses">
                 <CreditCard />
                 <span>{t("我的花費", "My Expenses")}</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={t("庫存管理", "Inventory")}>
+              <a href="/dashboard/inventory">
+                <Package />
+                <span>{t("庫存管理", "Inventory")}</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
