@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  BarChart3,
   CheckSquare,
   CreditCard,
   FileText,
@@ -103,14 +104,24 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
 
           {/* Finance / Admin Items */}
           {(role === "FINANCE" || role === "ADMIN") && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("所有報表", "All Reports")}>
-                <a href="/dashboard/reports">
-                  <FileText />
-                  <span>{t("所有報表", "All Reports")}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={t("所有報表", "All Reports")}>
+                  <a href="/dashboard/reports">
+                    <FileText />
+                    <span>{t("所有報表", "All Reports")}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={t("數據分析", "Analytics")}>
+                  <a href="/dashboard/analytics">
+                    <BarChart3 />
+                    <span>{t("數據分析", "Analytics")}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </>
           )}
 
           {/* Admin Only Items */}
