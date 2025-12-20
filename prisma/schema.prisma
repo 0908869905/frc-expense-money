@@ -73,6 +73,7 @@ model User {
   expenseReports  ExpenseReport[]
   approvalActions ApprovalAction[]
   auditLogs       AuditLog[]
+  notifications   Notification[]
 }
 
 enum ReportStatus {
@@ -184,3 +185,16 @@ model InventoryTransaction {
   timestamp        DateTime        @default(now())
 }
 
+// 應用內通知
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // 接收者
+  title     String   // 通知標題
+  message   String   // 通知內容
+  type      String   @default("INFO") // INFO, WARNING, SUCCESS, ERROR
+  link      String?  // 點擊後跳轉連結
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
