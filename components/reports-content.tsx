@@ -1,10 +1,12 @@
 "use client"
 
 import { useLanguage } from "@/lib/language-context"
-import { FileText, DollarSign, Clock, CheckCircle, XCircle, Edit2, Check, X, Trash2 } from "lucide-react"
+import { FileText, DollarSign, Clock, CheckCircle, XCircle, Edit2, Check, X, Trash2, Download, FileSpreadsheet } from "lucide-react"
 import { useState, useTransition } from "react"
 import { approveReport, rejectReport } from "@/app/actions/approvals"
 import { updateReport, deleteReport } from "@/app/actions/expenses"
+import { getReportsForExport, getItemsForExport } from "@/app/actions/export"
+import { exportToCSV, exportToExcel, exportToExcelMultiSheet } from "@/lib/export-utils"
 
 interface ReportsContentProps {
     reports: any[]
@@ -26,8 +28,10 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
     const [editingId, setEditingId] = useState<string | null>(null)
     const [editData, setEditData] = useState<{ title: string; status: string }>({ title: "", status: "" })
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
+    const [isExporting, setIsExporting] = useState(false)
 
     const isAdmin = userRole === "ADMIN"
+    const canExport = userRole === "FINANCE" || userRole === "ADMIN"
 
     const formatDate = (date: Date) => {
         return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US')
@@ -55,6 +59,50 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
     const showMessage = (type: "success" | "error", text: string) => {
         setMessage({ type, text })
         setTimeout(() => setMessage(null), 3000)
+    }
+
+    // 匯出為 CSV
+    const handleExportCSV = async () => {
+        setIsExporting(true)
+        try {
+            const data = await getReportsForExport()
+            if (data.length === 0) {
+                showMessage("error", language === "zh" ? "沒有資料可匯出" : "No data to export")
+                return
+            }
+            const filename = `expense_reports_${new Date().toISOString().split("T")[0]}`
+            exportToCSV(data, filename)
+            showMessage("success", language === "zh" ? "CSV 匯出成功" : "CSV exported")
+        } catch (error) {
+            showMessage("error", language === "zh" ? "匯出失敗" : "Export failed")
+        } finally {
+            setIsExporting(false)
+        }
+    }
+
+    // 匯出為 Excel
+    const handleExportExcel = async () => {
+        setIsExporting(true)
+        try {
+            const [reports, items] = await Promise.all([
+                getReportsForExport(),
+                getItemsForExport()
+            ])
+            if (reports.length === 0) {
+                showMessage("error", language === "zh" ? "沒有資料可匯出" : "No data to export")
+                return
+            }
+            const filename = `expense_reports_${new Date().toISOString().split("T")[0]}`
+            exportToExcelMultiSheet([
+                { name: language === "zh" ? "報帳單" : "Reports", data: reports },
+                { name: language === "zh" ? "費用明細" : "Items", data: items }
+            ], filename)
+            showMessage("success", language === "zh" ? "Excel 匯出成功" : "Excel exported")
+        } catch (error) {
+            showMessage("error", language === "zh" ? "匯出失敗" : "Export failed")
+        } finally {
+            setIsExporting(false)
+        }
     }
 
     const handleApprove = async (reportId: string) => {
@@ -146,13 +194,36 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
 
     return (
         <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                    {language === "zh" ? "所有報表" : "All Reports"}
-                </h1>
-                <p className="text-muted-foreground">
-                    {language === "zh" ? "查看和管理所有報帳單" : "View and manage all expense reports"}
-                </p>
+            {/* Header with Export Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        {language === "zh" ? "所有報表" : "All Reports"}
+                    </h1>
+                    <p className="text-muted-foreground">
+                        {language === "zh" ? "查看和管理所有報帳單" : "View and manage all expense reports"}
+                    </p>
+                </div>
+                {canExport && (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExportCSV}
+                            disabled={isExporting}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md border bg-background hover:bg-muted transition-colors disabled:opacity-50"
+                        >
+                            <Download className="h-4 w-4" />
+                            CSV
+                        </button>
+                        <button
+                            onClick={handleExportExcel}
+                            disabled={isExporting}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
+                        >
+                            <FileSpreadsheet className="h-4 w-4" />
+                            Excel
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Message */}
