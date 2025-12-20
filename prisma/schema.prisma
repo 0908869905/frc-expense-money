@@ -98,6 +98,12 @@ model ExpenseReport {
 
   items           ExpenseItem[]
   approvalActions ApprovalAction[]
+
+  // 索引優化
+  @@index([submitterId])           // 查詢使用者的報帳單
+  @@index([status])                // 按狀態篩選
+  @@index([createdAt(sort: Desc)]) // 時間排序  
+  @@index([status, createdAt])     // 複合索引：狀態+時間
 }
 
 model ExpenseItem {
@@ -110,6 +116,11 @@ model ExpenseItem {
   reportId    String
   report      ExpenseReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
   createdAt   DateTime      @default(now())
+
+  // 索引優化
+  @@index([reportId])              // 關聯查詢
+  @@index([category])              // 按類別統計
+  @@index([date])                  // 按日期篩選
 }
 
 model ApprovalAction {
