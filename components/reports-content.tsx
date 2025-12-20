@@ -406,7 +406,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                 </>
                                             ) : (
                                                 <>
-                                                    {/* Approve/Reject for pending reports */}
+                                                    {/* Approve/Reject/Return for pending reports */}
                                                     {report.status.includes("PENDING") && (
                                                         <>
                                                             <button
@@ -424,6 +424,14 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                                 title={language === "zh" ? "拒絕" : "Reject"}
                                                             >
                                                                 <XCircle className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleReturn(report.id)}
+                                                                disabled={isPending}
+                                                                className="p-1.5 rounded text-yellow-600 hover:bg-yellow-50"
+                                                                title={language === "zh" ? "退回修改" : "Return for Revision"}
+                                                            >
+                                                                <RotateCcw className="h-4 w-4" />
                                                             </button>
                                                         </>
                                                     )}
