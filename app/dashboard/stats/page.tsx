@@ -2,9 +2,11 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 
-// ISR - Incremental Static Regeneration
-// 此頁面每 60 秒重新生成一次
-export const revalidate = 60;
+// 金融敏感頁面強制動態渲染，確保數據即時性
+// 參考企業架構規範：不使用 ISR 於餘額等敏感數據
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 
 // 取得統計資料（這會在構建時和每 60 秒後更新）
 async function getPublicStats() {
