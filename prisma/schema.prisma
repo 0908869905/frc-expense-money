@@ -209,3 +209,73 @@ model Notification {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+// ============================================
+// Phase 5: 進階功能
+// ============================================
+
+// 組織 (多租戶架構基礎)
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique // URL 友好的識別碼
+  description String?
+  logoUrl     String?
+  currency    String   @default("TWD") // 預設幣別
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  budgets     Budget[]
+  members     OrganizationMember[]
+
+  @@index([slug])
+}
+
+// 組織成員 (多對多關聯)
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String       @default("MEMBER") // OWNER, ADMIN, MEMBER
+  joinedAt       DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+// 預算管理
+model Budget {
+  id              String       @id @default(cuid())
+  name            String       // 預算名稱 (如: Q1 行銷預算)
+  category        String?      // 類別限制 (可選)
+  amount          Float        // 預算金額
+  spent           Float        @default(0) // 已使用金額
+  currency        String       @default("TWD")
+  startDate       DateTime     // 生效起始日
+  endDate         DateTime     // 生效結束日
+  alertThreshold  Float        @default(0.8) // 預警閾值 (0.8 = 80%)
+  organizationId  String?
+  createdBy       String       // 建立者 ID
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([startDate, endDate])
+  @@index([category])
+}
+
+// 幣別匯率快取
+model ExchangeRate {
+  id           String   @id @default(cuid())
+  baseCurrency String   // 基準貨幣
+  currency     String   // 目標貨幣
+  rate         Float    // 匯率
+  updatedAt    DateTime @default(now())
+
+  @@unique([baseCurrency, currency])
+  @@index([baseCurrency])
+}
