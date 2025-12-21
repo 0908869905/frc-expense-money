@@ -40,8 +40,8 @@ function LoginForm() {
         setError(t("login_error"))
         setLoading(false)
       } else if (result?.ok) {
-        // 使用 router.push 比 window.location 在 iOS 上更可靠
-        window.location.replace("/dashboard")
+        // 暫時跳轉到測試頁進行 debug
+        window.location.replace("/test")
       }
     } catch (err) {
       setError(t("login_error"))
