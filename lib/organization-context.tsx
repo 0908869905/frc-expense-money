@@ -37,24 +37,43 @@ interface OrganizationContextType {
     switchToFrc: () => void;
 }
 
-const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
+// 默認值，用於 SSR 或 context 未準備好時
+const defaultContext: OrganizationContextType = {
+    org: ORGANIZATIONS.frc,
+    orgId: "frc",
+    setOrg: () => { },
+    switchToFamily: () => false,
+    switchToFrc: () => { },
+};
+
+const OrganizationContext = createContext<OrganizationContextType>(defaultContext);
 
 const ORG_STORAGE_KEY = "expense-system-org";
 
 export function OrganizationProvider({ children }: { children: ReactNode }) {
     const [orgId, setOrgId] = useState<OrgId>("frc");
+    const [mounted, setMounted] = useState(false);
 
     // 從 localStorage 讀取
     useEffect(() => {
-        const stored = localStorage.getItem(ORG_STORAGE_KEY);
-        if (stored && stored in ORGANIZATIONS) {
-            setOrgId(stored as OrgId);
+        setMounted(true);
+        try {
+            const stored = localStorage.getItem(ORG_STORAGE_KEY);
+            if (stored && stored in ORGANIZATIONS) {
+                setOrgId(stored as OrgId);
+            }
+        } catch (e) {
+            // localStorage 可能在某些情況下不可用
         }
     }, []);
 
     const setOrg = (id: OrgId) => {
         setOrgId(id);
-        localStorage.setItem(ORG_STORAGE_KEY, id);
+        try {
+            localStorage.setItem(ORG_STORAGE_KEY, id);
+        } catch (e) {
+            // 忽略 localStorage 錯誤
+        }
     };
 
     const switchToFamily = (password: string): boolean => {
@@ -79,9 +98,6 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 }
 
 export function useOrganization() {
-    const context = useContext(OrganizationContext);
-    if (!context) {
-        throw new Error("useOrganization must be used within an OrganizationProvider");
-    }
-    return context;
+    return useContext(OrganizationContext);
 }
+
