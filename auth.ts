@@ -22,13 +22,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const organizationId = (credentials.organizationId as string) || "frc-6998";
 
-        // 根據 email 和 organizationId 查找用戶
-        const user = await prisma.user.findFirst({
+        // 嘗試根據 email 和 organizationId 查找用戶
+        // 如果 organizationId 欄位不存在（遷移前），回退到只用 email
+        let user = await prisma.user.findFirst({
           where: {
             email: credentials.email as string,
-            organizationId, // 只在當前組織內查找
+            organizationId,
           }
-        });
+        }).catch(() => null);
+
+        // 回退：如果上面查詢失敗或無結果，用舊方式查詢
+        if (!user) {
+          user = await prisma.user.findFirst({
+            where: { email: credentials.email as string }
+          });
+        }
 
         if (!user) return null;
 
