@@ -77,11 +77,11 @@ const UploadButton = ({ onUploadComplete, defaultUrl }: UploadButtonProps) => {
         ) : (
           <Upload className="mr-2 h-4 w-4" />
         )}
-        {uploading ? "Uploading..." : preview ? "Change Receipt" : "Upload Receipt"}
+        {uploading ? "上傳中..." : preview ? "更換收據" : "上傳收據"}
       </Button>
       {preview && (
         <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline truncate max-w-[100px]">
-          View
+          檢視
         </a>
       )}
     </div>
@@ -147,8 +147,8 @@ export function ExpenseForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto py-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">New Expense Report</h2>
-          <p className="text-muted-foreground">Submit a new claim for reimbursement.</p>
+          <h2 className="text-3xl font-bold tracking-tight">新增報帳單</h2>
+          <p className="text-muted-foreground">提交新的費用報銷申請。</p>
         </div>
       </div>
 
@@ -161,26 +161,26 @@ export function ExpenseForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Report Details</CardTitle>
-          <CardDescription>General information about this claim.</CardDescription>
+          <CardTitle>報帳單資訊</CardTitle>
+          <CardDescription>此次報銷的基本資訊。</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
           <FormItem>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Report Title</label>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">報帳單標題</label>
             <input
               {...register("title")}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="e.g. October Client Visit"
+              placeholder="例如：十月客戶拜訪"
             />
             {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
           </FormItem>
 
           <FormItem>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Purpose / Description</label>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">用途/說明</label>
             <textarea
               {...register("description")}
               className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Detailed explanation of expenses..."
+              placeholder="詳細說明費用內容..."
             />
           </FormItem>
         </CardContent>
@@ -188,14 +188,14 @@ export function ExpenseForm() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">Expense Items</h3>
+          <h3 className="text-lg font-medium">費用明細項目</h3>
           <Button
             type="button"
             variant="secondary"
             size="sm"
             onClick={() => append({ date: new Date(), category: "Food", description: "", amount: 0, receiptUrl: null })}
           >
-            <Plus className="mr-2 h-4 w-4" /> Add Item
+            <Plus className="mr-2 h-4 w-4" />新增項目
           </Button>
         </div>
 
@@ -204,7 +204,7 @@ export function ExpenseForm() {
             <CardContent className="p-6">
               <div className="grid gap-6 md:grid-cols-12">
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Date</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">日期</label>
                   <input
                     type="date"
                     {...register(`items.${index}.date` as const)}
@@ -213,7 +213,7 @@ export function ExpenseForm() {
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Category</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">類別</label>
                   <select
                     {...register(`items.${index}.category` as const)}
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
@@ -225,10 +225,10 @@ export function ExpenseForm() {
                 </div>
 
                 <div className="md:col-span-4 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Description</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">說明</label>
                   <input
                     {...register(`items.${index}.description` as const)}
-                    placeholder="Lunch with client"
+                    placeholder="與客戶午餐"
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   {errors.items?.[index]?.description && (
@@ -237,7 +237,7 @@ export function ExpenseForm() {
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Amount</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">金額</label>
                   <div className="relative">
                     <span className="absolute left-2 top-2.5 text-xs text-muted-foreground">$</span>
                     <input
@@ -283,15 +283,15 @@ export function ExpenseForm() {
       </div>
 
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={() => reset()}>Discard</Button>
+        <Button type="button" variant="outline" onClick={() => reset()}>取消</Button>
         <Button type="submit" disabled={isPending} className="min-w-[150px]">
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
+              提交中...
             </>
           ) : (
-            "Submit Report"
+            "提交報帳單"
           )}
         </Button>
       </div>
