@@ -40,7 +40,13 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
   const t = (zh: string, en: string) => language === "zh" ? zh : en
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" })
+    try {
+      await signOut({ callbackUrl: "/login" })
+    } catch (error) {
+      console.error("Logout error:", error)
+      // Fallback: 手動重定向
+      window.location.href = "/login"
+    }
   }
 
   return (
