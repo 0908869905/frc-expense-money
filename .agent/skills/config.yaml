@@ -1,0 +1,64 @@
+# Agent Skills Configuration
+# 此配置檔定義所有 skills 的全域設定
+
+settings:
+  # 預設使用的 AI 模型
+  default_model: claude-opus-4-5-20250514
+  
+  # 模型別名對照表
+  model_aliases:
+    opus: claude-opus-4-5-20250514
+    sonnet: claude-sonnet-4-20250514
+    haiku: claude-3-5-haiku-20241022
+
+# 已安裝的 Skills 列表
+installed_skills:
+  - name: frontend-design
+    path: ./skills/frontend-design
+    model: claude-opus-4-5-20250514
+    description: 創建獨特、生產級的前端介面設計
+    
+  - name: theme-factory
+    path: ./skills/theme-factory
+    model: claude-opus-4-5-20250514
+    description: 為各種文件套用專業主題樣式
+    
+  - name: web-artifacts-builder
+    path: ./skills/web-artifacts-builder
+    model: claude-opus-4-5-20250514
+    description: 建立複雜的多元件 HTML artifacts
+    
+  - name: webapp-testing
+    path: ./skills/webapp-testing
+    model: claude-opus-4-5-20250514
+    description: 使用 Playwright 測試網頁應用程式
+
+# 技能觸發關鍵字
+skill_triggers:
+  frontend-design:
+    - 前端設計
+    - UI設計
+    - 網頁設計
+    - 介面設計
+    - React 元件
+    - landing page
+    - dashboard
+    
+  theme-factory:
+    - 主題
+    - 配色
+    - 樣式
+    - 顏色方案
+    - theme
+    
+  web-artifacts-builder:
+    - artifact
+    - 建立網頁
+    - React 應用
+    - bundle
+    
+  webapp-testing:
+    - 測試
+    - Playwright
+    - 自動化測試
+    - E2E 測試
