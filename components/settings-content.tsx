@@ -17,7 +17,13 @@ export function SettingsContent({ session }: SettingsContentProps) {
     const isAdmin = session?.user?.role === "ADMIN"
 
     const handleLogout = async () => {
-        await signOut({ callbackUrl: "/login" })
+        try {
+            await signOut({ callbackUrl: "/login" })
+        } catch (error) {
+            console.error("Logout error:", error)
+            // Fallback: 手動清除 session 並重定向
+            window.location.href = "/login"
+        }
     }
 
     return (
