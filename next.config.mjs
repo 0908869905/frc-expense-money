@@ -50,6 +50,30 @@ const nextConfig = {
   },
 };
 
-// 暫時禁用 Sentry 以修復 NextAuth 衝突
-// TODO: 修復後重新啟用 Sentry
-export default nextConfig;
+// Sentry 配置 - 排除 auth 路由以避免衝突
+const sentryWebpackPluginOptions = {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: true,
+  disableLogger: true,
+  // 排除 NextAuth 路由
+  excludeServerRoutes: [
+    "/api/auth/[...nextauth]",
+    "/api/auth/providers",
+    "/api/auth/csrf",
+    "/api/auth/signin",
+    "/api/auth/signout",
+    "/api/auth/session",
+    "/api/auth/callback",
+  ],
+  // 禁用自動 instrumentation 以避免衝突
+  autoInstrumentServerFunctions: false,
+  autoInstrumentAppDirectory: false,
+};
+
+// 如果有 Sentry DSN 才啟用
+const config = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
+  : nextConfig;
+
+export default config;
