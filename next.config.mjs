@@ -71,9 +71,7 @@ const sentryWebpackPluginOptions = {
   autoInstrumentAppDirectory: false,
 };
 
-// 如果有 Sentry DSN 才啟用
-const config = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig;
-
-export default config;
+// ⚠️ 暫時禁用 Sentry - wrapRouteHandlerWithSentry 與 NextAuth 衝突
+// 錯誤: TypeError: o5 is not a constructor
+// 使用 Vercel Logs 進行錯誤追蹤
+export default nextConfig;
