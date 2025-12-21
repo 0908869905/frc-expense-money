@@ -3,16 +3,19 @@ import "./globals.css"
 import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/lib/language-context"
+import { getBrandConfig } from "@/lib/brand"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
+const brandConfig = getBrandConfig()
+
 export const metadata = {
-  title: "FRC 6998 報帳系統",
-  description: "UNIPARDS 費用報銷管理系統",
+  title: brandConfig.name,
+  description: `${brandConfig.tagline} - 費用報銷管理系統`,
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: brandConfig.logo,
+    shortcut: brandConfig.logo,
+    apple: brandConfig.logo,
   },
 }
 
