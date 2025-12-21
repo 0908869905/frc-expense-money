@@ -29,17 +29,23 @@ function LoginForm() {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
 
-    if (result?.error) {
+      if (result?.error) {
+        setError(t("login_error"))
+        setLoading(false)
+      } else if (result?.ok) {
+        // 使用 router.push 比 window.location 在 iOS 上更可靠
+        window.location.replace("/dashboard")
+      }
+    } catch (err) {
       setError(t("login_error"))
       setLoading(false)
-    } else {
-      window.location.href = "/dashboard"
     }
   }
 
