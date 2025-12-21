@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/lib/language-context"
 import { OrganizationProvider } from "@/lib/organization-context"
 import { OrganizationSwitcher } from "@/components/organization-switcher"
+import { ThemeApplier } from "@/components/theme-applier"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -24,10 +25,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
+    <html lang="zh-TW" suppressHydrationWarning>
+      <body className={cn("min-h-screen bg-background font-sans antialiased theme-frc", inter.variable)}>
         <OrganizationProvider>
           <LanguageProvider>
+            <ThemeApplier />
             {children}
             <OrganizationSwitcher />
           </LanguageProvider>

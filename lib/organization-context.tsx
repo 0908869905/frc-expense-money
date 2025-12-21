@@ -11,7 +11,8 @@ export const ORGANIZATIONS = {
         logo: "/logo.png",
         title: "FRC 6998 報帳",
         titleEn: "FRC 6998 Expense",
-        bgColor: "bg-black",
+        bgColor: "bg-primary",
+        themeClass: "theme-frc",
         password: null, // FRC 不需要密碼
     },
     family: {
@@ -21,7 +22,8 @@ export const ORGANIZATIONS = {
         logo: "/logo-family.png",
         title: "家庭記帳",
         titleEn: "Family Expense",
-        bgColor: "bg-gradient-to-br from-orange-500 to-teal-500",
+        bgColor: "bg-primary",
+        themeClass: "theme-family",
         password: "***REMOVED***", // 家庭版需要密碼
     },
 } as const;
