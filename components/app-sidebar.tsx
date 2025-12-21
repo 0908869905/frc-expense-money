@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useLanguage } from "@/lib/language-context"
-import { useTheme } from "@/lib/theme-context"
+import { useOrganization } from "@/lib/organization-context"
 
 import {
   Sidebar,
@@ -35,7 +35,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
   const role = userRole || "USER"
   const { language } = useLanguage()
-  const { theme } = useTheme()
+  const { org } = useOrganization()
 
   const t = (zh: string, en: string) => language === "zh" ? zh : en
 
@@ -50,14 +50,14 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="/dashboard">
-                <div className={`flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ${theme.bgColor}`}>
-                  <img src={theme.logo} alt={theme.name} className="size-6 object-contain" />
+                <div className={`flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ${org.bgColor}`}>
+                  <img src={org.logo} alt={org.name} className="size-6 object-contain" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
-                    {t(theme.title, theme.titleEn)}
+                    {t(org.title, org.titleEn)}
                   </span>
-                  <span className="truncate text-xs">{theme.subtitle}</span>
+                  <span className="truncate text-xs">{org.subtitle}</span>
                 </div>
               </a>
             </SidebarMenuButton>
