@@ -26,6 +26,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
   // or we parse standard formData naming conventions. 
   // For robustness with dynamic arrays, we expect a 'data' field containing the JSON string of values)
   const rawData = formData.get("data");
+  const organizationId = formData.get("organizationId") as string || "frc-6998";
 
   if (!rawData || typeof rawData !== "string") {
     return { success: false, message: "Invalid form data submission" };
@@ -47,12 +48,13 @@ export async function createExpense(prevState: State, formData: FormData): Promi
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Create the Report
+      // 1. Create the Report with organizationId
       const report = await tx.expenseReport.create({
         data: {
           title,
           description: description || "",
           submitterId: session.user.id!,
+          organizationId, // 資料隔離：依組織分開
           status: "DRAFT", // Or PENDING_MANAGER depending on business logic
           totalAmount,
           items: {

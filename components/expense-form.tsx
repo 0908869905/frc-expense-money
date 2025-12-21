@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"; // We need to create a simple Lab
 import { Trash2, Plus, Upload, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFormState } from "react-dom"; // React 18 相容
+import { useOrganization } from "@/lib/organization-context";
 // import { upload } from "@vercel/blob/client"; // Uncomment if package is available
 
 // --- Simple UI Wrappers (since they weren't in previous context) ---
@@ -94,6 +95,7 @@ export function ExpenseForm() {
     success: false,
     message: null,
   });
+  const { org } = useOrganization();
 
   const {
     register,
@@ -128,6 +130,7 @@ export function ExpenseForm() {
     // We serialize the complex data object to pass it cleanly.
     const formData = new FormData();
     formData.append("data", JSON.stringify(data));
+    formData.append("organizationId", org.id); // 傳遞當前組織 ID
 
     // Trigger the server action with transition for pending state
     startTransition(() => {
