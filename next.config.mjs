@@ -50,17 +50,6 @@ const nextConfig = {
   },
 };
 
-// Sentry 配置
-const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: true,
-  disableLogger: true,
-};
-
-// 如果有 Sentry DSN 才啟用
-const config = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig;
-
-export default config;
+// 暫時禁用 Sentry 以修復 NextAuth 衝突
+// TODO: 修復後重新啟用 Sentry
+export default nextConfig;
