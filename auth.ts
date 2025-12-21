@@ -4,7 +4,8 @@ import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
+  // Note: PrismaAdapter removed because Credentials provider uses JWT strategy
+  // and doesn't need database sessions
   session: {
     strategy: "jwt",
   },

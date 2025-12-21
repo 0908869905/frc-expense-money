@@ -20,7 +20,6 @@ export function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false)
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [isPending, startTransition] = useTransition()
-    const [error, setError] = useState(false)
 
     const unreadCount = notifications.filter(n => !n.isRead).length
 
@@ -29,19 +28,8 @@ export function NotificationBell() {
     }, [])
 
     const loadNotifications = async () => {
-        try {
-            const data = await getMyNotifications()
-            if (Array.isArray(data)) {
-                setNotifications(data as Notification[])
-            } else {
-                setNotifications([])
-            }
-            setError(false)
-        } catch (err) {
-            console.error("Failed to load notifications:", err)
-            setNotifications([])
-            setError(true)
-        }
+        const data = await getMyNotifications()
+        setNotifications(data as Notification[])
     }
 
     const handleMarkAsRead = async (id: string) => {

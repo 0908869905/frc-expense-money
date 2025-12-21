@@ -2,7 +2,9 @@ import React from "react"
 import "./globals.css"
 import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
-import { Providers } from "@/components/providers"
+import { LanguageProvider } from "@/lib/language-context"
+import { OrganizationProvider } from "@/lib/organization-context"
+import { OrganizationSwitcher } from "@/components/organization-switcher"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -24,9 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        <Providers>
-          {children}
-        </Providers>
+        <OrganizationProvider>
+          <LanguageProvider>
+            {children}
+            <OrganizationSwitcher />
+          </LanguageProvider>
+        </OrganizationProvider>
       </body>
     </html>
   )
