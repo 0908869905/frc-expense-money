@@ -89,15 +89,16 @@ enum ReportStatus {
 }
 
 model ExpenseReport {
-  id          String       @id @default(cuid())
-  title       String
-  description String       @default("")
-  status      ReportStatus @default(DRAFT)
-  totalAmount Float        @default(0)
-  submitterId String
-  submitter   User         @relation(fields: [submitterId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  title          String
+  description    String       @default("")
+  status         ReportStatus @default(DRAFT)
+  totalAmount    Float        @default(0)
+  submitterId    String
+  submitter      User         @relation(fields: [submitterId], references: [id])
+  organizationId String       @default("frc-6998") // 資料隔離：依組織分開
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   items           ExpenseItem[]
   approvalActions ApprovalAction[]
@@ -107,6 +108,7 @@ model ExpenseReport {
   @@index([status])                // 按狀態篩選
   @@index([createdAt(sort: Desc)]) // 時間排序  
   @@index([status, createdAt])     // 複合索引：狀態+時間
+  @@index([organizationId])        // 組織過濾
 }
 
 model ExpenseItem {
