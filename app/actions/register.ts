@@ -36,6 +36,9 @@ export async function registerUser(
         confirmPassword: formData.get("confirmPassword") as string,
     }
 
+    // 取得組織 ID（從表單傳入，預設 frc-6998）
+    const organizationId = (formData.get("organizationId") as string) || "frc-6998"
+
     // Validate form data
     const validatedFields = registerSchema.safeParse(rawFormData)
 
@@ -50,9 +53,12 @@ export async function registerUser(
     const { name, email, password } = validatedFields.data
 
     try {
-        // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
+        // Check if user already exists in the same organization
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                email,
+                organizationId, // 同一組織內 email 不能重複
+            },
         })
 
         if (existingUser) {
@@ -66,13 +72,14 @@ export async function registerUser(
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        // Create user
+        // Create user with organizationId
         await prisma.user.create({
             data: {
                 name,
                 email,
                 password: hashedPassword,
-                role: "USER", // Default role
+                role: "USER",
+                organizationId, // 用戶歸屬當前組織
             },
         })
 
@@ -88,3 +95,4 @@ export async function registerUser(
         }
     }
 }
+
