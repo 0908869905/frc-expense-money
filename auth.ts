@@ -27,17 +27,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user) return null;
 
-        // For demo users without password, allow any password
-        if (!user.password) {
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        }
+        // 用戶必須有密碼才能登入
+        if (!user.password) return null;
 
-        // Verify password for registered users
+        // Verify password
         const isValidPassword = await bcrypt.compare(
           credentials.password as string,
           user.password
