@@ -15,12 +15,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        organizationId: { label: "Organization", type: "text" }, // 新增：組織 ID
       },
       authorize: async (credentials) => {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string }
+        const organizationId = (credentials.organizationId as string) || "frc-6998";
+
+        // 根據 email 和 organizationId 查找用戶
+        const user = await prisma.user.findFirst({
+          where: {
+            email: credentials.email as string,
+            organizationId, // 只在當前組織內查找
+          }
         });
 
         if (!user) return null;
@@ -32,6 +39,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: user.email,
             name: user.name,
             role: user.role,
+            organizationId: user.organizationId,
           };
         }
 
@@ -48,6 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.name,
           role: user.role,
+          organizationId: user.organizationId,
         };
       }
     }),
@@ -57,6 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user && user.id) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.organizationId = (user as any).organizationId;
       }
       return token;
     },
@@ -64,6 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && token.id) {
         session.user.id = token.id as string;
         session.user.role = (token.role as string) || "USER";
+        (session.user as any).organizationId = token.organizationId || "frc-6998";
       }
       return session;
     },

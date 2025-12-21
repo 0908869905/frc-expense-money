@@ -11,6 +11,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { useOrganization } from "@/lib/organization-context"
 
 function LoginForm() {
   const [loading, setLoading] = useState(false)
@@ -18,6 +19,7 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const registered = searchParams.get("registered")
   const { t } = useLanguage()
+  const { org } = useOrganization()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -31,6 +33,7 @@ function LoginForm() {
     const result = await signIn("credentials", {
       email,
       password,
+      organizationId: org.id, // 傳遞當前組織 ID
       redirect: false,
     })
 
