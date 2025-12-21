@@ -2,8 +2,9 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { signOut } from "next-auth/react"
-import { LogOut, Moon, Sun, Globe, Bell } from "lucide-react"
+import { LogOut, Moon, Sun, Globe, Bell, Palette } from "lucide-react"
 import { useState } from "react"
+import { ThemeSwitcher } from "@/components/theme-switcher"
 
 interface SettingsContentProps {
     session: any
@@ -12,6 +13,8 @@ interface SettingsContentProps {
 export function SettingsContent({ session }: SettingsContentProps) {
     const { t, language, setLanguage } = useLanguage()
     const [notifications, setNotifications] = useState(true)
+
+    const isAdmin = session?.user?.role === "ADMIN"
 
     const handleLogout = async () => {
         await signOut({ callbackUrl: "/login" })
@@ -25,6 +28,9 @@ export function SettingsContent({ session }: SettingsContentProps) {
                     {language === "zh" ? "管理你的應用程式設定" : "Manage your application settings"}
                 </p>
             </div>
+
+            {/* Theme Settings - Admin Only */}
+            {isAdmin && <ThemeSwitcher />}
 
             {/* Language Settings */}
             <div className="rounded-xl border bg-card p-6">
@@ -43,8 +49,8 @@ export function SettingsContent({ session }: SettingsContentProps) {
                         <button
                             onClick={() => setLanguage("zh")}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${language === "zh"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted hover:bg-muted/80"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80"
                                 }`}
                         >
                             中文
@@ -52,8 +58,8 @@ export function SettingsContent({ session }: SettingsContentProps) {
                         <button
                             onClick={() => setLanguage("en")}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${language === "en"
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-muted hover:bg-muted/80"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80"
                                 }`}
                         >
                             English
@@ -112,3 +118,4 @@ export function SettingsContent({ session }: SettingsContentProps) {
         </div>
     )
 }
+

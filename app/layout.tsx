@@ -3,19 +3,17 @@ import "./globals.css"
 import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/lib/language-context"
-import { getBrandConfig } from "@/lib/brand"
+import { ThemeProvider } from "@/lib/theme-context"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
-const brandConfig = getBrandConfig()
-
 export const metadata = {
-  title: brandConfig.name,
-  description: `${brandConfig.tagline} - 費用報銷管理系統`,
+  title: "報帳系統",
+  description: "費用報銷管理系統",
   icons: {
-    icon: brandConfig.logo,
-    shortcut: brandConfig.logo,
-    apple: brandConfig.logo,
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
 }
 
@@ -27,9 +25,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
