@@ -48,14 +48,14 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Shield className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden bg-black">
+                  <img src="/logo.png" alt="UNIPARDS" className="size-6 object-contain" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
-                    {t("報帳系統", "Expense System")}
+                    {t("FRC 6998 報帳", "FRC 6998 Expense")}
                   </span>
-                  <span className="truncate text-xs">Enterprise</span>
+                  <span className="truncate text-xs">UNIPARDS</span>
                 </div>
               </a>
             </SidebarMenuButton>

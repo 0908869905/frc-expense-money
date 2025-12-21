@@ -7,8 +7,13 @@ import { LanguageProvider } from "@/lib/language-context"
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata = {
-  title: "Ultimate Perfect Expense System",
-  description: "Enterprise grade expense tracking",
+  title: "FRC 6998 報帳系統",
+  description: "UNIPARDS 費用報銷管理系統",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 }
 
 export default function RootLayout({
