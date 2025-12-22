@@ -61,6 +61,17 @@ export async function createExpense(prevState: State, formData: FormData): Promi
 
   const { title, description, items } = validatedFields.data;
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+  const amountCentsValue = Math.round(totalAmount * 100);
+
+  // Debug: 追蹤 amountCents 值
+  console.log("Creating expense report with:", {
+    title,
+    totalAmount,
+    amountCentsValue,
+    submitterId,
+    organizationId,
+    itemsCount: items.length
+  });
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -73,7 +84,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
           organizationId, // 資料隔離：依組織分開
           status: "DRAFT", // Or PENDING_MANAGER depending on business logic
           totalAmount,
-          amountCents: Math.round(totalAmount * 100), // 相容舊版 Prisma Client
+          amountCents: amountCentsValue, // 使用預先計算的值
           items: {
             create: items.map((item) => {
               // 確保日期是有效的 Date 物件
