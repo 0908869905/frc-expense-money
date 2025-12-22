@@ -5,18 +5,14 @@ import { auth } from "@/auth"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 
-// Get all users (Admin only) - filtered by organization
-export async function getUsers(organizationId?: string) {
+// Get all users (Admin only)
+export async function getUsers() {
     const session = await auth()
     if (!session?.user || session.user.role !== "ADMIN") {
         throw new Error("Unauthorized")
     }
 
-    // 如果提供了 organizationId，則過濾；否則返回所有用戶
-    const whereClause = organizationId ? { organizationId } : {}
-
     return prisma.user.findMany({
-        where: whereClause,
         select: {
             id: true,
             name: true,
@@ -24,7 +20,6 @@ export async function getUsers(organizationId?: string) {
             role: true,
             emailVerified: true,
             createdAt: true,
-            organizationId: true,
             _count: {
                 select: { expenseReports: true }
             }

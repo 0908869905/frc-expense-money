@@ -23,7 +23,6 @@ export default async function UsersPage() {
             role: true,
             emailVerified: true,
             createdAt: true,
-            organizationId: true,
             _count: {
                 select: { expenseReports: true }
             }

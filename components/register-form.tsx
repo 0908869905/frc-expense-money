@@ -7,7 +7,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2, UserPlus, Mail, Lock, User } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
-import { useOrganization } from "@/lib/organization-context"
 
 function SubmitButton() {
     const { pending } = useFormStatus()
@@ -37,7 +36,6 @@ function SubmitButton() {
 export function RegisterForm() {
     const router = useRouter()
     const { t } = useLanguage()
-    const { org } = useOrganization()
     const [state, formAction] = useFormState<RegisterState, FormData>(registerUser, {
         success: false,
         message: null,
@@ -50,8 +48,6 @@ export function RegisterForm() {
 
     return (
         <form action={formAction} className="space-y-5">
-            {/* 隱藏欄位：傳遞當前組織 ID */}
-            <input type="hidden" name="organizationId" value={org.id} />
             {state.message && (
                 <div className={`p-4 rounded-lg text-sm ${state.success
                     ? "bg-green-50 text-green-700 border border-green-200"

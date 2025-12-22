@@ -198,33 +198,4 @@ model InventoryTransaction {
   timestamp        DateTime        @default(now())
 }
 
-// 預算管理
-model Budget {
-  id             String   @id @default(cuid())
-  name           String   // 預算名稱 (如: Q1 行銷預算)
-  category       String?  // 類別限制 (可選)
-  amount         Float    // 預算金額
-  spent          Float    @default(0) // 已使用金額
-  currency       String   @default("TWD")
-  startDate      DateTime // 生效起始日
-  endDate        DateTime // 生效結束日
-  alertThreshold Float    @default(0.8) // 預警閾值 (0.8 = 80%)
-  createdBy      String   // 建立者 ID
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 
-  @@index([startDate, endDate])
-  @@index([category])
-}
-
-// 幣別匯率快取
-model ExchangeRate {
-  id           String   @id @default(cuid())
-  baseCurrency String   // 基準貨幣
-  currency     String   // 目標貨幣
-  rate         Float    // 匯率
-  updatedAt    DateTime @default(now())
-
-  @@unique([baseCurrency, currency])
-  @@index([baseCurrency])
-}
