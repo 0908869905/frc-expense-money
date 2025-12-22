@@ -2,9 +2,8 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { signOut } from "next-auth/react"
-import { LogOut, Moon, Sun, Globe, Bell, Palette } from "lucide-react"
+import { LogOut, Globe, Bell } from "lucide-react"
 import { useState } from "react"
-import { ThemeSwitcher } from "@/components/theme-switcher"
 
 interface SettingsContentProps {
     session: any
@@ -34,9 +33,6 @@ export function SettingsContent({ session }: SettingsContentProps) {
                     {language === "zh" ? "管理你的應用程式設定" : "Manage your application settings"}
                 </p>
             </div>
-
-            {/* Theme Settings - Admin Only */}
-            {isAdmin && <ThemeSwitcher />}
 
             {/* Language Settings */}
             <div className="rounded-xl border bg-card p-6">
