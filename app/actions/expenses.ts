@@ -5,8 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { expenseReportSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
 
-// We use the imported 'prisma' instance directly.
-
 export type State = {
   success: boolean;
   message: string | null;
@@ -22,27 +20,19 @@ export async function createExpense(prevState: State, formData: FormData): Promi
     return { success: false, message: "Unauthorized" };
   }
 
-  // Debug: 確認 submitterId 存在於 User 表中
+  // 驗證用戶存在
   const submitterId = session.user.id;
-  console.log("Session user ID:", submitterId);
-
   const userExists = await prisma.user.findUnique({
     where: { id: submitterId },
-    select: { id: true, email: true }
+    select: { id: true }
   });
 
   if (!userExists) {
-    console.error("User not found in database:", submitterId);
-    return { success: false, message: `User not found: ${submitterId}` };
+    return { success: false, message: "User not found" };
   }
-  console.log("User found:", userExists);
 
-
-  // Extract complex data structures (React Hook Form will likely pass these as JSON strings if we structure the payload manually, 
-  // or we parse standard formData naming conventions. 
-  // For robustness with dynamic arrays, we expect a 'data' field containing the JSON string of values)
+  // 解析表單資料
   const rawData = formData.get("data");
-  const organizationId = formData.get("organizationId") as string || "frc-6998";
 
   if (!rawData || typeof rawData !== "string") {
     return { success: false, message: "Invalid form data submission" };
@@ -61,39 +51,25 @@ export async function createExpense(prevState: State, formData: FormData): Promi
 
   const { title, description, items } = validatedFields.data;
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
-  const amountCentsValue = Math.round(totalAmount * 100);
-
-  // Debug: 追蹤 amountCents 值
-  console.log("Creating expense report with:", {
-    title,
-    totalAmount,
-    amountCentsValue,
-    submitterId,
-    organizationId,
-    itemsCount: items.length
-  });
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. Create the Report with organizationId
+      // 1. 建立報帳單
       const report = await tx.expenseReport.create({
         data: {
           title,
           description: description || "",
-          submitterId: session.user.id!,
-          organizationId, // 資料隔離：依組織分開
-          status: "DRAFT", // Or PENDING_MANAGER depending on business logic
+          submitterId,
+          status: "DRAFT",
           totalAmount,
-          amountCents: amountCentsValue, // 使用預先計算的值
           items: {
             create: items.map((item) => {
               // 確保日期是有效的 Date 物件
               let parsedDate: Date;
               try {
                 parsedDate = item.date instanceof Date ? item.date : new Date(item.date);
-                // 檢查日期是否有效（防止 Invalid Date）
                 if (isNaN(parsedDate.getTime()) || parsedDate.getFullYear() > 3000) {
-                  parsedDate = new Date(); // 使用當前日期作為後備
+                  parsedDate = new Date();
                 }
               } catch {
                 parsedDate = new Date();
@@ -111,13 +87,13 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         },
       });
 
-      // 2. Create Audit Log
+      // 2. 建立審計日誌
       await tx.auditLog.create({
         data: {
           entityType: "ExpenseReport",
           entityId: report.id,
           action: "CREATE",
-          actorId: session.user.id!,
+          actorId: submitterId,
           newData: JSON.parse(JSON.stringify(report)) as any,
         },
       });
