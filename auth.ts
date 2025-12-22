@@ -15,12 +15,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        organizationId: { label: "Organization", type: "text" },
       },
       authorize: async (credentials) => {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // 暫時只用 email 查詢，等資料庫遷移完成後再啟用 organizationId 過濾
+        // 用 email 查詢用戶
         const user = await prisma.user.findFirst({
           where: { email: credentials.email as string }
         });
