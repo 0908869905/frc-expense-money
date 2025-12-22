@@ -2,7 +2,6 @@
 
 import { ReactNode } from "react"
 import { LanguageSwitcher } from "@/components/language-switcher"
-import { NotificationBell } from "@/components/notification-bell"
 import { useLanguage } from "@/lib/language-context"
 
 interface DashboardHeaderProps {
@@ -23,7 +22,6 @@ export function DashboardHeader({ userName, children }: DashboardHeaderProps) {
                 </span>
             </div>
             <div className="flex items-center gap-2 px-4">
-                <NotificationBell />
                 <LanguageSwitcher />
             </div>
         </header>

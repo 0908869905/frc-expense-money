@@ -185,17 +185,6 @@ export async function returnForRevision(reportId: string, comment: string) {
         newData: { status: "RETURNED", returnReason: comment },
       },
     });
-
-    // 通知提交者報帳單已退回
-    await tx.notification.create({
-      data: {
-        userId: report.submitterId,
-        title: "報帳單已退回修改",
-        message: `您的報帳單「${report.title}」已被 ${actorName} 退回。原因：${comment}`,
-        type: "WARNING",
-        link: "/dashboard/expenses",
-      },
-    });
   });
 
   revalidatePath("/dashboard");
