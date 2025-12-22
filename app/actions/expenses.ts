@@ -57,6 +57,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
           organizationId, // 資料隔離：依組織分開
           status: "DRAFT", // Or PENDING_MANAGER depending on business logic
           totalAmount,
+          amountCents: Math.round(totalAmount * 100), // 相容舊版 Prisma Client
           items: {
             create: items.map((item) => ({
               date: item.date,

@@ -94,6 +94,7 @@ model ExpenseReport {
   description    String       @default("")
   status         ReportStatus @default(DRAFT)
   totalAmount    Float        @default(0)
+  amountCents    Int          @default(0)  // 保留此欄位以相容舊的 Prisma Client
   submitterId    String
   submitter      User         @relation(fields: [submitterId], references: [id])
   organizationId String       @default("frc-6998") // 資料隔離：依組織分開
