@@ -22,6 +22,22 @@ export async function createExpense(prevState: State, formData: FormData): Promi
     return { success: false, message: "Unauthorized" };
   }
 
+  // Debug: 確認 submitterId 存在於 User 表中
+  const submitterId = session.user.id;
+  console.log("Session user ID:", submitterId);
+
+  const userExists = await prisma.user.findUnique({
+    where: { id: submitterId },
+    select: { id: true, email: true }
+  });
+
+  if (!userExists) {
+    console.error("User not found in database:", submitterId);
+    return { success: false, message: `User not found: ${submitterId}` };
+  }
+  console.log("User found:", userExists);
+
+
   // Extract complex data structures (React Hook Form will likely pass these as JSON strings if we structure the payload manually, 
   // or we parse standard formData naming conventions. 
   // For robustness with dynamic arrays, we expect a 'data' field containing the JSON string of values)
