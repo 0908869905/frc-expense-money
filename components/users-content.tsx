@@ -12,14 +12,7 @@ interface User {
     role: string
     emailVerified: Date | null
     createdAt: Date
-    organizationId: string | null
     _count: { expenseReports: number }
-}
-
-const getOrgLabel = (orgId: string | null) => {
-    if (orgId === "frc-6998") return { name: "FRC 6998", color: "bg-cyan-100 text-cyan-700" }
-    if (orgId === "family") return { name: "家庭", color: "bg-orange-100 text-orange-700" }
-    return { name: "未設定", color: "bg-gray-100 text-gray-500" }
 }
 
 interface UsersContentProps {
@@ -178,7 +171,6 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                     <thead className="bg-muted/50">
                         <tr>
                             <th className="text-left p-4 font-medium">{t("用戶", "User")}</th>
-                            <th className="text-left p-4 font-medium">{t("組織", "Organization")}</th>
                             <th className="text-left p-4 font-medium">{t("角色", "Role")}</th>
                             <th className="text-left p-4 font-medium">{t("狀態", "Status")}</th>
                             <th className="text-left p-4 font-medium">{t("報表數", "Reports")}</th>
@@ -219,12 +211,6 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                             )}
                                         </div>
                                     </div>
-                                </td>
-                                <td className="p-4">
-                                    {(() => {
-                                        const org = getOrgLabel(user.organizationId)
-                                        return <span className={`px-2 py-1 rounded-full text-xs font-medium ${org.color}`}>{org.name}</span>
-                                    })()}
                                 </td>
                                 <td className="p-4">
                                     {editingUser === user.id && editField === "role" ? (
