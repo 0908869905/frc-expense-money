@@ -59,13 +59,27 @@ export async function createExpense(prevState: State, formData: FormData): Promi
           totalAmount,
           amountCents: Math.round(totalAmount * 100), // 相容舊版 Prisma Client
           items: {
-            create: items.map((item) => ({
-              date: item.date,
-              category: item.category,
-              description: item.description,
-              amount: item.amount,
-              receiptUrl: item.receiptUrl,
-            })),
+            create: items.map((item) => {
+              // 確保日期是有效的 Date 物件
+              let parsedDate: Date;
+              try {
+                parsedDate = item.date instanceof Date ? item.date : new Date(item.date);
+                // 檢查日期是否有效（防止 Invalid Date）
+                if (isNaN(parsedDate.getTime()) || parsedDate.getFullYear() > 3000) {
+                  parsedDate = new Date(); // 使用當前日期作為後備
+                }
+              } catch {
+                parsedDate = new Date();
+              }
+
+              return {
+                date: parsedDate,
+                category: item.category,
+                description: item.description,
+                amount: item.amount,
+                receiptUrl: item.receiptUrl,
+              };
+            }),
           },
         },
       });
