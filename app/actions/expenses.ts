@@ -16,20 +16,14 @@ export type State = {
 export async function createExpense(prevState: State, formData: FormData): Promise<State> {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return { success: false, message: "Unauthorized" };
   }
 
-  // 驗證用戶存在
-  const submitterId = session.user.id;
-  const userExists = await prisma.user.findUnique({
-    where: { id: submitterId },
-    select: { id: true }
-  });
-
-  if (!userExists) {
-    return { success: false, message: "User not found" };
-  }
+  // 使用 session 中的資訊，類似 inventory 的 performedBy 模式
+  const submitterName = session.user.name || session.user.email || "Unknown";
+  const submitterEmail = session.user.email || "";
+  const submitterId = session.user.id || null;
 
   // 解析表單資料
   const rawData = formData.get("data");
@@ -54,17 +48,18 @@ export async function createExpense(prevState: State, formData: FormData): Promi
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. 建立報帳單
+      // 1. 建立報帳單 - 使用 name/email 字串而非外鍵
       const report = await tx.expenseReport.create({
         data: {
           title,
           description: description || "",
-          submitterId,
+          submitterName,
+          submitterEmail,
+          submitterId, // 可選的外鍵，可能為 null
           status: "DRAFT",
           totalAmount,
           items: {
             create: items.map((item) => {
-              // 確保日期是有效的 Date 物件
               let parsedDate: Date;
               try {
                 parsedDate = item.date instanceof Date ? item.date : new Date(item.date);
@@ -87,25 +82,27 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         },
       });
 
-      // 2. 建立審計日誌
-      await tx.auditLog.create({
-        data: {
-          entityType: "ExpenseReport",
-          entityId: report.id,
-          action: "CREATE",
-          actorId: submitterId,
-          newData: JSON.parse(JSON.stringify(report)) as any,
-        },
-      });
+      // 2. 建立審計日誌 - 也用可選方式
+      if (submitterId) {
+        await tx.auditLog.create({
+          data: {
+            entityType: "ExpenseReport",
+            entityId: report.id,
+            action: "CREATE",
+            actorId: submitterId,
+            newData: JSON.parse(JSON.stringify(report)) as any,
+          },
+        });
+      }
     });
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/expenses");
 
-    return { success: true, message: "Expense report created successfully!" };
+    return { success: true, message: "報帳單建立成功！" };
   } catch (error) {
     console.error("Failed to create expense report:", error);
-    return { success: false, message: "Database error: Failed to create report." };
+    return { success: false, message: "資料庫錯誤：建立報帳單失敗" };
   }
 }
 
@@ -120,7 +117,7 @@ export async function updateReport(
 ): Promise<State> {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return { success: false, message: "Unauthorized" };
   }
 
@@ -148,16 +145,18 @@ export async function updateReport(
         },
       });
 
-      await tx.auditLog.create({
-        data: {
-          entityType: "ExpenseReport",
-          entityId: reportId,
-          action: "UPDATE",
-          actorId: session.user.id!,
-          oldData: JSON.parse(JSON.stringify(report)) as any,
-          newData: data as any,
-        },
-      });
+      if (session.user.id) {
+        await tx.auditLog.create({
+          data: {
+            entityType: "ExpenseReport",
+            entityId: reportId,
+            action: "UPDATE",
+            actorId: session.user.id,
+            oldData: JSON.parse(JSON.stringify(report)) as any,
+            newData: data as any,
+          },
+        });
+      }
     });
 
     revalidatePath("/dashboard");
@@ -174,7 +173,7 @@ export async function updateReport(
 export async function submitReport(reportId: string): Promise<State> {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return { success: false, message: "Unauthorized" };
   }
 
@@ -187,7 +186,8 @@ export async function submitReport(reportId: string): Promise<State> {
       return { success: false, message: "Report not found" };
     }
 
-    if (report.submitterId !== session.user.id) {
+    // 檢查是否為提交者本人（用 email 比對）
+    if (report.submitterEmail !== session.user.email && session.user.role !== "ADMIN") {
       return { success: false, message: "You can only submit your own reports" };
     }
 
@@ -201,16 +201,18 @@ export async function submitReport(reportId: string): Promise<State> {
         data: { status: "PENDING_MANAGER" },
       });
 
-      await tx.auditLog.create({
-        data: {
-          entityType: "ExpenseReport",
-          entityId: reportId,
-          action: "SUBMIT",
-          actorId: session.user.id!,
-          oldData: { status: "DRAFT" },
-          newData: { status: "PENDING_MANAGER" },
-        },
-      });
+      if (session.user.id) {
+        await tx.auditLog.create({
+          data: {
+            entityType: "ExpenseReport",
+            entityId: reportId,
+            action: "SUBMIT",
+            actorId: session.user.id,
+            oldData: { status: "DRAFT" },
+            newData: { status: "PENDING_MANAGER" },
+          },
+        });
+      }
     });
 
     revalidatePath("/dashboard");
@@ -227,7 +229,7 @@ export async function submitReport(reportId: string): Promise<State> {
 export async function deleteReport(reportId: string): Promise<State> {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return { success: false, message: "Unauthorized" };
   }
 
@@ -240,7 +242,8 @@ export async function deleteReport(reportId: string): Promise<State> {
       return { success: false, message: "Report not found" };
     }
 
-    if (report.submitterId !== session.user.id && session.user.role !== "ADMIN") {
+    // 檢查權限（用 email 比對）
+    if (report.submitterEmail !== session.user.email && session.user.role !== "ADMIN") {
       return { success: false, message: "You can only delete your own reports" };
     }
 
@@ -249,12 +252,9 @@ export async function deleteReport(reportId: string): Promise<State> {
     }
 
     await prisma.$transaction(async (tx) => {
-      // Delete expense items first
       await tx.expenseItem.deleteMany({
         where: { reportId },
       });
-
-      // Delete the report
       await tx.expenseReport.delete({
         where: { id: reportId },
       });

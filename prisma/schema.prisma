@@ -85,21 +85,24 @@ enum ReportStatus {
 }
 
 model ExpenseReport {
-  id          String       @id @default(cuid())
-  title       String
-  description String       @default("")
-  status      ReportStatus @default(DRAFT)
-  totalAmount Float        @default(0)
-  submitterId String
-  submitter   User         @relation(fields: [submitterId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  title          String
+  description    String       @default("")
+  status         ReportStatus @default(DRAFT)
+  totalAmount    Float        @default(0)
+  submitterName  String       @default("Unknown") // 提交者名稱
+  submitterEmail String       @default("")        // 提交者 Email
+  submitterId    String?      // 可選的外鍵，用於向後相容
+  submitter      User?        @relation(fields: [submitterId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   items           ExpenseItem[]
   approvalActions ApprovalAction[]
 
   // 索引優化
   @@index([submitterId])           // 查詢使用者的報帳單
+  @@index([submitterEmail])        // 按 Email 查詢
   @@index([status])                // 按狀態篩選
   @@index([createdAt(sort: Desc)]) // 時間排序  
   @@index([status, createdAt])     // 複合索引：狀態+時間
