@@ -1,8 +1,11 @@
 {
-    "crons": [
-        {
-            "path": "/api/cron/cleanup-sessions",
-            "schedule": "0 4 * * *"
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "buildCommand": "prisma generate && next build",
+    "installCommand": "npm install",
+    "framework": "nextjs",
+    "build": {
+        "env": {
+            "PRISMA_CLI_BINARY_TARGETS": "[\"rhel-openssl-3.0.x\"]"
         }
-    ]
+    }
 }
