@@ -2,13 +2,11 @@ import NextAuth from "next-auth"
 import { prisma } from "@/lib/prisma"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
+import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Note: PrismaAdapter removed because Credentials provider uses JWT strategy
-  // and doesn't need database sessions
-  session: {
-    strategy: "jwt",
-  },
+  ...authConfig,
+  // Providers are defined here to ensure nodejs runtime compatibility
   providers: [
     Credentials({
       name: "Credentials",
@@ -20,7 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         // 用 email 查詢用戶
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
           where: { email: credentials.email as string }
         });
 
@@ -46,23 +44,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user && user.id) {
-        token.id = user.id;
-        token.role = (user as any).role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
-        session.user.role = (token.role as string) || "USER";
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
 })
