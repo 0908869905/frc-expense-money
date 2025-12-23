@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { expenseReportSchema } from "@/lib/schemas";
+import { toStorageUnit } from "@/lib/money";
 import { revalidatePath } from "next/cache";
 
 export type State = {
@@ -45,6 +46,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
 
   const { title, description, items } = validatedFields.data;
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+  const totalAmountCents = items.reduce((sum, item) => sum + toStorageUnit(item.amount), 0);
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -58,6 +60,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
           submitterId, // 可選的外鍵，可能為 null
           status: "DRAFT",
           totalAmount,
+          amountCents: totalAmountCents,
           items: {
             create: items.map((item) => {
               let parsedDate: Date;
@@ -75,6 +78,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
                 category: item.category,
                 description: item.description,
                 amount: item.amount,
+                amountCents: toStorageUnit(item.amount),
                 receiptUrl: item.receiptUrl,
               };
             }),

@@ -90,6 +90,7 @@ model ExpenseReport {
   description    String       @default("")
   status         ReportStatus @default(DRAFT)
   totalAmount    Float        @default(0)
+  amountCents    Int
   submitterName  String       @default("Unknown") // 提交者名稱
   submitterEmail String       @default("")        // 提交者 Email
   submitterId    String?      // 可選的外鍵，用於向後相容
@@ -114,6 +115,7 @@ model ExpenseItem {
   category    String
   description String
   amount      Float
+  amountCents Int
   receiptUrl  String?
   reportId    String
   report      ExpenseReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
