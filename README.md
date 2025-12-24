@@ -190,12 +190,4 @@ InventoryItem ──── InventoryTransaction
 
 ---
 
-## 📄 授權
 
-MIT License
-
----
-
-## 🤝 貢獻
-
-歡迎提交 Issue 和 Pull Request！
