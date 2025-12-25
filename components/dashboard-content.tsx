@@ -51,12 +51,14 @@ export function DashboardContent({
                 </div>
             </div>
 
-            {/* 財務摘要卡片 */}
-            <BalanceCard
-                totalIncome={financialSummary.totalIncome}
-                totalExpense={financialSummary.totalExpense}
-                currentBalance={financialSummary.currentBalance}
-            />
+            {/* 財務摘要卡片 - 只有 FINANCE/ADMIN 可見 */}
+            {canAddFunding && (
+                <BalanceCard
+                    totalIncome={financialSummary.totalIncome}
+                    totalExpense={financialSummary.totalExpense}
+                    currentBalance={financialSummary.currentBalance}
+                />
+            )}
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-3">
