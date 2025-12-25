@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { DashboardContent } from "@/components/dashboard-content"
-import { getFinancialSummary } from "@/app/actions/funding"
+import { getFinancialSummary, getFundingRecords } from "@/app/actions/funding"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -60,8 +60,9 @@ export default async function DashboardPage() {
     console.error("Error fetching reports:", error)
   }
 
-  // 取得財務摘要
+  // 取得財務摘要和資金記錄
   const financialSummary = await getFinancialSummary()
+  const fundingRecords = await getFundingRecords()
 
   // 判斷是否可以新增資金記錄
   const canAddFunding = ["FINANCE", "ADMIN"].includes(role)
@@ -73,6 +74,7 @@ export default async function DashboardPage() {
       reports={reports}
       totalAmount={totalAmount}
       financialSummary={financialSummary}
+      fundingRecords={fundingRecords}
       canAddFunding={canAddFunding}
     />
   )

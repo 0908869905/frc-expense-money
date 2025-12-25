@@ -160,3 +160,60 @@ export async function deleteFundingRecord(id: string): Promise<FundingState> {
     return { success: false, message: "刪除失敗" }
   }
 }
+
+// 更新資金記錄
+export async function updateFundingRecord(
+  id: string,
+  data: {
+    title: string
+    amount: number
+    type: string
+    source?: string
+    description?: string
+    date?: Date
+  }
+): Promise<FundingState> {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return { success: false, message: "未授權" }
+  }
+
+  if (!["FINANCE", "ADMIN"].includes(session.user.role || "")) {
+    return { success: false, message: "權限不足" }
+  }
+
+  const validatedFields = fundingRecordSchema.safeParse(data)
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message: "驗證失敗",
+      errors: validatedFields.error.flatten().fieldErrors as any,
+    }
+  }
+
+  const { title, amount, type, source, description, date } = validatedFields.data
+
+  try {
+    await prisma.fundingRecord.update({
+      where: { id },
+      data: {
+        title,
+        amount,
+        type: type as any,
+        source,
+        description,
+        date: date || new Date(),
+      },
+    })
+
+    revalidatePath("/dashboard")
+    revalidatePath("/dashboard/reports")
+
+    return { success: true, message: "資金記錄已更新" }
+  } catch (error) {
+    console.error("Failed to update funding record:", error)
+    return { success: false, message: "更新失敗，請稍後再試" }
+  }
+}

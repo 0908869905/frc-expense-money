@@ -5,6 +5,17 @@ import Link from "next/link"
 import { BalanceCard } from "@/components/balance-card"
 import { FundingDialog } from "@/components/funding-dialog"
 
+interface FundingRecord {
+    id: string
+    title: string
+    amount: number
+    type: string
+    source: string | null
+    description: string | null
+    date: Date | string
+    recordedBy: string
+}
+
 interface DashboardContentProps {
     userName: string
     role: string
@@ -15,6 +26,7 @@ interface DashboardContentProps {
         totalExpense: number
         currentBalance: number
     }
+    fundingRecords: FundingRecord[]
     canAddFunding: boolean
 }
 
@@ -24,6 +36,7 @@ export function DashboardContent({
     reports,
     totalAmount,
     financialSummary,
+    fundingRecords,
     canAddFunding
 }: DashboardContentProps) {
     const { t } = useLanguage()
@@ -57,6 +70,7 @@ export function DashboardContent({
                     totalIncome={financialSummary.totalIncome}
                     totalExpense={financialSummary.totalExpense}
                     currentBalance={financialSummary.currentBalance}
+                    fundingRecords={fundingRecords}
                 />
             )}
 
