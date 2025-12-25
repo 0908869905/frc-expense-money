@@ -2,7 +2,7 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { useState, useTransition } from "react"
-import { Package, AlertTriangle, Plus, Edit2, Trash2, ArrowUpDown, ExternalLink, Search } from "lucide-react"
+import { Package, AlertTriangle, Plus, Edit2, Trash2, ArrowUpDown, ExternalLink, Search, ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
 import { adjustStock, createItem, updateItem, deleteItem } from "@/app/actions/inventory"
 import { ItemCategory, TransactionType } from "@prisma/client"
 
@@ -54,6 +54,8 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
     const [showAddModal, setShowAddModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [showAdjustModal, setShowAdjustModal] = useState(false)
+    const [showStockInModal, setShowStockInModal] = useState(false)
+    const [showStockOutModal, setShowStockOutModal] = useState(false)
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
 
     // Form states
@@ -191,6 +193,56 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         setShowAdjustModal(true)
     }
 
+    const openStockInModal = (item: InventoryItem) => {
+        setSelectedItem(item)
+        setAdjustData({ amount: 1, type: "PURCHASE_IN", projectId: "" })
+        setShowStockInModal(true)
+    }
+
+    const openStockOutModal = (item: InventoryItem) => {
+        setSelectedItem(item)
+        setAdjustData({ amount: 1, type: "PROJECT_USE", projectId: "" })
+        setShowStockOutModal(true)
+    }
+
+    const handleQuickStockIn = async () => {
+        if (!selectedItem || adjustData.amount <= 0) return
+        startTransition(async () => {
+            const result = await adjustStock(
+                selectedItem.id,
+                adjustData.amount,
+                "PURCHASE_IN",
+                undefined
+            )
+            if (result.success) {
+                showMessage("success", result.message || "入庫成功")
+                setShowStockInModal(false)
+                window.location.reload()
+            } else {
+                showMessage("error", result.message || "失敗")
+            }
+        })
+    }
+
+    const handleQuickStockOut = async () => {
+        if (!selectedItem || adjustData.amount <= 0) return
+        startTransition(async () => {
+            const result = await adjustStock(
+                selectedItem.id,
+                -adjustData.amount, // 負數表示出庫
+                adjustData.type,
+                adjustData.projectId || undefined
+            )
+            if (result.success) {
+                showMessage("success", result.message || "領用成功")
+                setShowStockOutModal(false)
+                window.location.reload()
+            } else {
+                showMessage("error", result.message || "失敗")
+            }
+        })
+    }
+
     return (
         <div className="flex flex-col gap-6">
             {/* Header */}
@@ -216,8 +268,8 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             {message && (
                 <div
                     className={`p-4 rounded-lg ${message.type === "success"
-                            ? "bg-green-50 text-green-700 border border-green-200"
-                            : "bg-red-50 text-red-700 border border-red-200"
+                        ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-red-50 text-red-700 border border-red-200"
                         }`}
                 >
                     {message.text}
@@ -308,8 +360,8 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     <td className="p-4">
                                         <span
                                             className={`font-semibold ${item.currentQuantity <= item.safetyStockLevel
-                                                    ? "text-red-600"
-                                                    : "text-foreground"
+                                                ? "text-red-600"
+                                                : "text-foreground"
                                                 }`}
                                         >
                                             {item.currentQuantity}
@@ -319,9 +371,23 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     <td className="p-4">
                                         <div className="flex gap-1">
                                             <button
+                                                onClick={() => openStockInModal(item)}
+                                                className="p-1.5 rounded hover:bg-green-100 text-green-600"
+                                                title={language === "zh" ? "入庫" : "Stock In"}
+                                            >
+                                                <ArrowDownToLine className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => openStockOutModal(item)}
+                                                className="p-1.5 rounded hover:bg-orange-100 text-orange-600"
+                                                title={language === "zh" ? "領用" : "Stock Out"}
+                                            >
+                                                <ArrowUpFromLine className="h-4 w-4" />
+                                            </button>
+                                            <button
                                                 onClick={() => openAdjustModal(item)}
                                                 className="p-1.5 rounded hover:bg-muted"
-                                                title={language === "zh" ? "調整庫存" : "Adjust Stock"}
+                                                title={language === "zh" ? "進階調整" : "Advanced"}
                                             >
                                                 <ArrowUpDown className="h-4 w-4" />
                                             </button>
@@ -573,6 +639,123 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                         : "Processing..."
                                     : language === "zh"
                                         ? "確認調整"
+                                        : "Confirm"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Quick Stock In Modal */}
+            {showStockInModal && selectedItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
+                        <h2 className="text-xl font-bold mb-2 text-green-600 flex items-center gap-2">
+                            <ArrowDownToLine className="h-5 w-5" />
+                            {language === "zh" ? "零件入庫" : "Stock In"}
+                        </h2>
+                        <p className="text-muted-foreground mb-4">
+                            {selectedItem.name} ({language === "zh" ? "目前" : "Current"}: {selectedItem.currentQuantity})
+                        </p>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    {language === "zh" ? "入庫數量" : "Quantity to Add"}
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={adjustData.amount}
+                                    onChange={(e) =>
+                                        setAdjustData({ ...adjustData, amount: parseInt(e.target.value) || 0 })
+                                    }
+                                    className="w-full px-3 py-2 border rounded-lg text-center text-xl font-bold"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setShowStockInModal(false)}
+                                className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
+                            >
+                                {language === "zh" ? "取消" : "Cancel"}
+                            </button>
+                            <button
+                                onClick={handleQuickStockIn}
+                                disabled={isPending || adjustData.amount <= 0}
+                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                            >
+                                {isPending
+                                    ? language === "zh"
+                                        ? "處理中..."
+                                        : "Processing..."
+                                    : language === "zh"
+                                        ? "確認入庫"
+                                        : "Confirm"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Quick Stock Out Modal */}
+            {showStockOutModal && selectedItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
+                        <h2 className="text-xl font-bold mb-2 text-orange-600 flex items-center gap-2">
+                            <ArrowUpFromLine className="h-5 w-5" />
+                            {language === "zh" ? "零件領用" : "Stock Out"}
+                        </h2>
+                        <p className="text-muted-foreground mb-4">
+                            {selectedItem.name} ({language === "zh" ? "目前" : "Current"}: {selectedItem.currentQuantity})
+                        </p>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    {language === "zh" ? "領用數量" : "Quantity to Take"}
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max={selectedItem.currentQuantity}
+                                    value={adjustData.amount}
+                                    onChange={(e) =>
+                                        setAdjustData({ ...adjustData, amount: parseInt(e.target.value) || 0 })
+                                    }
+                                    className="w-full px-3 py-2 border rounded-lg text-center text-xl font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    {language === "zh" ? "用途/專案" : "Purpose/Project"}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={adjustData.projectId}
+                                    onChange={(e) => setAdjustData({ ...adjustData, projectId: e.target.value })}
+                                    placeholder={language === "zh" ? "例如: 2024 機器人" : "e.g. 2024 Robot"}
+                                    className="w-full px-3 py-2 border rounded-lg"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setShowStockOutModal(false)}
+                                className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
+                            >
+                                {language === "zh" ? "取消" : "Cancel"}
+                            </button>
+                            <button
+                                onClick={handleQuickStockOut}
+                                disabled={isPending || adjustData.amount <= 0 || adjustData.amount > selectedItem.currentQuantity}
+                                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                            >
+                                {isPending
+                                    ? language === "zh"
+                                        ? "處理中..."
+                                        : "Processing..."
+                                    : language === "zh"
+                                        ? "確認領用"
                                         : "Confirm"}
                             </button>
                         </div>
