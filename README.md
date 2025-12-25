@@ -1,193 +1,287 @@
-# FRC 報帳系統 (FRC Money)
+# FRC 報帳系統 使用說明書
 
 <p align="center">
-  <strong>專為 FRC 機器人團隊設計的現代化費用報銷管理系統</strong>
+  <strong>專為 FRC 機器人團隊設計的現代化費用報銷與財務管理系統</strong>
 </p>
 
 ---
 
-## ✨ 功能特色
+## 📋 目錄
 
-| 功能 | 說明 |
-|------|------|
-| 📝 **報帳單管理** | 建立、編輯、提交費用報銷申請，支援多項目明細 |
-| ✅ **多層審核流程** | 經理審批 → 財務審批 → 已付款 的完整流程 |
-| 📦 **零件庫存管理** | 追蹤機器人零件庫存、入庫/領用記錄 |
-| 👥 **用戶權限管理** | USER / MANAGER / FINANCE / ADMIN 四級角色 |
-| 🌐 **多語言支援** | 繁體中文 / English 切換 |
-| 📊 **儀表板統計** | 視覺化圖表，一目了然掌握財務狀況 |
-| 🔐 **安全認證** | JWT Session + 密碼雜湊存儲 |
+- [功能總覽](#-功能總覽)
+- [角色與權限](#-角色與權限)
+- [快速開始](#-快速開始)
+- [功能使用說明](#-功能使用說明)
+  - [儀表板](#儀表板)
+  - [報帳單管理](#報帳單管理)
+  - [庫存管理](#庫存管理)
+  - [資金管理](#資金管理)
+  - [用戶管理](#用戶管理)
+- [技術資訊](#-技術資訊)
 
 ---
 
-## 🛠️ 技術棧
+## ✨ 功能總覽
 
-| 類別 | 技術 | 版本 |
-|------|------|------|
-| **框架** | Next.js (App Router) | 14.2.x |
-| **資料庫 ORM** | Prisma | 5.x |
-| **資料庫** | PostgreSQL (Supabase) | - |
-| **認證** | NextAuth.js (Auth.js) v5 | beta.30 |
-| **樣式** | TailwindCSS + tailwindcss-animate | 3.4.x |
-| **UI 元件** | shadcn/ui 風格 (Radix UI) | - |
-| **表單驗證** | Zod + React Hook Form | - |
-| **圖表** | Recharts | 2.12.x |
-| **部署** | Vercel + Supabase | - |
+| 功能 | 說明 |
+|------|------|
+| 📝 **報帳單管理** | 建立、編輯、提交費用報銷申請 |
+| ✅ **多層審核流程** | 經理審批 → 財務審批 → 已付款 |
+| 💰 **資金追蹤** | 記錄贊助、捐款，追蹤財務餘額 |
+| 📦 **零件庫存** | 追蹤機器人零件進出與庫存 |
+| 👥 **用戶管理** | 管理團隊成員與權限 |
+| 🌐 **多語言** | 繁體中文 / English |
+
+---
+
+## � 角色與權限
+
+| 角色 | 權限說明 |
+|------|---------|
+| **USER** | 建立報帳單、查看自己的報帳單、使用庫存功能 |
+| **MANAGER** | USER 權限 + 審批報帳單（第一層） |
+| **FINANCE** | USER 權限 + 財務審批 + 標記已付款 + 資金管理 |
+| **ADMIN** | 所有權限 + 用戶管理 + 刪除權限 |
 
 ---
 
 ## 🚀 快速開始
 
-### 1. 安裝依賴
+### 安裝步驟
 
 ```bash
+# 1. 安裝依賴
 npm install
-```
 
-### 2. 設定環境變數
-
-```bash
+# 2. 設定環境變數
 cp .env.example .env
-```
+# 編輯 .env 填入資料庫連線和 AUTH_SECRET
 
-編輯 `.env` 填入以下內容：
-
-```env
-# 資料庫連線 (必須)
-DATABASE_URL="postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres"
-
-# NextAuth 認證 (必須)
-AUTH_SECRET="your-secret-key"  # 使用 `openssl rand -base64 32` 產生
-AUTH_URL="http://localhost:3000"
-```
-
-### 3. 產生 Prisma Client
-
-```bash
+# 3. 產生 Prisma Client
 npx prisma generate
-```
 
-### 4. 同步資料庫結構
-
-```bash
+# 4. 同步資料庫
 npx prisma migrate deploy
-```
 
-### 5. 啟動開發伺服器
-
-```bash
+# 5. 啟動開發伺服器
 npm run dev
 ```
 
-開啟 [http://localhost:3000](http://localhost:3000) 查看結果。
+### 環境變數
 
----
-
-## 📁 專案結構
-
-```
-frc報帳/
-├── app/                    # Next.js App Router 目錄
-│   ├── actions/            # Server Actions
-│   │   ├── approvals.ts    # 審批操作
-│   │   ├── expenses.ts     # 報帳單 CRUD
-│   │   ├── inventory.ts    # 零件庫存操作
-│   │   ├── register.ts     # 用戶註冊
-│   │   └── users.ts        # 用戶管理
-│   ├── api/                # API Routes
-│   │   └── auth/           # NextAuth 端點
-│   ├── dashboard/          # 儀表板頁面
-│   │   ├── expenses/       # 報帳單管理
-│   │   ├── inventory/      # 庫存管理
-│   │   ├── reports/        # 報表統計
-│   │   └── users/          # 用戶管理
-│   ├── login/              # 登入頁面
-│   ├── register/           # 註冊頁面
-│   ├── layout.tsx          # 根 Layout
-│   ├── page.tsx            # 首頁
-│   └── globals.css         # 全域樣式
-├── components/             # React 元件
-│   └── ui/                 # 基礎 UI 元件 (shadcn/ui 風格)
-├── lib/                    # 工具和配置
-│   ├── prisma.ts           # Prisma Client 單例
-│   ├── schemas.ts          # Zod 驗證 Schema
-│   ├── utils.ts            # 通用工具函數
-│   └── language-context.tsx # 多語言上下文
-├── prisma/                 # Prisma 配置
-│   ├── schema.prisma       # 資料庫 Schema
-│   └── seed.ts             # 種子資料
-├── types/                  # TypeScript 類型定義
-├── auth.ts                 # NextAuth 配置
-├── tailwind.config.ts      # Tailwind 配置
-└── vercel.json             # Vercel 部署配置
+```env
+DATABASE_URL="postgresql://..."      # 資料庫連線字串
+DIRECT_URL="postgresql://..."        # 直連字串 (用於 migrate)
+AUTH_SECRET="your-secret-key"        # 認證密鑰
+AUTH_URL="http://localhost:3000"     # 網站 URL
 ```
 
 ---
 
-## 📜 可用指令
+## 📖 功能使用說明
 
-| 指令 | 說明 |
+### 儀表板
+
+儀表板是登入後的首頁，顯示：
+- **報帳單統計**：總報帳單數、總項目數、總金額
+- **最近報帳單**：最近 10 筆報帳單列表
+
+#### 按鈕說明
+
+| 按鈕 | 位置 | 功能 |
+|------|------|------|
+| `新增資金` | 右上方（僅 FINANCE/ADMIN） | 開啟對話框，記錄贊助/捐款 |
+| `新增報帳單` | 右上方 | 前往建立新報帳單頁面 |
+
+#### 財務摘要卡片（僅 FINANCE/ADMIN 可見）
+
+顯示：
+- **目前餘額**：總收入 - 總支出
+- **總收入**：所有資金記錄加總
+- **總支出**：已付款報帳單加總
+
+| 操作 | 說明 |
+|------|------|
+| `展開記錄` | 點擊可展開查看所有資金記錄 |
+| ✏️ 編輯 | 修改資金記錄的標題、金額等 |
+| 🗑️ 刪除 | 刪除資金記錄 |
+
+---
+
+### 報帳單管理
+
+#### 建立報帳單
+
+1. 點擊 `新增報帳單` 按鈕
+2. 填寫報帳單標題和用途說明
+3. 新增費用明細項目：
+   - **日期**：費用發生日期
+   - **類別**：食物、交通、材料等
+   - **說明**：詳細描述
+   - **金額**：費用金額
+   - **收據**：上傳收據圖片（可選）
+4. 點擊 `+ 新增項目` 可增加更多明細
+5. 點擊 `提交報帳單` 送出
+
+#### 報帳單狀態流程
+
+```
+草稿 (DRAFT)
+   ↓ 提交
+待經理審批 (PENDING_MANAGER)
+   ↓ 經理核准
+待財務審批 (PENDING_FINANCE)
+   ↓ 財務核准
+已付款 (PAID)
+```
+
+#### 審批操作（MANAGER/FINANCE/ADMIN）
+
+| 按鈕 | 功能 |
+|------|------|
+| `核准` | 通過審批，進入下一階段 |
+| `退回` | 退回給提交者修改 |
+| `拒絕` | 拒絕此報帳單 |
+
+---
+
+### 庫存管理
+
+庫存管理頁面用於追蹤 FRC 零件的進出。
+
+#### 頁面元素
+
+| 區域 | 說明 |
+|------|------|
+| 搜尋框 | 搜尋零件名稱或料號 |
+| 類別篩選 | 依類別（馬達、感測器等）篩選 |
+| 需要補貨提示 | 黃色區塊顯示低於安全庫存的零件 |
+
+#### 零件操作按鈕
+
+每個零件項目右側有以下按鈕：
+
+| 按鈕 | 顏色 | 功能 |
+|------|------|------|
+| ⬇️ 入庫 | 綠色 | 快速入庫：輸入數量即可增加庫存 |
+| ⬆️ 領用 | 橘色 | 快速領用：輸入數量和用途，減少庫存 |
+| ⇅ 進階調整 | 灰色 | 完整調整功能，可選擇異動類型 |
+| ✏️ 編輯 | 灰色 | 修改零件資訊 |
+| 🔗 連結 | 灰色 | 開啟購買連結（若有設定） |
+| 🗑️ 刪除 | 紅色（僅 ADMIN） | 刪除零件 |
+
+#### 入庫/領用對話框
+
+**入庫對話框：**
+- 輸入入庫數量
+- 點擊 `確認入庫`
+
+**領用對話框：**
+- 輸入領用數量（不能超過現有庫存）
+- 輸入用途/專案（如：2024 機器人）
+- 點擊 `確認領用`
+
+#### 新增零件
+
+1. 點擊右上方 `新增零件` 按鈕
+2. 填寫：
+   - **品名**：零件名稱
+   - **料號 (SKU)**：廠商料號，如 `REV-21-1650`
+   - **類別**：馬達、感測器、氣壓等
+   - **儲存位置**：如 `A櫃-3層`
+   - **初始數量**：首次入庫數量
+   - **安全庫存水位**：低於此數值會提示補貨
+   - **購買連結**：可選
+3. 點擊 `儲存`
+
+---
+
+### 資金管理
+
+#### 新增資金記錄（僅 FINANCE/ADMIN）
+
+1. 在儀表板點擊 `新增資金` 按鈕
+2. 填寫：
+   - **標題**：如「XX公司贊助」
+   - **金額**：資金金額（TWD）
+   - **類型**：贊助、捐款、補助金、募款活動、其他
+   - **來源**：贊助者/捐款者名稱
+   - **入帳日期**：資金入帳日期
+   - **備註**：補充說明
+3. 點擊 `確認新增`
+
+#### 編輯/刪除資金記錄
+
+1. 在儀表板財務摘要卡片點擊 `展開記錄`
+2. 找到要修改的記錄：
+   - ✏️ 點擊編輯按鈕修改
+   - 🗑️ 點擊刪除按鈕刪除
+
+---
+
+### 用戶管理
+
+用戶管理頁面僅 **ADMIN** 可存取。
+
+#### 功能
+
+| 操作 | 說明 |
+|------|------|
+| 變更角色 | 將用戶設定為 USER/MANAGER/FINANCE/ADMIN |
+| 變更 Email | 修改用戶 Email |
+| 重設密碼 | 為用戶設定新密碼 |
+| 驗證 Email | 手動標記 Email 已驗證 |
+| 刪除用戶 | 刪除用戶及其所有關聯資料 |
+
+---
+
+## ⌨️ 常用操作指令
+
+| 操作 | 說明 |
 |------|------|
 | `npm run dev` | 啟動開發伺服器 |
 | `npm run build` | 建構生產版本 |
-| `npm run start` | 啟動生產伺服器 |
-| `npm run lint` | ESLint 檢查 |
-| `npx prisma generate` | 產生 Prisma Client |
-| `npx prisma migrate dev` | 開發環境遷移 |
-| `npx prisma migrate deploy` | 生產環境遷移 |
-| `npx prisma studio` | 開啟視覺化資料庫管理工具 |
-| `npm run db:seed` | 執行種子資料 |
+| `npx prisma studio` | 開啟資料庫視覺化管理工具 |
+| `npx prisma migrate dev` | 開發環境資料庫遷移 |
 
 ---
 
-## 👤 用戶角色
+## �️ 技術資訊
 
-| 角色 | 權限 |
-|------|------|
-| **USER** | 建立報帳單、查看自己的報帳單 |
-| **MANAGER** | USER 權限 + 審批報帳單 (第一層) |
-| **FINANCE** | USER 權限 + 財務審批 (第二層) + 標記已付款 |
-| **ADMIN** | 所有權限 + 用戶管理 |
+### 技術棧
 
----
+| 類別 | 技術 | 版本 |
+|------|------|------|
+| **框架** | Next.js (App Router) | 14.2.x |
+| **資料庫** | PostgreSQL + Prisma | 5.x |
+| **認證** | NextAuth.js v5 | beta.30 |
+| **樣式** | TailwindCSS | 3.4.x |
+| **UI 元件** | shadcn/ui 風格 (Radix UI) | - |
+| **部署** | Vercel + Supabase | - |
 
-## 🔒 安全性
-
-- 密碼使用 `bcryptjs` 進行雜湊存儲
-- 所有 Server Actions 驗證 Session
-- 使用 Zod 進行輸入驗證
-- JWT Token 認證策略
-- 安全 HTTP Headers (X-Frame-Options, CSP 等)
-
----
-
-## 📊 資料庫模型
+### 專案結構
 
 ```
-User ──┬── ExpenseReport ──── ExpenseItem
-       ├── ApprovalAction
-       └── AuditLog
-
-InventoryItem ──── InventoryTransaction
+├── app/                # Next.js App Router
+│   ├── actions/        # Server Actions
+│   ├── api/            # API Routes
+│   ├── dashboard/      # 儀表板頁面
+│   └── login/          # 登入頁面
+├── components/         # React 元件
+│   └── ui/             # 基礎 UI 元件
+├── lib/                # 工具函數
+├── prisma/             # Prisma Schema
+└── types/              # TypeScript 類型
 ```
 
 ---
 
-## 🌍 部署
+## 📄 授權
 
-### Vercel 部署
-
-1. 連結 GitHub 倉庫到 Vercel
-2. 設定環境變數 (`DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `AUTH_URL`)
-3. 部署會自動執行 `prisma generate` 和 `next build`
-
-### Supabase 設定
-
-1. 建立新專案
-2. 在 SQL Editor 執行 Prisma 遷移 SQL
-3. 取得連線字串填入環境變數
+MIT License
 
 ---
 
+## 🤝 貢獻
 
+歡迎提交 Issue 和 Pull Request！
