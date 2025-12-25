@@ -2,15 +2,30 @@
 
 import { useLanguage } from "@/lib/language-context"
 import Link from "next/link"
+import { BalanceCard } from "@/components/balance-card"
+import { FundingDialog } from "@/components/funding-dialog"
 
 interface DashboardContentProps {
     userName: string
     role: string
     reports: any[]
     totalAmount: number
+    financialSummary: {
+        totalIncome: number
+        totalExpense: number
+        currentBalance: number
+    }
+    canAddFunding: boolean
 }
 
-export function DashboardContent({ userName, role, reports, totalAmount }: DashboardContentProps) {
+export function DashboardContent({
+    userName,
+    role,
+    reports,
+    totalAmount,
+    financialSummary,
+    canAddFunding
+}: DashboardContentProps) {
     const { t } = useLanguage()
 
     const totalReports = reports.length
@@ -25,13 +40,23 @@ export function DashboardContent({ userName, role, reports, totalAmount }: Dashb
                         {t("welcome_back")}, {userName}! ({role})
                     </p>
                 </div>
-                <Link
-                    href="/dashboard/expenses/new"
-                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                    {t("new_report")}
-                </Link>
+                <div className="flex gap-2">
+                    {canAddFunding && <FundingDialog />}
+                    <Link
+                        href="/dashboard/expenses/new"
+                        className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                    >
+                        {t("new_report")}
+                    </Link>
+                </div>
             </div>
+
+            {/* 財務摘要卡片 */}
+            <BalanceCard
+                totalIncome={financialSummary.totalIncome}
+                totalExpense={financialSummary.totalExpense}
+                currentBalance={financialSummary.currentBalance}
+            />
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-3">

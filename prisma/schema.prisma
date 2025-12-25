@@ -200,4 +200,29 @@ model InventoryTransaction {
   timestamp        DateTime        @default(now())
 }
 
+// ========== Funding Management Models ==========
 
+// 資金類型
+enum FundingType {
+  SPONSORSHIP    // 贊助
+  DONATION       // 捐款
+  GRANT          // 補助金
+  FUNDRAISING    // 募款活動
+  OTHER          // 其他
+}
+
+// 資金記錄
+model FundingRecord {
+  id          String      @id @default(cuid())
+  title       String      // 標題 (例如: "XX公司贊助")
+  amount      Float       // 金額
+  type        FundingType // 資金類型
+  source      String?     // 來源 (公司/個人名稱)
+  description String?     // 備註
+  date        DateTime    @default(now()) // 入帳日期
+  recordedBy  String      // 記錄者名稱
+  createdAt   DateTime    @default(now())
+
+  @@index([date])
+  @@index([type])
+}
