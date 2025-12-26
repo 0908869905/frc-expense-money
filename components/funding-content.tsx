@@ -53,11 +53,16 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
         { success: false, message: null }
     )
 
+    // Add form type tracking for custom type input
+    const [addFormType, setAddFormType] = useState("SPONSORSHIP")
+    const [addCustomType, setAddCustomType] = useState("")
+
     // Edit form state
     const [editForm, setEditForm] = useState({
         title: "",
         amount: 0,
         type: "SPONSORSHIP",
+        customType: "",
         source: "",
         description: "",
         date: "",
@@ -116,6 +121,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
             title: record.title,
             amount: record.amount,
             type: record.type,
+            customType: "",
             source: record.source || "",
             description: record.description || "",
             date: new Date(record.date).toISOString().split("T")[0],
@@ -338,7 +344,14 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
                             <div className="space-y-2">
                                 <Label htmlFor="type">{t("類型", "Type")} *</Label>
-                                <select id="type" name="type" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" required>
+                                <select
+                                    id="type"
+                                    name="type"
+                                    value={addFormType}
+                                    onChange={(e) => setAddFormType(e.target.value)}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    required
+                                >
                                     {FUNDING_TYPES.map((type) => (
                                         <option key={type.value} value={type.value}>
                                             {language === "zh" ? type.label : type.labelEn}
@@ -346,6 +359,21 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                     ))}
                                 </select>
                             </div>
+
+                            {/* 自訂類型輸入框 - 當選擇其他時顯示 */}
+                            {addFormType === "OTHER" && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="customType">{t("自訂類型", "Custom Type")} *</Label>
+                                    <Input
+                                        id="customType"
+                                        name="customType"
+                                        value={addCustomType}
+                                        onChange={(e) => setAddCustomType(e.target.value)}
+                                        placeholder={t("輸入類型名稱", "Enter type name")}
+                                        required
+                                    />
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label htmlFor="source">{t("來源", "Source")}</Label>
@@ -402,7 +430,12 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
                             <div className="space-y-2">
                                 <Label htmlFor="edit-type">{t("類型", "Type")}</Label>
-                                <select id="edit-type" value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value })} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                <select
+                                    id="edit-type"
+                                    value={editForm.type}
+                                    onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                >
                                     {FUNDING_TYPES.map((type) => (
                                         <option key={type.value} value={type.value}>
                                             {language === "zh" ? type.label : type.labelEn}
@@ -410,6 +443,19 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                     ))}
                                 </select>
                             </div>
+
+                            {/* 自訂類型輸入框 - 當選擇其他時顯示 */}
+                            {editForm.type === "OTHER" && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="edit-customType">{t("自訂類型", "Custom Type")}</Label>
+                                    <Input
+                                        id="edit-customType"
+                                        value={editForm.customType}
+                                        onChange={(e) => setEditForm({ ...editForm, customType: e.target.value })}
+                                        placeholder={t("輸入類型名稱", "Enter type name")}
+                                    />
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label htmlFor="edit-source">{t("來源", "Source")}</Label>
