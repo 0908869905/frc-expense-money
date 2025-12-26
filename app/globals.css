@@ -37,6 +37,28 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    position: relative;
+    min-height: 100vh;
+  }
+
+  /* Logo 浮水印背景 */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50vw;
+    height: 50vw;
+    max-width: 500px;
+    max-height: 500px;
+    background-image: url("/logo.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: -1;
   }
 
   /* FRC 科技主題特效 */
