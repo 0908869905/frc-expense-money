@@ -13,6 +13,7 @@ import {
   Shield,
   User,
   Users,
+  Wallet,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useLanguage } from "@/lib/language-context"
@@ -113,6 +114,14 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
           {/* Finance / Admin Items */}
           {(role === "FINANCE" || role === "ADMIN") && (
             <>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={t("資金記錄", "Funding")}>
+                  <a href="/dashboard/funding">
+                    <Wallet />
+                    <span>{t("資金記錄", "Funding")}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={t("所有報表", "All Reports")}>
                   <a href="/dashboard/reports">
