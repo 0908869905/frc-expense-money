@@ -42,8 +42,8 @@
     min-height: 100vh;
   }
 
-  /* Logo 浮水印背景 - 全螢幕 */
-  body::before {
+  /* Logo 浮水印背景 - 全螢幕填滿 */
+  html::after {
     content: "";
     position: fixed;
     top: 0;
@@ -53,12 +53,18 @@
     width: 100%;
     height: 100%;
     background-image: url("/logo.png");
-    background-size: 80% auto;
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
-    opacity: 0.2;
+    opacity: 0.15;
     pointer-events: none;
-    z-index: -1;
+    z-index: 0;
+  }
+
+  /* 確保所有內容都在浮水印上方 */
+  body>* {
+    position: relative;
+    z-index: 1;
   }
 
   /* FRC 科技主題特效 */
