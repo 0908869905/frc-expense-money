@@ -17,6 +17,7 @@ export const ExpenseCategoryEnum = z.enum([
 export const expenseItemSchema = z.object({
   date: z.coerce.date({ required_error: "日期為必填" }),
   category: ExpenseCategoryEnum,
+  customCategory: z.string().optional(), // 當選擇 Other 時的自定義類別
   description: z.string().min(2, "說明至少需要 2 個字元"),
   amount: z.coerce.number().positive("金額必須大於 0"),
   receiptUrl: z.string().optional().nullable(),

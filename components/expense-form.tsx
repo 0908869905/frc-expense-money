@@ -101,6 +101,7 @@ export function ExpenseForm() {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm<ExpenseReportFormValues>({
     resolver: zodResolver(expenseReportSchema),
     defaultValues: {
@@ -110,6 +111,7 @@ export function ExpenseForm() {
         {
           date: new Date(),
           category: "Food",
+          customCategory: "",
           description: "",
           amount: 0,
           receiptUrl: null,
@@ -193,7 +195,7 @@ export function ExpenseForm() {
             type="button"
             variant="secondary"
             size="sm"
-            onClick={() => append({ date: new Date(), category: "Food", description: "", amount: 0, receiptUrl: null })}
+            onClick={() => append({ date: new Date(), category: "Food", customCategory: "", description: "", amount: 0, receiptUrl: null })}
           >
             <Plus className="mr-2 h-4 w-4" />新增項目
           </Button>
@@ -212,7 +214,7 @@ export function ExpenseForm() {
                   />
                 </div>
 
-                <div className="md:col-span-2 space-y-2">
+                <div className={`${watch(`items.${index}.category`) === 'Other' ? 'md:col-span-1' : 'md:col-span-2'} space-y-2`}>
                   <label className="text-xs font-semibold text-muted-foreground uppercase">類別</label>
                   <select
                     {...register(`items.${index}.category` as const)}
@@ -223,6 +225,18 @@ export function ExpenseForm() {
                     ))}
                   </select>
                 </div>
+
+                {/* 自定義類別輸入框 - 當選擇 Other 時顯示 */}
+                {watch(`items.${index}.category`) === 'Other' && (
+                  <div className="md:col-span-1 space-y-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">自訂類別</label>
+                    <input
+                      {...register(`items.${index}.customCategory` as const)}
+                      placeholder="輸入類別名稱"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                )}
 
                 <div className="md:col-span-4 space-y-2">
                   <label className="text-xs font-semibold text-muted-foreground uppercase">說明</label>
