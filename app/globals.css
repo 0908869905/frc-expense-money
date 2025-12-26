@@ -4,29 +4,35 @@
 
 @layer base {
 
-  /* FRC 科技主題 - 淺色系 + 青藍色強調 */
+  /* FRC 科技主題 - 深色科技風格 */
   :root,
   .theme-frc {
-    --background: 210 25% 98%;
-    --foreground: 220 20% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
-    --primary: 195 100% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 200 30% 94%;
-    --secondary-foreground: 220 20% 20%;
-    --muted: 210 20% 96%;
-    --muted-foreground: 220 10% 45%;
-    --accent: 180 70% 45%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 75% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 210 20% 90%;
-    --input: 210 20% 92%;
-    --ring: 195 100% 42%;
-    --radius: 0.625rem;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 173 80% 40%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 25%;
+    --input: 217 33% 20%;
+    --ring: 199 89% 48%;
+    --radius: 0.75rem;
+
+    /* 科技特效變數 */
+    --glow-primary: rgba(14, 165, 233, 0.4);
+    --glow-accent: rgba(20, 184, 166, 0.4);
+    --gradient-start: hsl(199, 89%, 48%);
+    --gradient-end: hsl(173, 80%, 40%);
   }
 }
 
@@ -40,6 +46,7 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     position: relative;
     min-height: 100vh;
+    background: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 33% 8%) 50%, hsl(222 47% 11%) 100%);
   }
 
   /* Logo 浮水印背景 - 全螢幕填滿 */
@@ -56,7 +63,7 @@
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
-    opacity: 0.15;
+    opacity: 0.08;
     pointer-events: none;
     z-index: 0;
   }
@@ -66,27 +73,234 @@
     position: relative;
     z-index: 1;
   }
+}
 
-  /* FRC 科技主題特效 */
-  .theme-frc {
-    --shadow-glow: 0 0 20px rgba(0, 160, 214, 0.15);
+@layer components {
+
+  /* 科技感卡片 */
+  .card,
+  .rounded-xl.border {
+    background: linear-gradient(145deg,
+        hsl(222 47% 16% / 0.9) 0%,
+        hsl(217 33% 12% / 0.8) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(199 89% 48% / 0.2);
+    box-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(14, 165, 233, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
   }
 
-  .theme-frc .card-glow {
-    box-shadow: var(--shadow-glow);
+  .card:hover,
+  .rounded-xl.border:hover {
+    border-color: hsl(199 89% 48% / 0.4);
+    box-shadow:
+      0 8px 40px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(14, 165, 233, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+  }
+
+  /* 科技感按鈕 */
+  .bg-primary {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    box-shadow:
+      0 4px 15px rgba(14, 165, 233, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .bg-primary:hover {
+    box-shadow:
+      0 6px 25px rgba(14, 165, 233, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* 輸入框科技風格 */
+  input,
+  select,
+  textarea {
+    background: hsl(217 33% 15% / 0.8) !important;
+    border: 1px solid hsl(217 33% 30%) !important;
+    transition: all 0.3s ease;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: hsl(199 89% 48%) !important;
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.3) !important;
+    outline: none;
+  }
+
+  /* 表格科技風格 */
+  table {
+    background: transparent;
+  }
+
+  thead {
+    background: linear-gradient(90deg,
+        hsl(199 89% 48% / 0.1) 0%,
+        transparent 50%,
+        hsl(173 80% 40% / 0.1) 100%);
+  }
+
+  tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid hsl(217 33% 20%);
+  }
+
+  tbody tr:hover {
+    background: hsl(199 89% 48% / 0.08);
+  }
+
+  /* 側邊欄科技風格 */
+  [data-sidebar="sidebar"] {
+    background: linear-gradient(180deg,
+        hsl(222 47% 13%) 0%,
+        hsl(217 33% 10%) 100%) !important;
+    border-right: 1px solid hsl(199 89% 48% / 0.15);
+  }
+
+  /* 選單項目懸停效果 */
+  [data-sidebar="menu-button"]:hover {
+    background: linear-gradient(90deg,
+        hsl(199 89% 48% / 0.15) 0%,
+        transparent 100%);
+    border-left: 2px solid hsl(199 89% 48%);
+  }
+
+  /* 標籤/徽章科技風格 */
+  .bg-primary\/10,
+  .bg-muted {
+    background: hsl(199 89% 48% / 0.15) !important;
+    border: 1px solid hsl(199 89% 48% / 0.3);
+  }
+
+  /* 滾動條科技風格 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(222 47% 11%);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsl(199 89% 48%) 0%, hsl(173 80% 40%) 100%);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, hsl(199 89% 58%) 0%, hsl(173 80% 50%) 100%);
   }
 }
 
-/* 科技感動效 */
-.tech-gradient {
-  background: linear-gradient(135deg, hsl(195 100% 42%) 0%, hsl(180 70% 45%) 100%);
+/* 科技感動畫 */
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 30px rgba(14, 165, 233, 0.5);
+  }
 }
 
-.tech-border {
-  border: 1px solid hsl(195 100% 42% / 0.3);
+@keyframes border-glow {
+
+  0%,
+  100% {
+    border-color: hsl(199 89% 48% / 0.3);
+  }
+
+  50% {
+    border-color: hsl(199 89% 48% / 0.6);
+  }
 }
 
-/* 極簡風格 */
-.minimal-shadow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.glow-animation {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.border-glow-animation {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+/* 科技感漸層文字 */
+.tech-text-gradient {
+  background: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(173 80% 40%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 玻璃態效果 */
+.glass {
+  background: hsl(222 47% 14% / 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid hsl(199 89% 48% / 0.2);
+}
+
+/* 霓虹邊框 */
+.neon-border {
+  border: 1px solid hsl(199 89% 48% / 0.5);
+  box-shadow:
+    0 0 5px hsl(199 89% 48% / 0.3),
+    0 0 10px hsl(199 89% 48% / 0.2),
+    inset 0 0 5px hsl(199 89% 48% / 0.1);
+}
+
+/* 數字/金額突出顯示 */
+.text-2xl,
+.text-3xl {
+  text-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+}
+
+/* 狀態指示燈效果 */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.status-success {
+  background: hsl(142 76% 36%);
+  box-shadow: 0 0 10px hsl(142 76% 36% / 0.5);
+}
+
+.status-warning {
+  background: hsl(45 93% 47%);
+  box-shadow: 0 0 10px hsl(45 93% 47% / 0.5);
+}
+
+.status-danger {
+  background: hsl(0 63% 50%);
+  box-shadow: 0 0 10px hsl(0 63% 50% / 0.5);
+}
+
+/* 頁面標題科技風格 */
+h1 {
+  background: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(199 89% 68%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 綠色金額 */
+.text-green-600 {
+  color: hsl(142 76% 50%) !important;
+  text-shadow: 0 0 10px hsl(142 76% 50% / 0.3);
+}
+
+/* 紅色金額 */
+.text-red-600 {
+  color: hsl(0 72% 55%) !important;
+  text-shadow: 0 0 10px hsl(0 72% 55% / 0.3);
 }
