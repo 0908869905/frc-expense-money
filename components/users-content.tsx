@@ -38,10 +38,22 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
     const getRoleColor = (role: string) => {
         switch (role) {
             case "ADMIN": return "bg-purple-100 text-purple-700"
-            case "MANAGER": return "bg-blue-100 text-blue-700"
+            case "LEADER": return "bg-blue-100 text-blue-700"
+            case "VICE_LEADER": return "bg-cyan-100 text-cyan-700"
             case "FINANCE": return "bg-green-100 text-green-700"
             default: return "bg-gray-100 text-gray-700"
         }
+    }
+
+    const getRoleLabel = (role: string) => {
+        const labels: Record<string, { zh: string, en: string }> = {
+            USER: { zh: "僅檢視", en: "View Only" },
+            VICE_LEADER: { zh: "副組長", en: "Vice Leader" },
+            LEADER: { zh: "組長", en: "Leader" },
+            FINANCE: { zh: "財務", en: "Finance" },
+            ADMIN: { zh: "管理員", en: "Admin" },
+        }
+        return labels[role]?.[language as "zh" | "en"] || role
     }
 
     const showMessage = (type: "success" | "error", text: string) => {
@@ -49,7 +61,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
         setTimeout(() => setMessage(null), 3000)
     }
 
-    const handleUpdateRole = async (userId: string, role: "USER" | "MANAGER" | "FINANCE" | "ADMIN") => {
+    const handleUpdateRole = async (userId: string, role: "USER" | "VICE_LEADER" | "LEADER" | "FINANCE" | "ADMIN") => {
         startTransition(async () => {
             try {
                 await updateUserRole(userId, role)
@@ -156,8 +168,12 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                     <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "ADMIN").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("主管", "Managers")}</p>
-                    <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "MANAGER").length}</p>
+                    <p className="text-sm text-muted-foreground">{t("組長", "Leaders")}</p>
+                    <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "LEADER").length}</p>
+                </div>
+                <div className="rounded-xl border bg-card p-4">
+                    <p className="text-sm text-muted-foreground">{t("副組長", "Vice Leaders")}</p>
+                    <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "VICE_LEADER").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <p className="text-sm text-muted-foreground">{t("已驗證", "Verified")}</p>
@@ -215,14 +231,14 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                 <td className="p-4">
                                     {editingUser === user.id && editField === "role" ? (
                                         <div className="flex gap-1 flex-wrap">
-                                            {["USER", "MANAGER", "FINANCE", "ADMIN"].map((role) => (
+                                            {["USER", "VICE_LEADER", "LEADER", "FINANCE", "ADMIN"].map((role) => (
                                                 <button
                                                     key={role}
                                                     onClick={() => handleUpdateRole(user.id, role as any)}
                                                     disabled={isPending}
                                                     className={`px-2 py-1 rounded text-xs font-medium ${getRoleColor(role)} hover:opacity-80 disabled:opacity-50`}
                                                 >
-                                                    {role}
+                                                    {getRoleLabel(role)}
                                                 </button>
                                             ))}
                                             <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-red-600 hover:text-red-700 ml-1">
@@ -231,7 +247,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                         </div>
                                     ) : (
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                                            {user.role}
+                                            {getRoleLabel(user.role)}
                                         </span>
                                     )}
                                 </td>

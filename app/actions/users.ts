@@ -29,7 +29,7 @@ export async function getUsers() {
 }
 
 // Update user role
-export async function updateUserRole(userId: string, role: "USER" | "MANAGER" | "FINANCE" | "ADMIN") {
+export async function updateUserRole(userId: string, role: "USER" | "VICE_LEADER" | "LEADER" | "FINANCE" | "ADMIN") {
     const session = await auth()
     if (!session?.user || session.user.role !== "ADMIN") {
         throw new Error("Unauthorized")
