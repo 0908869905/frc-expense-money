@@ -44,7 +44,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
     };
   }
 
-  const { title, description, items } = validatedFields.data;
+  const { title, description, department, items } = validatedFields.data;
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
   const totalAmountCents = items.reduce((sum, item) => sum + toStorageUnit(item.amount), 0);
 
@@ -55,6 +55,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         data: {
           title,
           description: description || "",
+          department: department as any, // 組別
           submitterName,
           submitterEmail,
           submitterId, // 可選的外鍵，可能為 null

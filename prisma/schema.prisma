@@ -75,6 +75,16 @@ model User {
   auditLogs       AuditLog[]
 }
 
+// 團隊組別
+enum TeamDepartment {
+  ELECTRICAL      // 電資組
+  MECHANICAL      // 機構組
+  DOCUMENTATION   // 文書組
+  PR              // 公關組
+  FINANCE         // 財管組
+  DESIGN          // 意象組
+}
+
 enum ReportStatus {
   DRAFT
   PENDING_MANAGER
@@ -85,18 +95,19 @@ enum ReportStatus {
 }
 
 model ExpenseReport {
-  id             String       @id @default(cuid())
+  id             String         @id @default(cuid())
   title          String
-  description    String       @default("")
-  status         ReportStatus @default(DRAFT)
-  totalAmount    Float        @default(0)
+  description    String         @default("")
+  department     TeamDepartment @default(ELECTRICAL) // 組別
+  status         ReportStatus   @default(DRAFT)
+  totalAmount    Float          @default(0)
   amountCents    Int
-  submitterName  String       @default("Unknown") // 提交者名稱
-  submitterEmail String       @default("")        // 提交者 Email
-  submitterId    String?      // 可選的外鍵，用於向後相容
-  submitter      User?        @relation(fields: [submitterId], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  submitterName  String         @default("Unknown") // 提交者名稱
+  submitterEmail String         @default("")        // 提交者 Email
+  submitterId    String?        // 可選的外鍵，用於向後相容
+  submitter      User?          @relation(fields: [submitterId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   items           ExpenseItem[]
   approvalActions ApprovalAction[]
@@ -105,6 +116,7 @@ model ExpenseReport {
   @@index([submitterId])           // 查詢使用者的報帳單
   @@index([submitterEmail])        // 按 Email 查詢
   @@index([status])                // 按狀態篩選
+  @@index([department])            // 按組別篩選
   @@index([createdAt(sort: Desc)]) // 時間排序  
   @@index([status, createdAt])     // 複合索引：狀態+時間
 }

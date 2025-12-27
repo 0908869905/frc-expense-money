@@ -56,6 +56,19 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
         }
     }
 
+    const getDepartmentLabel = (dept: string) => {
+        const labels: Record<string, { zh: string, en: string, icon: string }> = {
+            ELECTRICAL: { zh: "電資組", en: "Electrical", icon: "⚡" },
+            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
+            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
+            PR: { zh: "公關組", en: "PR", icon: "📣" },
+            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
+            DESIGN: { zh: "意象組", en: "Design", icon: "🎨" },
+        }
+        const found = labels[dept]
+        return found ? `${found.icon} ${found[language]}` : dept
+    }
+
     const showMessage = (type: "success" | "error", text: string) => {
         setMessage({ type, text })
         setTimeout(() => setMessage(null), 3000)
@@ -159,7 +172,15 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                             <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
                                 <div>
                                     <h3 className="font-semibold text-lg">{report.title}</h3>
-                                    <div className="flex gap-4 text-sm text-muted-foreground mt-1 items-center">
+                                    <div className="flex flex-wrap gap-2 text-sm text-muted-foreground mt-1 items-center">
+                                        {report.department && (
+                                            <>
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                                    {getDepartmentLabel(report.department)}
+                                                </span>
+                                                <span>•</span>
+                                            </>
+                                        )}
                                         <span>{t("created_on")}: {formatDate(report.createdAt)}</span>
                                         <span>•</span>
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
