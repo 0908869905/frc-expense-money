@@ -206,10 +206,29 @@ export async function submitReport(reportId: string): Promise<State> {
       return { success: false, message: "Only draft reports can be submitted" };
     }
 
+    // 根據提交者角色決定狀態
+    // ADMIN, FINANCE → 直接付款
+    // LEADER → 跳過組長審核，進入財務審核
+    // VICE_LEADER → 正常流程，從組長審核開始
+    const submitterRole = session.user.role;
+    let newStatus: string;
+    let skipMessage: string = "";
+
+    if (submitterRole === "ADMIN" || submitterRole === "FINANCE") {
+      newStatus = "PAID";
+      skipMessage = "（管理員/財務直接付款）";
+    } else if (submitterRole === "LEADER") {
+      newStatus = "PENDING_FINANCE";
+      skipMessage = "（組長跳過組長審核）";
+    } else {
+      // VICE_LEADER 或其他
+      newStatus = "PENDING_MANAGER";
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.expenseReport.update({
         where: { id: reportId },
-        data: { status: "PENDING_MANAGER" },
+        data: { status: newStatus as any },
       });
 
       if (session.user.id) {
@@ -220,7 +239,7 @@ export async function submitReport(reportId: string): Promise<State> {
             action: "SUBMIT",
             actorId: session.user.id,
             oldData: { status: "DRAFT" },
-            newData: { status: "PENDING_MANAGER" },
+            newData: { status: newStatus, skipMessage },
           },
         });
       }
@@ -229,7 +248,13 @@ export async function submitReport(reportId: string): Promise<State> {
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/expenses");
 
-    return { success: true, message: "Report submitted for approval!" };
+    const messages: Record<string, string> = {
+      PAID: "報帳單已直接核准付款！",
+      PENDING_FINANCE: "報帳單已提交至財務審核！",
+      PENDING_MANAGER: "報帳單已提交至組長審核！",
+    };
+
+    return { success: true, message: messages[newStatus] || "Report submitted!" };
   } catch (error) {
     console.error("Failed to submit report:", error);
     return { success: false, message: "Database error: Failed to submit report." };
