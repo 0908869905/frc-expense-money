@@ -74,8 +74,12 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
     const visibleDepartments = DEPARTMENTS.filter(dept => {
         // 財務和管理員看到所有組別
         if (canEdit) return true
-        // 副組長和組長只看到自己的組別
-        return dept.value === userDepartment
+        // 如果用戶有指定組別，只看到自己的組別
+        if (userDepartment) {
+            return dept.value === userDepartment
+        }
+        // 沒有指定組別的 LEADER/VICE_LEADER 看到所有組別
+        return true
     })
 
     const overspentDepts = DEPARTMENTS.filter(d => departmentSummary[d.value]?.isOverspent)
