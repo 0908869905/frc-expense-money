@@ -170,6 +170,15 @@ model AuditLog {
   createdAt  DateTime @default(now())
 }
 
+// 組別預算
+model DepartmentBudget {
+  id         String         @id @default(cuid())
+  department TeamDepartment @unique  // 每個組別只有一筆預算記錄
+  budget     Float          @default(0)  // 該組可用資金
+  updatedAt  DateTime       @updatedAt
+  updatedBy  String         // 誰更新的
+}
+
 // ========== Inventory Management Models ==========
 
 // 零件類別
