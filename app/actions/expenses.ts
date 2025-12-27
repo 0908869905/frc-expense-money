@@ -21,6 +21,12 @@ export async function createExpense(prevState: State, formData: FormData): Promi
     return { success: false, message: "Unauthorized" };
   }
 
+  // 權限檢查：USER 角色不能新增報帳單
+  const userRole = session.user.role;
+  if (userRole === "USER") {
+    return { success: false, message: "您沒有權限新增報帳單" };
+  }
+
   // 使用 session 中的資訊，類似 inventory 的 performedBy 模式
   const submitterName = session.user.name || session.user.email || "Unknown";
   const submitterEmail = session.user.email || "";

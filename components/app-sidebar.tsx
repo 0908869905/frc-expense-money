@@ -82,14 +82,17 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("我的花費", "My Expenses")}>
-              <a href="/dashboard/expenses">
-                <CreditCard />
-                <span>{t("我的花費", "My Expenses")}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {/* 我的花費 - USER 以外的角色可見 */}
+          {role !== "USER" && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={t("我的花費", "My Expenses")}>
+                <a href="/dashboard/expenses">
+                  <CreditCard />
+                  <span>{t("我的花費", "My Expenses")}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={t("庫存管理", "Inventory")}>
               <a href="/dashboard/inventory">
@@ -99,8 +102,8 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {/* Manager / Admin Items */}
-          {(role === "MANAGER" || role === "FINANCE" || role === "ADMIN") && (
+          {/* 組長 / 財務 / 管理員 可審核 */}
+          {(role === "LEADER" || role === "FINANCE" || role === "ADMIN") && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={t("審核", "Approvals")}>
                 <a href="/dashboard/approvals">
@@ -111,17 +114,21 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
             </SidebarMenuItem>
           )}
 
-          {/* Finance / Admin Items */}
+          {/* 副組長 / 組長 / 財務 / 管理員 可查看資金 */}
+          {(role === "VICE_LEADER" || role === "LEADER" || role === "FINANCE" || role === "ADMIN") && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={t("資金記錄", "Funding")}>
+                <a href="/dashboard/funding">
+                  <Wallet />
+                  <span>{t("資金記錄", "Funding")}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+
+          {/* 財務 / 管理員 限定 */}
           {(role === "FINANCE" || role === "ADMIN") && (
             <>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={t("資金記錄", "Funding")}>
-                  <a href="/dashboard/funding">
-                    <Wallet />
-                    <span>{t("資金記錄", "Funding")}</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip={t("所有報表", "All Reports")}>
                   <a href="/dashboard/reports">

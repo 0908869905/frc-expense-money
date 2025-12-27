@@ -12,8 +12,8 @@ export default async function FundingPage() {
 
     const role = session.user.role || "USER"
 
-    // 只有 FINANCE 和 ADMIN 可以存取
-    if (!["FINANCE", "ADMIN"].includes(role)) {
+    // 副組長、組長、財務、管理員可以存取
+    if (!["VICE_LEADER", "LEADER", "FINANCE", "ADMIN"].includes(role)) {
         redirect("/dashboard")
     }
 
