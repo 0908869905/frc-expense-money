@@ -62,6 +62,19 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
         setTimeout(() => setMessage(null), 3000)
     }
 
+    const getDepartmentLabel = (dept: string) => {
+        const labels: Record<string, { zh: string, en: string, icon: string }> = {
+            ELECTRICAL: { zh: "電資組", en: "Electrical", icon: "⚡" },
+            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
+            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
+            PR: { zh: "公關組", en: "PR", icon: "📣" },
+            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
+            DESIGN: { zh: "意象組", en: "Design", icon: "🎨" },
+        }
+        const found = labels[dept]
+        return found ? `${found.icon} ${found[language as "zh" | "en"]}` : dept
+    }
+
     // 匯出為 CSV
     const handleExportCSV = async () => {
         setIsExporting(true)
@@ -328,6 +341,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     <thead className="bg-muted/50">
                         <tr>
                             <th className="text-left p-4 font-medium">{language === "zh" ? "標題" : "Title"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "組別" : "Dept"}</th>
                             <th className="text-left p-4 font-medium">{language === "zh" ? "提交者" : "Submitter"}</th>
                             <th className="text-left p-4 font-medium">{language === "zh" ? "日期" : "Date"}</th>
                             <th className="text-left p-4 font-medium">{language === "zh" ? "金額" : "Amount"}</th>
@@ -338,7 +352,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     <tbody className="divide-y">
                         {filteredReports.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                                <td colSpan={7} className="p-8 text-center text-muted-foreground">
                                     {language === "zh" ? "沒有報帳單" : "No expense reports"}
                                 </td>
                             </tr>
@@ -358,6 +372,13 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                 <p className="font-medium">{report.title}</p>
                                                 <p className="text-sm text-muted-foreground">{report.items.length} {language === "zh" ? "筆項目" : "items"}</p>
                                             </>
+                                        )}
+                                    </td>
+                                    <td className="p-4">
+                                        {report.department && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                                {getDepartmentLabel(report.department)}
+                                            </span>
                                         )}
                                     </td>
                                     <td className="p-4 text-muted-foreground">
