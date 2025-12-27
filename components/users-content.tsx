@@ -2,14 +2,15 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { useState, useTransition } from "react"
-import { updateUserRole, updateUserEmail, updateUserPassword, verifyUserEmail, deleteUser } from "@/app/actions/users"
-import { Check, Edit2, Key, Mail, Shield, Trash2, UserCheck, Users, X } from "lucide-react"
+import { updateUserRole, updateUserDepartment, updateUserEmail, updateUserPassword, verifyUserEmail, deleteUser } from "@/app/actions/users"
+import { Check, Edit2, Key, Mail, Shield, Trash2, UserCheck, Users, X, Building2 } from "lucide-react"
 
 interface User {
     id: string
     name: string | null
     email: string | null
     role: string
+    department: string | null
     emailVerified: Date | null
     createdAt: Date
     _count: { expenseReports: number }
@@ -24,7 +25,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
     const { language } = useLanguage()
     const [isPending, startTransition] = useTransition()
     const [editingUser, setEditingUser] = useState<string | null>(null)
-    const [editField, setEditField] = useState<"email" | "password" | "role" | null>(null)
+    const [editField, setEditField] = useState<"email" | "password" | "role" | "department" | null>(null)
     const [inputValue, setInputValue] = useState("")
     const [localUsers, setLocalUsers] = useState(users)
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
@@ -56,6 +57,29 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
         return labels[role]?.[language as "zh" | "en"] || role
     }
 
+    const getDepartmentLabel = (dept: string | null) => {
+        if (!dept) return t("未指定", "Not Set")
+        const labels: Record<string, { zh: string, en: string, icon: string }> = {
+            ELECTRICAL: { zh: "電資組", en: "Electrical", icon: "⚡" },
+            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
+            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
+            PR: { zh: "公關組", en: "PR", icon: "📣" },
+            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
+            DESIGN: { zh: "意象組", en: "Design", icon: "🎨" },
+        }
+        const found = labels[dept]
+        return found ? `${found.icon} ${found[language as "zh" | "en"]}` : dept
+    }
+
+    const DEPARTMENTS = [
+        { value: "ELECTRICAL", zh: "電資組", en: "Electrical", icon: "⚡" },
+        { value: "MECHANICAL", zh: "機構組", en: "Mechanical", icon: "⚙️" },
+        { value: "DOCUMENTATION", zh: "文書組", en: "Documentation", icon: "📝" },
+        { value: "PR", zh: "公關組", en: "PR", icon: "📣" },
+        { value: "FINANCE", zh: "財管組", en: "Finance", icon: "💰" },
+        { value: "DESIGN", zh: "意象組", en: "Design", icon: "🎨" },
+    ]
+
     const showMessage = (type: "success" | "error", text: string) => {
         setMessage({ type, text })
         setTimeout(() => setMessage(null), 3000)
@@ -67,6 +91,20 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                 await updateUserRole(userId, role)
                 setLocalUsers(prev => prev.map(u => u.id === userId ? { ...u, role } : u))
                 showMessage("success", t("角色已更新", "Role updated"))
+                setEditingUser(null)
+                setEditField(null)
+            } catch (error: any) {
+                showMessage("error", error.message)
+            }
+        })
+    }
+
+    const handleUpdateDepartment = async (userId: string, department: string | null) => {
+        startTransition(async () => {
+            try {
+                await updateUserDepartment(userId, department)
+                setLocalUsers(prev => prev.map(u => u.id === userId ? { ...u, department } : u))
+                showMessage("success", t("組別已更新", "Department updated"))
                 setEditingUser(null)
                 setEditField(null)
             } catch (error: any) {
@@ -188,6 +226,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                         <tr>
                             <th className="text-left p-4 font-medium">{t("用戶", "User")}</th>
                             <th className="text-left p-4 font-medium">{t("角色", "Role")}</th>
+                            <th className="text-left p-4 font-medium">{t("組別", "Dept")}</th>
                             <th className="text-left p-4 font-medium">{t("狀態", "Status")}</th>
                             <th className="text-left p-4 font-medium">{t("報表數", "Reports")}</th>
                             <th className="text-left p-4 font-medium">{t("建立日期", "Created")}</th>
@@ -249,6 +288,40 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                                             {getRoleLabel(user.role)}
                                         </span>
+                                    )}
+                                </td>
+                                <td className="p-4">
+                                    {editingUser === user.id && editField === "department" ? (
+                                        <div className="flex gap-1 flex-wrap">
+                                            <button
+                                                onClick={() => handleUpdateDepartment(user.id, null)}
+                                                disabled={isPending}
+                                                className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 hover:opacity-80 disabled:opacity-50"
+                                            >
+                                                {t("無", "None")}
+                                            </button>
+                                            {DEPARTMENTS.map((dept) => (
+                                                <button
+                                                    key={dept.value}
+                                                    onClick={() => handleUpdateDepartment(user.id, dept.value)}
+                                                    disabled={isPending}
+                                                    className="px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary hover:opacity-80 disabled:opacity-50"
+                                                >
+                                                    {dept.icon} {dept[language as "zh" | "en"]}
+                                                </button>
+                                            ))}
+                                            <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-red-600 hover:text-red-700 ml-1">
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => { setEditingUser(user.id); setEditField("department") }}
+                                            className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1"
+                                        >
+                                            <Building2 className="h-3 w-3" />
+                                            {getDepartmentLabel(user.department)}
+                                        </button>
                                     )}
                                 </td>
                                 <td className="p-4">
@@ -335,6 +408,6 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     )
 }

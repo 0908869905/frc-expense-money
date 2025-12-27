@@ -21,6 +21,7 @@ export default async function UsersPage() {
             name: true,
             email: true,
             role: true,
+            department: true,
             emailVerified: true,
             createdAt: true,
             _count: {

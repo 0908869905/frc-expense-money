@@ -49,6 +49,22 @@ export async function updateUserRole(userId: string, role: "USER" | "VICE_LEADER
     return { success: true }
 }
 
+// Update user department
+export async function updateUserDepartment(userId: string, department: string | null) {
+    const session = await auth()
+    if (!session?.user || session.user.role !== "ADMIN") {
+        throw new Error("Unauthorized")
+    }
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: { department: department as any }
+    })
+
+    revalidatePath("/dashboard/users")
+    return { success: true }
+}
+
 // Update user email
 export async function updateUserEmail(userId: string, email: string) {
     const session = await auth()
