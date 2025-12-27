@@ -31,10 +31,12 @@ import {
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userRole?: string
+  userDepartment?: string | null
 }
 
-export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
+export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarProps) {
   const role = userRole || "USER"
+  const department = userDepartment || null
   const { language } = useLanguage()
   const { org } = useOrganization()
 
@@ -93,14 +95,17 @@ export function AppSidebar({ userRole, ...props }: AppSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("庫存管理", "Inventory")}>
-              <a href="/dashboard/inventory">
-                <Package />
-                <span>{t("庫存管理", "Inventory")}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {/* 庫存管理 - 機構組用戶 / 財務 / 管理員可見 */}
+          {(department === "MECHANICAL" || role === "FINANCE" || role === "ADMIN") && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip={t("庫存管理", "Inventory")}>
+                <a href="/dashboard/inventory">
+                  <Package />
+                  <span>{t("庫存管理", "Inventory")}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
 
           {/* 組長 / 財務 / 管理員 可審核 */}
           {(role === "LEADER" || role === "FINANCE" || role === "ADMIN") && (

@@ -28,10 +28,11 @@ export default async function DashboardLayout({
 
   const userName = session.user?.name || session.user?.email || "User"
   const userRole = session.user?.role || "USER"
+  const userDepartment = (session.user as any)?.department || null
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar userRole={userRole} />
+      <AppSidebar userRole={userRole} userDepartment={userDepartment} />
       <SidebarInset>
         <DashboardWrapper>
           <DashboardHeader userName={userName}>
