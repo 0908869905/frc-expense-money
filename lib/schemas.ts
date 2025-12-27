@@ -13,6 +13,16 @@ export const ExpenseCategoryEnum = z.enum([
   'Other'
 ]);
 
+// 團隊組別
+export const TeamGroupEnum = z.enum([
+  'ELECTRICAL',  // 電資組
+  'MECHANICAL',  // 機構組
+  'DOCUMENTATION', // 文書組
+  'PR',          // 公關組
+  'FINANCE',     // 財管組
+  'DESIGN',      // 意象組
+]);
+
 // 費用項目 Schema
 export const expenseItemSchema = z.object({
   date: z.coerce.date({ required_error: "日期為必填" }),
@@ -27,6 +37,7 @@ export const expenseItemSchema = z.object({
 export const expenseReportSchema = z.object({
   title: z.string().min(3, "標題至少需要 3 個字元"),
   description: z.string().optional(),
+  department: TeamGroupEnum, // 組別
   items: z.array(expenseItemSchema).min(1, "至少需要一個費用項目"),
 });
 

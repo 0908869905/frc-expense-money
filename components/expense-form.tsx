@@ -3,7 +3,7 @@
 import React, { useTransition, useRef, useState, useEffect } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ExpenseReportFormValues, expenseReportSchema, ExpenseCategoryEnum } from "@/lib/schemas";
+import { ExpenseReportFormValues, expenseReportSchema, ExpenseCategoryEnum, TeamGroupEnum } from "@/lib/schemas";
 import { createExpense } from "@/app/actions/expenses";
 import { Button } from "@/components/ui/Button"; // Reusing existing Button
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
@@ -107,6 +107,7 @@ export function ExpenseForm() {
     defaultValues: {
       title: "",
       description: "",
+      department: "ELECTRICAL",
       items: [
         {
           date: new Date(),
@@ -184,6 +185,35 @@ export function ExpenseForm() {
               className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="詳細說明費用內容..."
             />
+          </FormItem>
+
+          <FormItem>
+            <label className="text-sm font-medium leading-none">組別</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {[
+                { value: 'ELECTRICAL', label: '電資組', icon: '⚡' },
+                { value: 'MECHANICAL', label: '機構組', icon: '⚙️' },
+                { value: 'DOCUMENTATION', label: '文書組', icon: '📝' },
+                { value: 'PR', label: '公關組', icon: '📣' },
+                { value: 'FINANCE', label: '財管組', icon: '💰' },
+                { value: 'DESIGN', label: '意象組', icon: '🎨' },
+              ].map((dept) => (
+                <label
+                  key={dept.value}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-all ${watch('department') === dept.value ? 'border-primary bg-primary/10 ring-2 ring-primary/30' : 'border-input hover:border-primary/50'}`}
+                >
+                  <input
+                    type="radio"
+                    value={dept.value}
+                    {...register('department')}
+                    className="sr-only"
+                  />
+                  <span className="text-lg">{dept.icon}</span>
+                  <span className="text-sm font-medium">{dept.label}</span>
+                </label>
+              ))}
+            </div>
+            {errors.department && <p className="text-sm text-destructive">{errors.department.message}</p>}
           </FormItem>
         </CardContent>
       </Card>
