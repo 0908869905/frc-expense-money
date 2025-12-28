@@ -4,9 +4,9 @@
 
 @layer base {
 
-  /* FRC 科技主題 - 深色模式（預設） */
+  /* FRC 科技主題 - 深色科技風格 */
   :root,
-  [data-theme="dark"] {
+  .theme-frc {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
     --card: 222 47% 14%;
@@ -34,35 +34,6 @@
     --gradient-start: hsl(199, 89%, 48%);
     --gradient-end: hsl(173, 80%, 40%);
   }
-
-  /* FRC 科技主題 - 淺色模式 */
-  [data-theme="light"] {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 199 89% 40%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 173 80% 35%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 199 89% 40%;
-
-    /* 淺色特效變數 */
-    --glow-primary: rgba(14, 165, 233, 0.2);
-    --glow-accent: rgba(20, 184, 166, 0.2);
-    --gradient-start: hsl(199, 89%, 40%);
-    --gradient-end: hsl(173, 80%, 35%);
-  }
 }
 
 @layer base {
@@ -70,28 +41,16 @@
     @apply border-border;
   }
 
-  /* 深色模式背景 */
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     position: relative;
     min-height: 100vh;
-    transition: background 0.3s ease, color 0.3s ease;
-  }
-
-  [data-theme="dark"] body,
-  :root body {
     background: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 33% 8%) 50%, hsl(222 47% 11%) 100%);
   }
 
-  /* 淺色模式背景 */
-  [data-theme="light"] body {
-    background: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(210 40% 96%) 50%, hsl(210 40% 98%) 100%);
-  }
-
-  /* Logo 浮水印背景 - 深色模式 */
-  [data-theme="dark"] html::after,
-  :root html::after {
+  /* Logo 浮水印背景 - 全螢幕填滿 */
+  html::after {
     content: "";
     position: fixed;
     top: 0;
@@ -100,34 +59,13 @@
     bottom: 0;
     width: 100%;
     height: 100%;
-    background-image: url("/Gemini_Generated_Image_wkar2twkar2twkar.png");
+    background-image: url("/logo.png");
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
     opacity: 0.08;
     pointer-events: none;
     z-index: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  /* Logo 浮水印背景 - 淺色模式 */
-  [data-theme="light"] html::after {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("/Gemini_Generated_Image_dokwizdokwizdokw.png");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    opacity: 0.12;
-    pointer-events: none;
-    z-index: 0;
-    transition: opacity 0.3s ease;
   }
 
   /* 確保所有內容都在浮水印上方 */
