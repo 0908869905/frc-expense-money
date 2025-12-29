@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/lib/language-context"
 import { OrganizationProvider } from "@/lib/organization-context"
+import { ThemeProvider } from "@/lib/theme-context"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -24,12 +25,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-TW" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased theme-frc", inter.variable)}>
-        <OrganizationProvider>
-          <LanguageProvider>
-            {children}
-          </LanguageProvider>
-        </OrganizationProvider>
+      <body className={cn("min-h-screen bg-background font-sans antialiased theme-frc dark", inter.variable)}>
+        <ThemeProvider>
+          <OrganizationProvider>
+            <LanguageProvider>
+              {children}
+            </LanguageProvider>
+          </OrganizationProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
