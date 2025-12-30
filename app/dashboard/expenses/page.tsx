@@ -17,7 +17,8 @@ export default async function ExpensesPage() {
         where: { submitterId: userId },
         include: {
             items: {
-                orderBy: { date: "desc" }
+                orderBy: { date: "desc" },
+                include: { audit: true }
             }
         },
         orderBy: { createdAt: "desc" }

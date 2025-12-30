@@ -5,6 +5,9 @@ import Link from "next/link"
 import { useState, useTransition } from "react"
 import { submitReport, deleteReport } from "@/app/actions/expenses"
 import { Send, Trash2, Clock, CheckCircle, XCircle, FileText } from "lucide-react"
+import { ReceiptAuditButton } from "@/components/receipt-audit-button"
+import { BatchAuditButton } from "@/components/batch-audit-button"
+import type { AuditResult } from "@/types/audit"
 
 interface ExpensesContentProps {
     reports: any[]
@@ -18,6 +21,29 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
     const [isPending, startTransition] = useTransition()
     const [localReports, setLocalReports] = useState(reports)
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
+
+    // 更新特定項目的審核狀態
+    const handleAuditComplete = (reportId: string, itemId: string, result: AuditResult) => {
+        setLocalReports(prev => prev.map(report => {
+            if (report.id !== reportId) return report;
+            const updatedItems = report.items.map((item: any) => {
+                if (item.id !== itemId) return item;
+                return { ...item, audit: { ...result } };
+            });
+            return { ...report, items: updatedItems };
+        }));
+    };
+
+    // 更新整張報表的批次審核結果
+    const handleBatchAuditComplete = (reportId: string, result: any) => {
+        // 重新整理頁面以獲取最新資料，或者只顯示通知
+        // 這裡選擇簡單刷新頁面或通知
+        if (result.success) {
+            showMessage("success", language === 'zh' ? `批次審核完成，通過率: ${Math.round(result.passedItems / result.auditedItems * 100)}%` : "Batch audit completed");
+            // 實際上也可以更新 local state，但需要處理較多資料，簡單起見可不更新或 reload
+            window.location.reload();
+        }
+    };
 
     const formatDate = (date: Date) => {
         return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US')
@@ -194,6 +220,11 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                         <p className="text-2xl font-bold">${Number(report.totalAmount).toFixed(2)}</p>
                                         <p className="text-sm text-muted-foreground">{report.items.length} {t("items_count")}</p>
                                     </div>
+                                    <BatchAuditButton
+                                        reportId={report.id}
+                                        reportTitle={report.title}
+                                        onAuditComplete={(res) => handleBatchAuditComplete(report.id, res)}
+                                    />
                                     {/* Action Buttons for Draft */}
                                     {report.status === "DRAFT" && (
                                         <div className="flex gap-2">
@@ -233,7 +264,17 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                                     <span>{formatDate(item.date)}</span>
                                                 </div>
                                             </div>
-                                            <p className="font-semibold text-lg">${Number(item.amount).toFixed(2)}</p>
+                                            <div className="flex items-center gap-4">
+                                                <p className="font-semibold text-lg">${Number(item.amount).toFixed(2)}</p>
+                                                <ReceiptAuditButton
+                                                    itemId={item.id}
+                                                    itemDescription={item.description}
+                                                    receiptUrl={item.receiptUrl}
+                                                    existingAuditStatus={item.audit?.isValid}
+                                                    variant="compact"
+                                                    onAuditComplete={(res) => handleAuditComplete(report.id, item.id, res)}
+                                                />
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
