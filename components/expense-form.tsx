@@ -5,13 +5,14 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ExpenseReportFormValues, expenseReportSchema, ExpenseCategoryEnum, TeamGroupEnum } from "@/lib/schemas";
 import { createExpense } from "@/app/actions/expenses";
-import { Button } from "@/components/ui/Button"; // Reusing existing Button
+import { scanInvoice } from "@/app/actions/ocr";
+import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { Input } from "@/components/ui/input"; // We need to create a simple Input wrapper
-import { Label } from "@/components/ui/label"; // We need to create a simple Label wrapper
-import { Trash2, Plus, Upload, Loader2, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Trash2, Plus, Upload, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useFormState } from "react-dom"; // React 18 相容
+import { useFormState } from "react-dom";
 // import { upload } from "@vercel/blob/client"; // Uncomment if package is available
 
 // --- Simple UI Wrappers (since they weren't in previous context) ---
@@ -19,14 +20,24 @@ const FormItem = ({ className, children }: { className?: string, children?: Reac
   <div className={cn("space-y-2", className)}>{children}</div>
 );
 
-// --- Upload Component ---
+// --- Upload Component with OCR ---
+interface OCRResult {
+  date?: string;
+  amount?: number;
+  description?: string;
+  vendor?: string;
+  invoiceNumber?: string;
+}
+
 interface UploadButtonProps {
   onUploadComplete: (url: string) => void;
+  onOCRComplete?: (data: OCRResult) => void;
   defaultUrl?: string | null;
 }
 
-const UploadButton = ({ onUploadComplete, defaultUrl }: UploadButtonProps) => {
+const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadButtonProps) => {
   const [uploading, setUploading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<string | null>(defaultUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,27 +48,46 @@ const UploadButton = ({ onUploadComplete, defaultUrl }: UploadButtonProps) => {
     setUploading(true);
 
     try {
-      // Mocking Vercel Blob upload for demonstration if SDK isn't fully configured
-      // In production: const newBlob = await upload(file.name, file, { access: 'public', handleUploadUrl: '/api/upload' });
-
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Create a local preview URL for now
+      // Create preview and get base64
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
-      onUploadComplete(objectUrl); // In real app, pass the blob.url
+      onUploadComplete(objectUrl);
 
+      // Convert to base64 for OCR
+      if (onOCRComplete) {
+        setScanning(true);
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64 = reader.result as string;
+          try {
+            const result = await scanInvoice(base64);
+            if (result.success && result.data) {
+              onOCRComplete({
+                date: result.data.date || undefined,
+                amount: result.data.totalAmount ? result.data.totalAmount / 100 : undefined,
+                description: result.data.vendorName || undefined,
+                vendor: result.data.vendorName || undefined,
+                invoiceNumber: result.data.invoiceNumber || undefined,
+              });
+            }
+          } catch (err) {
+            console.error("OCR failed:", err);
+          } finally {
+            setScanning(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     } catch (error) {
       console.error("Upload failed", error);
-      alert("Upload failed (Mock)");
+      alert("上傳失敗");
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2">
       <input
         type="file"
         ref={fileInputRef}
@@ -70,17 +100,20 @@ const UploadButton = ({ onUploadComplete, defaultUrl }: UploadButtonProps) => {
         variant="outline"
         size="sm"
         onClick={() => fileInputRef.current?.click()}
-        disabled={uploading}
+        disabled={uploading || scanning}
+        className="gap-1"
       >
         {uploading ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : scanning ? (
+          <Sparkles className="h-4 w-4 animate-pulse text-yellow-500" />
         ) : (
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="h-4 w-4" />
         )}
-        {uploading ? "上傳中..." : preview ? "更換收據" : "上傳收據"}
+        {uploading ? "上傳中" : scanning ? "辨識中..." : preview ? "更換" : "上傳收據"}
       </Button>
       {preview && (
-        <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline truncate max-w-[100px]">
+        <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline truncate max-w-[60px]">
           檢視
         </a>
       )}
@@ -125,6 +158,49 @@ export function ExpenseForm() {
     control,
     name: "items",
   });
+
+  // 處理 OCR 結果，自動填入表單欄位
+  const handleOCRResult = (index: number, data: OCRResult) => {
+    if (data.date) {
+      // 轉換日期格式為 input date 格式 (YYYY-MM-DD)
+      try {
+        const dateStr = data.date;
+        // 嘗試解析常見的日期格式
+        let dateObj: Date | null = null;
+        if (dateStr.includes('/')) {
+          const parts = dateStr.split('/');
+          if (parts.length === 3) {
+            // 可能是 YYYY/MM/DD 或 MM/DD/YYYY 或 DD/MM/YYYY
+            if (parts[0].length === 4) {
+              dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            } else {
+              // 假設 MM/DD/YYYY
+              dateObj = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+            }
+          }
+        } else if (dateStr.includes('-')) {
+          dateObj = new Date(dateStr);
+        }
+        if (dateObj && !isNaN(dateObj.getTime())) {
+          const formattedDate = dateObj.toISOString().split('T')[0];
+          // @ts-ignore - setValue works with string path
+          control._formValues.items[index].date = formattedDate;
+        }
+      } catch (e) {
+        console.warn('Date parsing failed:', e);
+      }
+    }
+    if (data.amount && data.amount > 0) {
+      // @ts-ignore
+      control._formValues.items[index].amount = data.amount;
+    }
+    if (data.vendor) {
+      // @ts-ignore
+      control._formValues.items[index].description = data.vendor;
+    }
+    // 觸發重新渲染
+    reset(control._formValues);
+  };
 
   const onSubmit = (data: ExpenseReportFormValues) => {
     // We strictly use FormData for the server action to comply with Next.js patterns
@@ -303,6 +379,7 @@ export function ExpenseForm() {
                     render={({ field: { onChange, value } }) => (
                       <UploadButton
                         onUploadComplete={onChange}
+                        onOCRComplete={(data) => handleOCRResult(index, data)}
                         defaultUrl={value}
                       />
                     )}
