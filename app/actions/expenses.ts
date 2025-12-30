@@ -31,6 +31,8 @@ export async function createExpense(prevState: State, formData: FormData): Promi
   const submitterName = session.user.name || session.user.email || "Unknown";
   const submitterEmail = session.user.email || "";
   const submitterId = session.user.id || null;
+  // 使用管理員設定的用戶組別，而非表單輸入
+  const userDepartment = (session.user as any).department || null;
 
   // 解析表單資料
   const rawData = formData.get("data");
@@ -50,18 +52,18 @@ export async function createExpense(prevState: State, formData: FormData): Promi
     };
   }
 
-  const { title, description, department, items } = validatedFields.data;
+  const { title, description, items } = validatedFields.data;
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
   const totalAmountCents = items.reduce((sum, item) => sum + toStorageUnit(item.amount), 0);
 
   try {
     await prisma.$transaction(async (tx) => {
-      // 1. 建立報帳單 - 使用 name/email 字串而非外鍵
+      // 1. 建立報帳單 - 使用用戶的組別設定
       const report = await tx.expenseReport.create({
         data: {
           title,
           description: description || "",
-          department: department as any, // 組別
+          ...(userDepartment && { department: userDepartment }), // 只在用戶有設定組別時才填入
           submitterName,
           submitterEmail,
           submitterId, // 可選的外鍵，可能為 null
