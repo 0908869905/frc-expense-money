@@ -12,9 +12,9 @@ export const metadata = {
   title: "FRC 6998 報帳系統",
   description: "FRC 6998 費用報銷管理系統",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+    shortcut: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+    apple: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
   },
 }
 

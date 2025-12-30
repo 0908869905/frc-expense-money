@@ -8,7 +8,7 @@ export const ORGANIZATIONS = {
         id: "frc-6998",
         name: "FRC 6998",
         subtitle: "UNIPARDS",
-        logo: "/logo.png",
+        logo: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
         title: "FRC 6998 報帳",
         titleEn: "FRC 6998 Expense",
         bgColor: "bg-primary",
