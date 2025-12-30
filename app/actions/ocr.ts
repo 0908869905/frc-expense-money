@@ -76,3 +76,177 @@ export async function scanInvoiceFromUrl(imageUrl: string): Promise<OCRResult> {
         };
     }
 }
+
+// ========== 智慧審核 Actions ==========
+
+import {
+    auditReceipt,
+    saveAuditResult,
+    batchAuditReport,
+    AuditResult,
+    BatchAuditResult,
+} from "@/lib/receipt-audit";
+import { prisma } from "@/lib/prisma";
+
+/**
+ * 審核單筆費用項目
+ */
+export async function auditExpenseItem(
+    itemId: string,
+    receiptImage: string
+): Promise<AuditResult> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return {
+            success: false,
+            isValid: false,
+            matchScore: 0,
+            issues: [],
+            error: "Unauthorized",
+        };
+    }
+
+    try {
+        // 取得費用項目資料
+        const item = await prisma.expenseItem.findUnique({
+            where: { id: itemId },
+            select: {
+                id: true,
+                amount: true,
+                amountCents: true,
+                date: true,
+                description: true,
+                receiptUrl: true,
+                report: {
+                    select: {
+                        submitterId: true,
+                        submitterEmail: true,
+                    },
+                },
+            },
+        });
+
+        if (!item) {
+            return {
+                success: false,
+                isValid: false,
+                matchScore: 0,
+                issues: [],
+                error: "找不到費用項目",
+            };
+        }
+
+        // 權限檢查：只有提交者、ADMIN、FINANCE 可以審核
+        const userRole = session.user.role;
+        const isOwner =
+            item.report?.submitterId === session.user.id ||
+            item.report?.submitterEmail === session.user.email;
+        const isPrivileged = userRole === "ADMIN" || userRole === "FINANCE";
+
+        if (!isOwner && !isPrivileged) {
+            return {
+                success: false,
+                isValid: false,
+                matchScore: 0,
+                issues: [],
+                error: "權限不足",
+            };
+        }
+
+        // 執行審核
+        const result = await auditReceipt(item, receiptImage);
+
+        // 儲存審核結果
+        if (result.success) {
+            await saveAuditResult(itemId, result);
+        }
+
+        return result;
+    } catch (error) {
+        console.error("審核失敗:", error);
+        return {
+            success: false,
+            isValid: false,
+            matchScore: 0,
+            issues: [],
+            error: error instanceof Error ? error.message : "審核處理失敗",
+        };
+    }
+}
+
+/**
+ * 批次審核整個報帳單
+ */
+export async function batchAuditExpenseReport(
+    reportId: string
+): Promise<BatchAuditResult> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return {
+            success: false,
+            totalItems: 0,
+            auditedItems: 0,
+            passedItems: 0,
+            failedItems: 0,
+            results: [],
+            error: "Unauthorized",
+        };
+    }
+
+    try {
+        // 取得報帳單
+        const report = await prisma.expenseReport.findUnique({
+            where: { id: reportId },
+            select: {
+                submitterId: true,
+                submitterEmail: true,
+            },
+        });
+
+        if (!report) {
+            return {
+                success: false,
+                totalItems: 0,
+                auditedItems: 0,
+                passedItems: 0,
+                failedItems: 0,
+                results: [],
+                error: "找不到報帳單",
+            };
+        }
+
+        // 權限檢查
+        const userRole = session.user.role;
+        const isOwner =
+            report.submitterId === session.user.id ||
+            report.submitterEmail === session.user.email;
+        const isPrivileged = userRole === "ADMIN" || userRole === "FINANCE";
+
+        if (!isOwner && !isPrivileged) {
+            return {
+                success: false,
+                totalItems: 0,
+                auditedItems: 0,
+                passedItems: 0,
+                failedItems: 0,
+                results: [],
+                error: "權限不足",
+            };
+        }
+
+        // 執行批次審核
+        return await batchAuditReport(reportId);
+    } catch (error) {
+        console.error("批次審核失敗:", error);
+        return {
+            success: false,
+            totalItems: 0,
+            auditedItems: 0,
+            passedItems: 0,
+            failedItems: 0,
+            results: [],
+            error: error instanceof Error ? error.message : "批次審核處理失敗",
+        };
+    }
+}
+

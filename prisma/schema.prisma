@@ -140,11 +140,38 @@ model ExpenseItem {
   reportId    String
   report      ExpenseReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
   createdAt   DateTime      @default(now())
+  
+  // 審核記錄
+  audit       ReceiptAudit?
 
   // 索引優化
   @@index([reportId])              // 關聯查詢
   @@index([category])              // 按類別統計
   @@index([date])                  // 按日期篩選
+}
+
+// 收據審核記錄
+model ReceiptAudit {
+  id            String      @id @default(cuid())
+  expenseItemId String      @unique
+  expenseItem   ExpenseItem @relation(fields: [expenseItemId], references: [id], onDelete: Cascade)
+  
+  // OCR 擷取結果
+  extractedAmount   Int?       // 擷取金額（最小貨幣單位）
+  extractedDate     DateTime?  // 擷取日期
+  extractedVendor   String?    // 擷取商家
+  invoiceNumber     String?    // 發票號碼
+  rawText           String?    @db.Text  // OCR 原始文字
+  
+  // 審核結果
+  isValid           Boolean    @default(false)
+  matchScore        Int        @default(0)  // 匹配分數 0-100
+  issues            Json?      // AuditIssue[]
+  confidence        Float      @default(0)
+  
+  createdAt         DateTime   @default(now())
+  
+  @@index([invoiceNumber])   // 用於重複發票偵測
 }
 
 model ApprovalAction {
