@@ -37,7 +37,7 @@ export const expenseItemSchema = z.object({
 export const expenseReportSchema = z.object({
   title: z.string().min(3, "標題至少需要 3 個字元"),
   description: z.string().optional(),
-  department: TeamGroupEnum, // 組別
+  department: TeamGroupEnum.optional(), // 組別（可選）
   items: z.array(expenseItemSchema).min(1, "至少需要一個費用項目"),
 });
 

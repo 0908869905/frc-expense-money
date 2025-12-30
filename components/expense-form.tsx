@@ -173,7 +173,6 @@ export function ExpenseForm() {
     defaultValues: {
       title: "",
       description: "",
-      department: "ELECTRICAL",
       items: [
         {
           date: new Date(),
@@ -296,34 +295,7 @@ export function ExpenseForm() {
             />
           </FormItem>
 
-          <FormItem>
-            <label className="text-sm font-medium leading-none">組別</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {[
-                { value: 'ELECTRICAL', label: '電資組', icon: '⚡' },
-                { value: 'MECHANICAL', label: '機構組', icon: '⚙️' },
-                { value: 'DOCUMENTATION', label: '文書組', icon: '📝' },
-                { value: 'PR', label: '公關組', icon: '📣' },
-                { value: 'FINANCE', label: '財管組', icon: '💰' },
-                { value: 'DESIGN', label: '意象組', icon: '🎨' },
-              ].map((dept) => (
-                <label
-                  key={dept.value}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border cursor-pointer transition-all ${watch('department') === dept.value ? 'border-primary bg-primary/10 ring-2 ring-primary/30' : 'border-input hover:border-primary/50'}`}
-                >
-                  <input
-                    type="radio"
-                    value={dept.value}
-                    {...register('department')}
-                    className="sr-only"
-                  />
-                  <span className="text-lg">{dept.icon}</span>
-                  <span className="text-sm font-medium">{dept.label}</span>
-                </label>
-              ))}
-            </div>
-            {errors.department && <p className="text-sm text-destructive">{errors.department.message}</p>}
-          </FormItem>
+
         </CardContent>
       </Card>
 
