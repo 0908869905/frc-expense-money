@@ -30,7 +30,7 @@ interface OCRResult {
 }
 
 interface UploadButtonProps {
-  onUploadComplete: (url: string) => void;
+  onUploadComplete: (url: string, base64?: string) => void;
   onOCRComplete?: (data: OCRResult) => void;
   defaultUrl?: string | null;
 }
@@ -39,6 +39,7 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
   const [uploading, setUploading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<string | null>(defaultUrl || null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,36 +49,18 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
     setUploading(true);
 
     try {
-      // Create preview and get base64
+      // Create preview URL
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
-      onUploadComplete(objectUrl);
 
-      // Convert to base64 for OCR
-      if (onOCRComplete) {
-        setScanning(true);
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64 = reader.result as string;
-          try {
-            const result = await scanInvoice(base64);
-            if (result.success && result.data) {
-              onOCRComplete({
-                date: result.data.date || undefined,
-                amount: result.data.totalAmount ? result.data.totalAmount / 100 : undefined,
-                description: result.data.vendorName || undefined,
-                vendor: result.data.vendorName || undefined,
-                invoiceNumber: result.data.invoiceNumber || undefined,
-              });
-            }
-          } catch (err) {
-            console.error("OCR failed:", err);
-          } finally {
-            setScanning(false);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
+      // Convert to base64 for OCR (store for later use)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setImageBase64(base64);
+        onUploadComplete(objectUrl, base64);
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error("Upload failed", error);
       alert("上傳失敗");
@@ -86,8 +69,38 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
     }
   };
 
+  // 獨立的 OCR 掃描功能
+  const handleScan = async () => {
+    if (!imageBase64) {
+      alert("請先上傳收據圖片");
+      return;
+    }
+    if (!onOCRComplete) return;
+
+    setScanning(true);
+    try {
+      const result = await scanInvoice(imageBase64);
+      if (result.success && result.data) {
+        onOCRComplete({
+          date: result.data.date || undefined,
+          amount: result.data.totalAmount ? result.data.totalAmount / 100 : undefined,
+          description: result.data.vendorName || undefined,
+          vendor: result.data.vendorName || undefined,
+          invoiceNumber: result.data.invoiceNumber || undefined,
+        });
+      } else {
+        alert(result.error || "OCR 辨識失敗");
+      }
+    } catch (err) {
+      console.error("OCR failed:", err);
+      alert("OCR 辨識失敗");
+    } finally {
+      setScanning(false);
+    }
+  };
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <input
         type="file"
         ref={fileInputRef}
@@ -95,25 +108,45 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
         className="hidden"
         accept="image/*,.pdf"
       />
+      {/* 上傳按鈕 */}
       <Button
         type="button"
         variant="outline"
         size="sm"
         onClick={() => fileInputRef.current?.click()}
-        disabled={uploading || scanning}
-        className="gap-1"
+        disabled={uploading}
+        className="gap-1 px-2"
       >
         {uploading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
-        ) : scanning ? (
-          <Sparkles className="h-4 w-4 animate-pulse text-yellow-500" />
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        {uploading ? "上傳中" : scanning ? "辨識中..." : preview ? "更換" : "上傳收據"}
+        {uploading ? "上傳中" : preview ? "更換" : "上傳"}
       </Button>
+
+      {/* 獨立的 OCR 智慧擷取按鈕 */}
+      {onOCRComplete && (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={handleScan}
+          disabled={!preview || scanning}
+          className="gap-1 px-2"
+          title="智慧擷取收據資訊"
+        >
+          {scanning ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4 text-yellow-500" />
+          )}
+          {scanning ? "辨識中" : "擷取"}
+        </Button>
+      )}
+
       {preview && (
-        <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline truncate max-w-[60px]">
+        <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline">
           檢視
         </a>
       )}
