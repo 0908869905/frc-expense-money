@@ -136,10 +136,10 @@ export default function LandingPage() {
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 px-4 md:px-6">
           <p className="text-sm text-muted-foreground">{t("footer_rights")}</p>
           <nav className="flex gap-6">
-            <Link className="text-sm text-muted-foreground hover:text-foreground transition-colors" href="#">
+            <Link className="text-sm text-muted-foreground hover:text-foreground transition-colors" href="/terms">
               {t("terms")}
             </Link>
-            <Link className="text-sm text-muted-foreground hover:text-foreground transition-colors" href="#">
+            <Link className="text-sm text-muted-foreground hover:text-foreground transition-colors" href="/privacy">
               {t("privacy")}
             </Link>
           </nav>
