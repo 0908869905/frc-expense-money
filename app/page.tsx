@@ -36,27 +36,6 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link className="flex items-center gap-3" href="/">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${org.bgColor}`}>
-              <img src={org.logo} alt={org.name} className="h-6 w-6 object-contain" />
-            </div>
-            <span className="font-bold text-lg">{org.name}</span>
-          </Link>
-          <nav className="flex items-center gap-4">
-            <LanguageSwitcher />
-            <Link href="/login">
-              <Button variant="ghost" size="sm">{t("sign_in")}</Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm">{language === "zh" ? "立即開始" : "Get Started"}</Button>
-            </Link>
-          </nav>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <main className="flex-1">
         <section className="relative overflow-hidden py-20 md:py-32">
@@ -68,6 +47,14 @@ export default function LandingPage() {
 
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-8">
+              {/* Logo */}
+              <Link className="flex items-center gap-3" href="/">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${org.bgColor}`}>
+                  <img src={org.logo} alt={org.name} className="h-8 w-8 object-contain" />
+                </div>
+                <span className="font-bold text-2xl">{org.name}</span>
+              </Link>
+
               {/* Badge */}
               <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-sm font-medium shadow-sm">
                 <Zap className="h-4 w-4 text-primary" />
@@ -88,7 +75,7 @@ export default function LandingPage() {
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
                 <Link href="/login">
                   <Button size="lg" className="h-12 px-8 text-base shadow-lg">
                     {t("get_started")}
@@ -100,6 +87,7 @@ export default function LandingPage() {
                     {t("learn_more")}
                   </Button>
                 </Link>
+                <LanguageSwitcher />
               </div>
             </div>
           </div>
