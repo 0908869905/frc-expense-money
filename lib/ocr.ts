@@ -173,7 +173,7 @@ function parseInvoiceText(text: string): InvoiceData {
 /**
  * 驗證發票號碼格式
  */
-export function validateInvoiceNumber(number: string): boolean {
+function validateInvoiceNumber(number: string): boolean {
     // 台灣統一發票格式：2 英文字母 + 8 數字
     return /^[A-Z]{2}\d{8}$/i.test(number.replace(/-/g, ""));
 }
