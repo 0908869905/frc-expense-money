@@ -1,0 +1,424 @@
+"use client";
+
+import React, { useTransition, useRef, useState, useEffect } from "react";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ExpenseReportFormValues, expenseReportSchema, ExpenseCategoryEnum, TeamGroupEnum } from "@/lib/schemas";
+import { createExpense } from "@/app/actions/expenses";
+import { scanInvoice } from "@/app/actions/ocr";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Trash2, Plus, Upload, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils/utils";
+import { useFormState } from "react-dom";
+// import { upload } from "@vercel/blob/client"; // Uncomment if package is available
+
+// --- Simple UI Wrappers (since they weren't in previous context) ---
+const FormItem = ({ className, children }: { className?: string, children?: React.ReactNode }) => (
+  <div className={cn("space-y-2", className)}>{children}</div>
+);
+
+// --- Upload Component with OCR ---
+interface OCRResult {
+  date?: string;
+  amount?: number;
+  description?: string;
+  vendor?: string;
+  invoiceNumber?: string;
+}
+
+interface UploadButtonProps {
+  onUploadComplete: (url: string, base64?: string) => void;
+  onOCRComplete?: (data: OCRResult) => void;
+  defaultUrl?: string | null;
+}
+
+const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadButtonProps) => {
+  const [uploading, setUploading] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [preview, setPreview] = useState<string | null>(defaultUrl || null);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+
+    try {
+      // Create preview URL
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+
+      // Convert to base64 for OCR (store for later use)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setImageBase64(base64);
+        onUploadComplete(objectUrl, base64);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert("上傳失�?");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // ?��???OCR ?��??�能
+  const handleScan = async () => {
+    if (!imageBase64) {
+      alert("請�?上傳?��??��?");
+      return;
+    }
+    if (!onOCRComplete) return;
+
+    setScanning(true);
+    try {
+      const result = await scanInvoice(imageBase64);
+      if (result.success && result.data) {
+        onOCRComplete({
+          date: result.data.date || undefined,
+          amount: result.data.totalAmount ? result.data.totalAmount / 100 : undefined,
+          description: result.data.vendorName || undefined,
+          vendor: result.data.vendorName || undefined,
+          invoiceNumber: result.data.invoiceNumber || undefined,
+        });
+      } else {
+        alert(result.error || "OCR 辨�?失�?");
+      }
+    } catch (err) {
+      console.error("OCR failed:", err);
+      alert("OCR 辨�?失�?");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*,.pdf"
+      />
+      {/* 上傳?��? */}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        className="gap-1 px-2"
+      >
+        {uploading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Upload className="h-4 w-4" />
+        )}
+        {uploading ? "上傳�? : preview ? "?��?" : "上傳"}
+      </Button>
+
+      {/* ?��???OCR ?�慧?��??��? */}
+      {onOCRComplete && (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={handleScan}
+          disabled={!preview || scanning}
+          className="gap-1 px-2"
+          title="?�慧?��??��?資�?"
+        >
+          {scanning ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4 text-yellow-500" />
+          )}
+          {scanning ? "辨�?�? : "?��?"}
+        </Button>
+      )}
+
+      {preview && (
+        <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline">
+          檢�?
+        </a>
+      )}
+    </div>
+  );
+};
+
+export function ExpenseForm() {
+  const [isPending, startTransition] = useTransition();
+  const [state, formAction] = useFormState(createExpense, {
+    success: false,
+    message: null,
+  });
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<ExpenseReportFormValues>({
+    resolver: zodResolver(expenseReportSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      items: [
+        {
+          date: new Date(),
+          category: "Food",
+          customCategory: "",
+          description: "",
+          amount: 0,
+          receiptUrl: null,
+        },
+      ],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  // ?��? OCR 結�?，自?�填?�表?��?�?  const handleOCRResult = (index: number, data: OCRResult) => {
+    if (data.date) {
+      // 轉�??��??��???input date ?��? (YYYY-MM-DD)
+      try {
+        const dateStr = data.date;
+        // ?�試�??常�??�日?�格�?        let dateObj: Date | null = null;
+        if (dateStr.includes('/')) {
+          const parts = dateStr.split('/');
+          if (parts.length === 3) {
+            // ?�能??YYYY/MM/DD ??MM/DD/YYYY ??DD/MM/YYYY
+            if (parts[0].length === 4) {
+              dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            } else {
+              // ?�設 MM/DD/YYYY
+              dateObj = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+            }
+          }
+        } else if (dateStr.includes('-')) {
+          dateObj = new Date(dateStr);
+        }
+        if (dateObj && !isNaN(dateObj.getTime())) {
+          const formattedDate = dateObj.toISOString().split('T')[0];
+          // @ts-ignore - setValue works with string path
+          control._formValues.items[index].date = formattedDate;
+        }
+      } catch (e) {
+        console.warn('Date parsing failed:', e);
+      }
+    }
+    if (data.amount && data.amount > 0) {
+      // @ts-ignore
+      control._formValues.items[index].amount = data.amount;
+    }
+    if (data.vendor) {
+      // @ts-ignore
+      control._formValues.items[index].description = data.vendor;
+    }
+    // 觸發?�新渲�?
+    reset(control._formValues);
+  };
+
+  const onSubmit = (data: ExpenseReportFormValues) => {
+    // We strictly use FormData for the server action to comply with Next.js patterns
+    // We serialize the complex data object to pass it cleanly.
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(data));
+
+    // Trigger the server action with transition for pending state
+    startTransition(() => {
+      formAction(formData);
+    });
+  };
+
+  // Reset form on success
+  React.useEffect(() => {
+    if (state.success) {
+      reset();
+      // Optional: Redirect or show toast
+    }
+  }, [state.success, reset]);
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto py-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">?��??�帳??/h2>
+          <p className="text-muted-foreground">?�交?��?費用?�銷?��???/p>
+        </div>
+      </div>
+
+      {state.message && (
+        <div className={cn("p-4 rounded-md flex items-center gap-2", state.success ? "bg-green-50 text-green-900 border border-green-200" : "bg-red-50 text-red-900 border border-red-200")}>
+          <AlertCircle className="h-4 w-4" />
+          {state.message}
+        </div>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>?�帳?��?�?/CardTitle>
+          <CardDescription>此次?�銷?�基?��?訊�?/CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <FormItem>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">?�帳?��?�?/label>
+            <input
+              {...register("title")}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="例�?：�??�客?��?�?
+            />
+            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+          </FormItem>
+
+          <FormItem>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">?��?說�?</label>
+            <textarea
+              {...register("description")}
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="詳細說�?費用?�容..."
+            />
+          </FormItem>
+
+
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">費用?�細?�目</h3>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => append({ date: new Date(), category: "Food", customCategory: "", description: "", amount: 0, receiptUrl: null })}
+          >
+            <Plus className="mr-2 h-4 w-4" />?��??�目
+          </Button>
+        </div>
+
+        {fields.map((field, index) => (
+          <Card key={field.id} className="relative overflow-hidden transition-all hover:border-primary/50">
+            <CardContent className="p-6">
+              <div className="grid gap-6 md:grid-cols-12">
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">?��?</label>
+                  <input
+                    type="date"
+                    {...register(`items.${index}.date` as const)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+
+                <div className={`${watch(`items.${index}.category`) === 'Other' ? 'md:col-span-1' : 'md:col-span-2'} space-y-2`}>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">類別</label>
+                  <select
+                    {...register(`items.${index}.category` as const)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {ExpenseCategoryEnum.options.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* ?��?義�??�輸?��? - ?�選??Other ?�顯�?*/}
+                {watch(`items.${index}.category`) === 'Other' && (
+                  <div className="md:col-span-1 space-y-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">?��?類別</label>
+                    <input
+                      {...register(`items.${index}.customCategory` as const)}
+                      placeholder="輸入類別?�稱"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                )}
+
+                <div className="md:col-span-4 space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">說�?</label>
+                  <input
+                    {...register(`items.${index}.description` as const)}
+                    placeholder="?�客?��?�?
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                  {errors.items?.[index]?.description && (
+                    <p className="text-[10px] text-destructive">{errors.items[index]?.description?.message}</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">?��?</label>
+                  <div className="relative">
+                    <span className="absolute left-2 top-2.5 text-xs text-muted-foreground">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...register(`items.${index}.amount` as const)}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent pl-5 pr-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                  {errors.items?.[index]?.amount && (
+                    <p className="text-[10px] text-destructive">{errors.items[index]?.amount?.message}</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 flex items-end justify-between gap-2">
+                  <Controller
+                    control={control}
+                    name={`items.${index}.receiptUrl`}
+                    render={({ field: { onChange, value } }) => (
+                      <UploadButton
+                        onUploadComplete={onChange}
+                        onOCRComplete={(data) => handleOCRResult(index, data)}
+                        defaultUrl={value}
+                      />
+                    )}
+                  />
+                  {fields.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => remove(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {errors.items && <p className="text-sm text-destructive">{errors.items.message}</p>}
+      </div>
+
+      <div className="flex justify-end gap-4">
+        <Button type="button" variant="outline" onClick={() => reset()}>?��?</Button>
+        <Button type="submit" disabled={isPending} className="min-w-[150px]">
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ?�交�?..
+            </>
+          ) : (
+            "?�交?�帳??
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+}

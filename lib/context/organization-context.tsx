@@ -1,0 +1,48 @@
+"use client";
+
+import React, { createContext, useContext, ReactNode } from "react";
+
+// ÁµÑÁ??çÁΩÆ - ?™‰???FRC
+export const ORGANIZATIONS = {
+    frc: {
+        id: "frc-6998",
+        name: "FRC 6998",
+        subtitle: "UNIPARDS",
+        logo: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+        title: "FRC 6998 ?±Â∏≥",
+        titleEn: "FRC 6998 Expense",
+        bgColor: "bg-primary",
+        themeClass: "theme-frc",
+    },
+} as const;
+
+export type OrgId = keyof typeof ORGANIZATIONS;
+export type Organization = typeof ORGANIZATIONS[OrgId];
+
+interface OrganizationContextType {
+    org: Organization;
+    orgId: OrgId;
+}
+
+const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
+
+export function OrganizationProvider({ children }: { children: ReactNode }) {
+    // ?∫Â?‰ΩøÁî® FRC
+    const org = ORGANIZATIONS.frc;
+    const orgId: OrgId = "frc";
+
+    return (
+        <OrganizationContext.Provider value={{ org, orgId }}>
+            {children}
+        </OrganizationContext.Provider>
+    );
+}
+
+export function useOrganization() {
+    const context = useContext(OrganizationContext);
+    if (!context) {
+        throw new Error("useOrganization must be used within an OrganizationProvider");
+    }
+    return context;
+}
+

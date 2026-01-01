@@ -1,0 +1,193 @@
+"use client";
+
+/**
+ * ?��?審核?��?
+ * ?�放?�費?��??��?，�??��??��??�慧審核
+ */
+
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/Button";
+import { ScanSearch, Loader2, Upload, CheckCircle2, XCircle } from "lucide-react";
+import { auditExpenseItem } from "@/app/actions/ocr";
+import { AuditResultDialog } from "@/components/audit/audit-result-dialog";
+import type { AuditResult } from "@/types/audit";
+
+interface ReceiptAuditButtonProps {
+    itemId: string;
+    itemDescription: string;
+    receiptUrl?: string | null;
+    existingAuditStatus?: boolean | null;
+    onAuditComplete?: (result: AuditResult) => void;
+    variant?: "default" | "icon" | "compact";
+}
+
+export function ReceiptAuditButton({
+    itemId,
+    itemDescription,
+    receiptUrl,
+    existingAuditStatus,
+    onAuditComplete,
+    variant = "default",
+}: ReceiptAuditButtonProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [result, setResult] = useState<AuditResult | null>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // ?��?檔�?上傳
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("請選?��??��?�?);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64 = reader.result as string;
+            await performAudit(base64);
+        };
+        reader.readAsDataURL(file);
+        e.target.value = "";
+    };
+
+    // ?��?審核
+    const performAudit = async (imageSource: string) => {
+        setIsLoading(true);
+        try {
+            const auditResult = await auditExpenseItem(itemId, imageSource);
+            setResult(auditResult);
+            setDialogOpen(true);
+            onAuditComplete?.(auditResult);
+        } catch (error) {
+            console.error("審核失�?:", error);
+            setResult({
+                success: false,
+                isValid: false,
+                matchScore: 0,
+                issues: [{
+                    type: "INVALID_FORMAT",
+                    severity: "error",
+                    message: "審核?��??��??�誤",
+                }],
+                error: "審核失�?",
+            });
+            setDialogOpen(true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // 點�??��?
+    const handleClick = async () => {
+        if (receiptUrl) {
+            await performAudit(receiptUrl);
+        } else {
+            fileInputRef.current?.click();
+        }
+    };
+
+    // ?��?審核?�?�顯�?
+    const getStatusIcon = () => {
+        if (existingAuditStatus === true) {
+            return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+        }
+        if (existingAuditStatus === false) {
+            return <XCircle className="h-3 w-3 text-red-500" />;
+        }
+        return null;
+    };
+
+    // 渲�??��?
+    const renderButton = () => {
+        if (variant === "icon") {
+            return (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleClick}
+                    disabled={isLoading}
+                    className="h-8 w-8"
+                    title="?�慧審核?��?"
+                >
+                    {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <ScanSearch className="h-4 w-4" />
+                    )}
+                </Button>
+            );
+        }
+
+        if (variant === "compact") {
+            return (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClick}
+                    disabled={isLoading}
+                    className="gap-1"
+                >
+                    {isLoading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                        <>
+                            <ScanSearch className="h-3 w-3" />
+                            {getStatusIcon()}
+                        </>
+                    )}
+                    審核
+                </Button>
+            );
+        }
+
+        // default variant
+        return (
+            <Button
+                variant="outline"
+                onClick={handleClick}
+                disabled={isLoading}
+                className="gap-2"
+            >
+                {isLoading ? (
+                    <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        審核�?..
+                    </>
+                ) : (
+                    <>
+                        {receiptUrl ? (
+                            <ScanSearch className="h-4 w-4" />
+                        ) : (
+                            <Upload className="h-4 w-4" />
+                        )}
+                        {receiptUrl ? "?�慧審核?��?" : "上傳並審?�收??}
+                        {getStatusIcon()}
+                    </>
+                )}
+            </Button>
+        );
+    };
+
+    return (
+        <>
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+            />
+            {renderButton()}
+            <AuditResultDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                result={result}
+                itemDescription={itemDescription}
+            />
+        </>
+    );
+}
+

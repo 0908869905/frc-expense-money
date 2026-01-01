@@ -17,6 +17,9 @@ dist-ssr
 .env
 .env.local
 
+# Google Cloud credentials (sensitive)
+rugged-sentry-*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
