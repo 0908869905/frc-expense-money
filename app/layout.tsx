@@ -1,17 +1,12 @@
 import React from "react"
 import "./globals.css"
-import { Outfit } from "next/font/google"
+import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/lib/language-context"
 import { OrganizationProvider } from "@/lib/organization-context"
 import { ThemeProvider } from "@/lib/theme-context"
 
-// 英文字型：Outfit
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-})
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata = {
   title: "FRC 6998 報帳系統",
@@ -30,14 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-TW" suppressHydrationWarning>
-      <head>
-        {/* 中文字型：霞鶩文楷 LXGW WenKai */}
-        <link
-          href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css"
-          rel="stylesheet"
-        />
-      </head>
-      <body className={cn("min-h-screen bg-background font-sans antialiased theme-frc dark", outfit.variable)}>
+      <body className={cn("min-h-screen bg-background font-sans antialiased theme-frc dark", inter.variable)}>
         <ThemeProvider>
           <OrganizationProvider>
             <LanguageProvider>
