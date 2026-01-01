@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { recognizeInvoice, InvoiceData } from "@/lib/ocr";
+import { recognizeInvoice, InvoiceData } from "@/lib/agents/ocr";
 import { revalidatePath } from "next/cache";
 
 export type OCRResult = {
@@ -85,7 +85,7 @@ import {
     batchAuditReport,
     AuditResult,
     BatchAuditResult,
-} from "@/lib/receipt-audit";
+} from "@/lib/agents/receipt-audit";
 import { prisma } from "@/lib/prisma";
 
 /**

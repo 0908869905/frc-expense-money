@@ -6,7 +6,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { recognizeInvoice } from "@/lib/ocr";
+import { recognizeInvoice } from "@/lib/agents/ocr";
 import { toDisplayUnit } from "@/lib/money";
 import type {
     AuditIssue,
