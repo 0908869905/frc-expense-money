@@ -115,16 +115,10 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md relative">
-        {/* Logo with glow */}
+        {/* Team Name */}
         <div className="flex justify-center mb-10">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-              <div className={`relative flex h-14 w-14 items-center justify-center rounded-xl ${org.bgColor} border border-white/10 backdrop-blur-sm`}>
-                <img src={org.logo} alt={org.name} className="h-9 w-9 object-contain" />
-              </div>
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+          <Link href="/" className="group">
+            <span className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
               {org.name}
             </span>
           </Link>

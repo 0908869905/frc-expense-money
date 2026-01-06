@@ -57,16 +57,6 @@ export default function LandingPage() {
 
       {/* Main Content */}
       <main className="relative min-h-screen flex flex-col items-center justify-center px-4">
-        {/* Logo */}
-        <Link href="/" className="mb-8 group">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-3xl blur-2xl opacity-60 group-hover:opacity-80 transition-all duration-500 scale-110" />
-            <div className={`relative w-24 h-24 flex items-center justify-center rounded-3xl ${org.bgColor} border border-white/20 backdrop-blur-sm shadow-2xl`}>
-              <img src={org.logo} alt={org.name} className="w-16 h-16 object-contain" />
-            </div>
-          </div>
-        </Link>
-
         {/* Team Name - HERO */}
         <div className="text-center space-y-6 max-w-4xl">
           {/* Main Title */}
