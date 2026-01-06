@@ -2,11 +2,10 @@
 
 import React, { useState, Suspense } from "react"
 import { Button } from "@/components/ui/Button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { signIn } from "next-auth/react"
-import { Loader2, Sparkles } from "lucide-react"
+import { Loader2, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useLanguage } from "@/lib/language-context"
@@ -46,47 +45,53 @@ function LoginForm() {
   return (
     <>
       {registered && (
-        <div className="mb-4 p-3 bg-green-500/10 text-green-400 border border-green-500/20 rounded-xl text-sm backdrop-blur-sm">
+        <div className="mb-6 p-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-2xl text-sm backdrop-blur-sm">
           {t("register_success")}
         </div>
       )}
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl text-sm backdrop-blur-sm">
+        <div className="mb-6 p-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl text-sm backdrop-blur-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-gray-300">{t("email")}</Label>
+          <Label htmlFor="email" className="text-sm font-medium text-gray-300">{t("email")}</Label>
           <Input
             id="email"
             name="email"
             type="email"
             placeholder={t("email_placeholder")}
             required
-            className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all"
+            className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl transition-all text-base"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-gray-300">{t("password")}</Label>
+          <Label htmlFor="password" className="text-sm font-medium text-gray-300">{t("password")}</Label>
           <Input
             id="password"
             name="password"
             type="password"
             placeholder={t("password_placeholder")}
             required
-            className="h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all"
+            className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl transition-all text-base"
           />
         </div>
         <Button 
-          className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-purple-500/40 hover:scale-[1.02]" 
+          className="w-full h-14 bg-white text-black hover:bg-gray-100 border-0 rounded-xl shadow-lg shadow-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-white/20 text-base font-medium" 
           type="submit" 
           disabled={loading}
         >
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {t("login_button")}
+          {loading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <>
+              {t("login_button")}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </>
+          )}
         </Button>
       </form>
     </>
@@ -94,73 +99,109 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const { org } = useOrganization()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white overflow-hidden p-4">
-      {/* Animated Background */}
-      <div className="fixed inset-0 -z-10">
-        {/* Gradient orbs */}
-        <div className="absolute top-[-10%] left-[-5%] h-[400px] w-[400px] rounded-full bg-purple-600/20 blur-[100px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-5%] h-[350px] w-[350px] rounded-full bg-blue-600/20 blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] h-[300px] w-[300px] rounded-full bg-cyan-600/10 blur-[80px] animate-pulse" style={{ animationDelay: "2s" }} />
-        {/* Grid overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
-      </div>
-
-      {/* Language Switcher - Top Right */}
-      <div className="absolute top-4 right-4 z-50">
-        <LanguageSwitcher />
-      </div>
-
-      <div className="w-full max-w-md relative">
-        {/* Team Name */}
-        <div className="flex justify-center mb-10">
-          <Link href="/" className="group">
-            <span className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              {org.name}
-            </span>
-          </Link>
+    <div className="min-h-screen flex bg-black text-white overflow-hidden">
+      {/* Left Side - Artistic Visual */}
+      <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center">
+        {/* Artistic Background */}
+        <div className="absolute inset-0">
+          {/* Large gradient orbs */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/50 via-blue-600/40 to-cyan-500/30 blur-3xl animate-pulse" />
+            <div className="absolute inset-[80px] rounded-full bg-gradient-to-tr from-pink-500/40 via-purple-500/30 to-transparent blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
+          </div>
+          {/* Accent lights */}
+          <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-purple-500/40 blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-32 h-32 rounded-full bg-blue-500/30 blur-3xl" />
+          {/* Noise texture */}
+          <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
         </div>
 
-        {/* Login Card with glassmorphism */}
-        <Card className="border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl">
-          <CardHeader className="space-y-2 text-center pb-2">
-            <CardTitle className="text-2xl font-bold text-white flex items-center justify-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-400" />
-              {t("login")}
-            </CardTitle>
-            <CardDescription className="text-gray-400">{t("login_desc")}</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <Suspense fallback={<div className="animate-pulse h-48 bg-white/5 rounded-lg" />}>
+        {/* Hero Text */}
+        <div className="relative z-10 text-center px-12">
+          <h1 className="text-7xl font-black tracking-tighter leading-none mb-4">
+            <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
+              FRC
+            </span>
+          </h1>
+          <h1 className="text-7xl font-black tracking-tighter leading-none mb-8">
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+              6998
+            </span>
+          </h1>
+          <p className="text-xl tracking-[0.3em] text-gray-400 uppercase font-light">
+            UNIPARDS
+          </p>
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-purple-500/50" />
+            <div className="w-2 h-2 rounded-full bg-purple-500" />
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-purple-500/50" />
+          </div>
+          <p className="mt-8 text-gray-500 text-sm">
+            {language === "zh" ? "團隊財務管理系統" : "Team Financial Management System"}
+          </p>
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="w-full lg:w-1/2 flex flex-col relative">
+        {/* Background for mobile */}
+        <div className="absolute inset-0 lg:hidden">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-purple-600/30 via-blue-600/20 to-transparent blur-3xl" />
+        </div>
+
+        {/* Language Switcher */}
+        <div className="absolute top-6 right-6 z-50">
+          <LanguageSwitcher />
+        </div>
+
+        {/* Form Container */}
+        <div className="flex-1 flex items-center justify-center px-6 sm:px-12 lg:px-16 relative z-10">
+          <div className="w-full max-w-md">
+            {/* Mobile Logo */}
+            <div className="lg:hidden text-center mb-12">
+              <Link href="/">
+                <h1 className="text-5xl font-black tracking-tighter">
+                  <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">FRC </span>
+                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">6998</span>
+                </h1>
+              </Link>
+            </div>
+
+            {/* Welcome Text */}
+            <div className="mb-10">
+              <h2 className="text-3xl font-bold text-white mb-2">
+                {language === "zh" ? "歡迎回來" : "Welcome back"}
+              </h2>
+              <p className="text-gray-400">
+                {t("login_desc")}
+              </p>
+            </div>
+
+            {/* Login Form */}
+            <Suspense fallback={<div className="animate-pulse h-64 bg-white/5 rounded-2xl" />}>
               <LoginForm />
             </Suspense>
 
-            <div className="mt-8">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[#0a0a0f] px-2 text-gray-500">or</span>
-                </div>
-              </div>
-
-              <p className="text-center text-sm text-gray-400 mt-6">
+            {/* Register Link */}
+            <div className="mt-10 text-center">
+              <p className="text-gray-500">
                 {t("no_account")}{" "}
-                <Link href="/register" className="font-medium text-purple-400 hover:text-purple-300 transition-colors">
+                <Link href="/register" className="text-white hover:text-purple-400 transition-colors font-medium">
                   {t("register_now")}
                 </Link>
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <p className="text-center text-xs text-gray-500 mt-8">
-          {t("footer_rights")}
-        </p>
+        {/* Footer */}
+        <div className="py-6 px-6 text-center">
+          <p className="text-xs text-gray-600">{t("footer_rights")}</p>
+        </div>
       </div>
     </div>
   )
