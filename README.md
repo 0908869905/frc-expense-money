@@ -1,17 +1,17 @@
 # FRC 6998 UNIPARDS 報帳系統
 
 <p align="center">
-  <img src="public/logo.png" alt="FRC 6998 UNIPARDS Logo" width="120" height="120" />
+  <img src="public/Gemini_Generated_Image_wkar2twkar2twkar.png" alt="FRC 6998 UNIPARDS Logo" width="120" height="120" />
 </p>
 
 <p align="center">
-  <strong>專為 FRC 機器人團隊設計的現代化費用報銷、資金預算與庫存管理系統</strong>
+  <strong>專為 FRC 機器人團隊設計的現代化費用報銷、智慧收據審核與財務管理系統</strong>
 </p>
 
 <p align="center">
   <a href="#-功能總覽">功能</a> •
+  <a href="#-智慧審核-agent">AI 審核</a> •
   <a href="#-角色與權限">角色權限</a> •
-  <a href="#-組別架構">組別</a> •
   <a href="#-快速開始">快速開始</a> •
   <a href="#-技術規格">技術規格</a>
 </p>
@@ -23,16 +23,49 @@
 ### 核心功能
 
 | 功能 | 說明 | 可用角色 |
-|------|------|---------|
+|------|------|---------| 
 | 📝 **報帳單管理** | 建立、編輯、提交費用報銷申請 | 副組長以上 |
+| 🤖 **智慧收據審核** | AI 自動辨識發票並比對金額、日期 | 全部 |
 | ✅ **智慧審核流程** | 依提交者權限自動跳過審核層級 | 組長以上 |
 | 💰 **組別預算管理** | 設定各組可用資金，超支即時警告 | 財務/管理員 |
-| � **資金記錄追蹤** | 記錄贊助、捐款，追蹤團隊財務餘額 | 財務/管理員 |
+| 💵 **資金記錄追蹤** | 記錄贊助、捐款，追蹤團隊財務餘額 | 財務/管理員 |
 | 📦 **零件庫存系統** | 追蹤機器人零件進出、庫存與補貨提醒 | 機構組/財務/管理員 |
 | 👥 **用戶與組別管理** | 管理團隊成員、角色、組別指派 | 管理員 |
 | 🌐 **多語言支援** | 繁體中文 / English 切換 | 全部 |
 
-### 智慧審核流程
+---
+
+## 🤖 智慧審核 Agent
+
+### OCR 發票辨識
+
+系統整合 **Google Cloud Vision API**，可自動從上傳的收據/發票中提取：
+
+- 📅 **日期** - 支援西元、民國年格式
+- 💲 **金額** - 自動識別總金額
+- 🏪 **商家名稱** - 提取發票開立店家
+- 🔢 **發票號碼** - 台灣統一發票格式（2 英文 + 8 數字）
+
+### 智慧比對審核
+
+| 審核項目 | 說明 | 嚴重程度 |
+|---------|------|---------|
+| 金額比對 | 收據金額 vs 報帳金額（容許 5% 或 $10 誤差） | 🔴 Error |
+| 日期比對 | 收據日期 vs 報帳日期（容許 ±7 天） | 🟡 Warning |
+| 發票重複 | 偵測是否已有相同發票號碼 | 🔴 Error |
+| OCR 信心度 | 辨識品質低於 50% 時警告 | 🟡 Warning |
+
+### 審核分數
+
+每筆費用項目會獲得 0-100 的匹配分數：
+- **100 分**：完全符合
+- **85-99 分**：輕微差異（可接受）
+- **60-84 分**：有警告需人工確認
+- **0-59 分**：有錯誤需修正
+
+---
+
+## 🔄 智慧審核流程
 
 系統會依據報帳單提交者的角色自動決定審核流程：
 
@@ -53,7 +86,7 @@
 ### 角色階層
 
 | 角色 | 中文名稱 | 權限說明 |
-|------|---------|---------|
+|------|---------|---------| 
 | `USER` | 僅檢視 | 僅可查看儀表板，無法建立報帳單 |
 | `VICE_LEADER` | 副組長 | 可建立報帳單、查看組別預算 |
 | `LEADER` | 組長 | 副組長權限 + 審批報帳單（第一層）、提交時跳過組長審核 |
@@ -66,6 +99,7 @@
 |------|:-----:|:-----:|:----:|:----:|:-----:|
 | 查看儀表板 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | 建立報帳單 | ❌ | ✅ | ✅ | ✅ | ✅ |
+| 上傳收據 OCR 辨識 | ❌ | ✅ | ✅ | ✅ | ✅ |
 | 審批報帳單 | ❌ | ❌ | ✅ | ✅ | ✅ |
 | 查看組別預算 | ❌ | ⚡自己組 | ⚡自己組 | ✅全部 | ✅全部 |
 | 編輯組別預算 | ❌ | ❌ | ❌ | ✅ | ✅ |
@@ -88,12 +122,6 @@
 | `FINANCE` | 財管組 | Finance | 💰 |
 | `DESIGN` | 意象組 | Design | 🎨 |
 
-### 組別預算功能
-
-- **財務/管理員**：可查看並編輯所有組別的預算
-- **組長/副組長**：只能查看自己組別的預算使用狀況
-- **超支警告**：當某組已用金額超過預算時，財務會收到警告提示
-
 ---
 
 ## 🚀 快速開始
@@ -102,6 +130,7 @@
 
 - Node.js 18+
 - PostgreSQL 資料庫（推薦 [Supabase](https://supabase.com)）
+- Google Cloud Vision API 金鑰（用於 OCR）
 - npm 或 yarn
 
 ### 安裝步驟
@@ -116,7 +145,7 @@ npm install
 
 # 3. 設定環境變數
 cp .env.example .env
-# 編輯 .env 填入資料庫連線和 AUTH_SECRET
+# 編輯 .env 填入資料庫連線和 API 金鑰
 
 # 4. 產生 Prisma Client 並同步資料庫
 npx prisma generate
@@ -137,6 +166,9 @@ DIRECT_URL="postgresql://user:password@host:5432/database?sslmode=require"
 AUTH_SECRET="使用 openssl rand -base64 32 產生"
 AUTH_URL="http://localhost:3000"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Google Cloud Vision API（OCR 功能）
+GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account",...}'
 ```
 
 ### 常用指令
@@ -152,25 +184,20 @@ NEXTAUTH_URL="http://localhost:3000"
 
 ---
 
-## � 功能使用說明
+## 📖 功能使用說明
 
-### 儀表板
-
-登入後的首頁，顯示：
-- 報帳單統計（總數、總項目數、總金額）
-- 財務摘要卡片（僅 FINANCE/ADMIN）
-- 最近報帳單列表
-
-### 報帳單管理
-
-#### 建立報帳單
+### 報帳單建立流程
 
 1. 點擊 `新增報帳單` 按鈕
-2. 填寫標題、選擇組別、輸入說明
-3. 新增費用明細項目（日期、類別、說明、金額、收據）
+2. 填寫標題與說明
+3. 新增費用明細項目：
+   - 選擇日期、類別
+   - 填寫說明與金額
+   - **上傳收據** → 點擊「✨擷取」自動 OCR 填入金額/日期
 4. 點擊 `提交報帳單`
+5. 系統自動執行收據審核並顯示匹配分數
 
-#### 審核狀態
+### 審核狀態
 
 | 狀態 | 中文 | 說明 |
 |------|------|------|
@@ -180,31 +207,6 @@ NEXTAUTH_URL="http://localhost:3000"
 | `RETURNED` | 退回修改 | 被退回需修改 |
 | `PAID` | 已付款 | 審核通過已付款 |
 | `REJECTED` | 已拒絕 | 審核被拒絕 |
-
-### 庫存管理
-
-> ⚠️ 僅限**機構組用戶**、**財務**、**管理員**存取
-
-- 搜尋零件名稱或料號
-- 依類別篩選（馬達、感測器、氣壓等）
-- 快速入庫/領用操作
-- 低於安全庫存時顯示補貨提醒
-
-### 組別預算
-
-- 查看各組的預算、已用、剩餘金額
-- 進度條顯示使用比例
-- 超支組別顯示紅色警告
-- 財務/管理員可編輯預算金額
-
-### 用戶管理
-
-> ⚠️ 僅限**管理員**存取
-
-- 變更用戶角色（僅檢視、副組長、組長、財務、管理員）
-- 指派用戶組別（電資、機構、文書、公關、財管、意象）
-- 修改用戶 Email / 重設密碼
-- 驗證 Email / 刪除用戶
 
 ---
 
@@ -223,6 +225,7 @@ NEXTAUTH_URL="http://localhost:3000"
 | **UI 元件** | shadcn/ui 風格 (Radix UI) | - |
 | **表單驗證** | Zod + React Hook Form | - |
 | **圖表** | Recharts | 2.12.x |
+| **OCR** | Google Cloud Vision API | - |
 | **部署** | Vercel + Supabase | - |
 
 ### 專案結構
@@ -236,37 +239,45 @@ frc-expense-system/
 │   │   ├── expenses.ts     # 報帳單
 │   │   ├── funding.ts      # 資金記錄
 │   │   ├── inventory.ts    # 庫存管理
+│   │   ├── ocr.ts          # OCR 審核 Actions
 │   │   └── users.ts        # 用戶管理
 │   ├── api/                # API Routes
 │   ├── dashboard/          # 儀表板頁面群
+│   ├── terms/              # 服務條款
+│   ├── privacy/            # 隱私政策
 │   └── login/register/     # 認證頁面
 ├── components/             # React 元件
 │   ├── ui/                 # 基礎 UI 元件 (shadcn/ui)
-│   ├── app-sidebar.tsx     # 側邊欄導航
-│   ├── expense-form.tsx    # 報帳單表單
-│   ├── inventory-content.tsx # 庫存頁面內容
-│   └── department-budget-content.tsx # 組別預算
+│   ├── expense-form.tsx    # 報帳單表單（含 OCR）
+│   ├── audit-result-dialog.tsx  # 審核結果對話框
+│   ├── receipt-audit-button.tsx # 收據審核按鈕
+│   └── batch-audit-button.tsx   # 批次審核按鈕
 ├── lib/                    # 工具和配置
+│   ├── agents/             # 🤖 AI Agent 模組
+│   │   ├── ocr.ts          # OCR 發票辨識服務
+│   │   ├── receipt-audit.ts # 智慧收據審核 Agent
+│   │   └── index.ts        # 模組匯出
 │   ├── prisma.ts           # Prisma Client 單例
 │   ├── schemas.ts          # Zod 驗證 Schema
+│   ├── money.ts            # 金額處理工具
 │   ├── utils.ts            # 通用工具函數
 │   └── language-context.tsx # 多語言上下文
 ├── prisma/                 # Prisma 配置
 │   ├── schema.prisma       # 資料庫 Schema
 │   └── seed.ts             # 種子資料
 ├── types/                  # TypeScript 類型定義
+│   └── audit.ts            # 審核相關類型
 └── auth.ts                 # NextAuth 配置
 ```
 
 ### 資料庫模型
-
-主要資料表：
 
 | 模型 | 說明 |
 |------|------|
 | `User` | 用戶資料（含 role、department） |
 | `ExpenseReport` | 報帳單主表 |
 | `ExpenseItem` | 報帳單明細項目 |
+| `ReceiptAudit` | 收據審核結果（OCR 資料、匹配分數） |
 | `ApprovalAction` | 審核紀錄 |
 | `AuditLog` | 操作審計日誌 |
 | `DepartmentBudget` | 各組別預算設定 |
@@ -278,7 +289,7 @@ frc-expense-system/
 
 ## 📄 授權
 
-MIT License © 2024 FRC 6998 UNIPARDS
+MIT License © 2024-2026 FRC 6998 UNIPARDS
 
 ---
 

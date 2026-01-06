@@ -225,7 +225,7 @@ const translations: Record<Language, Record<string, string>> = {
         "hero_desc": "簡化審批流程，即時追蹤支出，更快獲得報銷。",
         "get_started": "開始使用",
         "learn_more": "了解更多",
-        "footer_rights": "© 2024 Ultimate Expense Inc. 保留所有權利。",
+        "footer_rights": "© 2026 FRC6998 保留所有權利。",
         "terms": "服務條款",
         "privacy": "隱私政策",
 
@@ -451,7 +451,7 @@ const translations: Record<Language, Record<string, string>> = {
         "hero_desc": "Streamline approvals, track spending in real-time, and get reimbursed faster than ever before.",
         "get_started": "Get Started",
         "learn_more": "Learn More",
-        "footer_rights": "© 2024 Ultimate Expense Inc. All rights reserved.",
+        "footer_rights": "© 2026 FRC6998 All rights reserved.",
         "terms": "Terms of Service",
         "privacy": "Privacy",
 

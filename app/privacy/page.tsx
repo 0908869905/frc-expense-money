@@ -162,7 +162,7 @@ export default function PrivacyPage() {
                     </section>
 
                     <p className="text-sm text-muted-foreground mt-8 pt-4 border-t">
-                        {language === "zh" ? "最後更新：2024 年 12 月" : "Last updated: December 2024"}
+                        {language === "zh" ? "最後更新：2026/01/06" : "Last updated: 2026/01/06"}
                     </p>
                 </div>
             </main>

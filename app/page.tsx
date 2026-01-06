@@ -55,11 +55,7 @@ export default function LandingPage() {
                 <span className="font-bold text-2xl">{org.name}</span>
               </Link>
 
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 text-sm font-medium shadow-sm">
-                <Zap className="h-4 w-4 text-primary" />
-                <span>{language === "zh" ? "全新升級體驗" : "New & Improved"}</span>
-              </div>
+
 
               {/* Title */}
               <div className="space-y-4 max-w-3xl">
