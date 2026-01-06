@@ -3,10 +3,26 @@
 import { useLanguage } from "@/lib/language-context"
 import { signOut } from "next-auth/react"
 import { LogOut, Globe, Bell, Lock, User, Camera, X, Check, Loader2 } from "lucide-react"
-import { useState, useRef, useTransition, useEffect, useActionState } from "react"
+import { useState, useRef, useEffect } from "react"
+import { useFormState, useFormStatus } from "react-dom"
 import { changePassword, type ChangePasswordState } from "@/app/actions/password"
 import { uploadAvatar, removeAvatar } from "@/app/actions/avatar"
 import { updateNotificationFrequency, getNotificationFrequency } from "@/app/actions/notifications"
+
+// Submit button with pending state
+function SubmitButton({ children }: { children: React.ReactNode }) {
+    const { pending } = useFormStatus()
+    return (
+        <button
+            type="submit"
+            disabled={pending}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
+        >
+            {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {children}
+        </button>
+    )
+}
 
 interface SettingsContentProps {
     session: any
@@ -29,7 +45,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
 
     // 更改密碼 Form Action
     const initialState: ChangePasswordState = { success: false, message: null }
-    const [passwordState, passwordAction, passwordPending] = useActionState(changePassword, initialState)
+    const [passwordState, passwordAction] = useFormState(changePassword, initialState)
 
     const handleLogout = async () => {
         try {
@@ -320,14 +336,9 @@ export function SettingsContent({ session }: SettingsContentProps) {
                             {passwordState.message}
                         </p>
                     )}
-                    <button
-                        type="submit"
-                        disabled={passwordPending}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
-                    >
-                        {passwordPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <SubmitButton>
                         {language === "zh" ? "更新密碼" : "Update Password"}
-                    </button>
+                    </SubmitButton>
                 </form>
             </div>
 
