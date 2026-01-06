@@ -13,9 +13,9 @@ async function main() {
             role: 'ADMIN' as const,
         },
         {
-            email: 'manager@demo.com',
-            name: 'Manager User',
-            role: 'MANAGER' as const,
+            email: 'leader@demo.com',
+            name: 'Leader User',
+            role: 'LEADER' as const,
         },
         {
             email: 'finance@demo.com',
