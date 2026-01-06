@@ -26,16 +26,24 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
-  const userName = session.user?.name || session.user?.email || "User"
+  const userName = session.user?.name || null
+  const userEmail = session.user?.email || null
+  const userImage = session.user?.image || null
   const userRole = session.user?.role || "USER"
   const userDepartment = (session.user as any)?.department || null
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar userRole={userRole} userDepartment={userDepartment} />
+      <AppSidebar 
+        userRole={userRole} 
+        userDepartment={userDepartment}
+        userImage={userImage}
+        userName={userName}
+        userEmail={userEmail}
+      />
       <SidebarInset>
         <DashboardWrapper>
-          <DashboardHeader userName={userName}>
+          <DashboardHeader userName={userName || userEmail || "User"}>
             <SidebarTrigger className="-ml-1" />
           </DashboardHeader>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-4">

@@ -64,17 +64,25 @@ enum Role {
   ADMIN
 }
 
+// 通知頻率
+enum NotificationFrequency {
+  INSTANT       // 即時通知
+  DAILY_DIGEST  // 每日摘要
+  OFF           // 關閉
+}
+
 model User {
-  id            String           @id @default(cuid())
-  name          String?
-  email         String?          @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?          // Hashed password for credentials auth
-  role          Role             @default(USER)
-  department    TeamDepartment?  // 所屬組別
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id                    String                 @id @default(cuid())
+  name                  String?
+  email                 String?                @unique
+  emailVerified         DateTime?
+  image                 String?                @db.Text  // 改為 Text 以儲存 Base64 頭像
+  password              String?                // Hashed password for credentials auth
+  role                  Role                   @default(USER)
+  department            TeamDepartment?        // 所屬組別
+  notificationFrequency NotificationFrequency  @default(INSTANT)  // 通知頻率
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   accounts        Account[]
   sessions        Session[]

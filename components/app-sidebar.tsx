@@ -32,15 +32,24 @@ import {
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userRole?: string
   userDepartment?: string | null
+  userImage?: string | null
+  userName?: string | null
+  userEmail?: string | null
 }
 
-export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarProps) {
+export function AppSidebar({ userRole, userDepartment, userImage, userName, userEmail, ...props }: AppSidebarProps) {
   const role = userRole || "USER"
   const department = userDepartment || null
   const { language } = useLanguage()
   const { org } = useOrganization()
 
   const t = (zh: string, en: string) => language === "zh" ? zh : en
+
+  // 取得用戶姓名首字母
+  const getInitials = () => {
+    const name = userName || userEmail || "U"
+    return name.charAt(0).toUpperCase()
+  }
 
   const handleLogout = async () => {
     try {
@@ -186,6 +195,24 @@ export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarPro
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          {/* User Info with Avatar */}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={userName || userEmail || t("用戶", "User")}>
+              <a href="/dashboard/profile" className="flex items-center gap-3">
+                {userImage ? (
+                  <img src={userImage} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
+                    {getInitials()}
+                  </div>
+                )}
+                <div className="flex-1 text-left text-xs leading-tight">
+                  <span className="truncate font-medium block">{userName || t("未設定名稱", "No name")}</span>
+                  <span className="truncate text-muted-foreground block">{userEmail}</span>
+                </div>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={t("登出", "Sign Out")}
