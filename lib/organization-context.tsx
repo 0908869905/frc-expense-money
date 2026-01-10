@@ -2,15 +2,15 @@
 
 import React, { createContext, useContext, ReactNode } from "react";
 
-// 組織配置 - 測試模式
+// 組織配置 - 只保留 FRC
 export const ORGANIZATIONS = {
     frc: {
-        id: "demo",
-        name: "測試公司",
-        subtitle: "Demo Corp",
-        logo: "/demo-logo.png",
-        title: "測試公司 報帳",
-        titleEn: "Demo Corp Expense",
+        id: "frc-6998",
+        name: "FRC 6998",
+        subtitle: "UNIPARDS",
+        logo: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+        title: "FRC 6998 報帳",
+        titleEn: "FRC 6998 Expense",
         bgColor: "bg-primary",
         themeClass: "theme-frc",
     },
