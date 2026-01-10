@@ -106,20 +106,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-black text-white overflow-hidden">
       {/* Left Side - Artistic Visual */}
       <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center">
-        {/* Artistic Background */}
-        <div className="absolute inset-0">
-          {/* Large gradient orbs */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/50 via-blue-600/40 to-cyan-500/30 blur-3xl animate-pulse" />
-            <div className="absolute inset-[80px] rounded-full bg-gradient-to-tr from-pink-500/40 via-purple-500/30 to-transparent blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
-          </div>
-          {/* Accent lights */}
-          <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-purple-500/40 blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-32 h-32 rounded-full bg-blue-500/30 blur-3xl" />
-          {/* Noise texture */}
-          <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
-        </div>
-
+        
         {/* Hero Text */}
         <div className="relative z-10 text-center px-12">
           <h1 className="text-7xl font-black tracking-tighter leading-none mb-4">
@@ -148,11 +135,7 @@ export default function LoginPage() {
 
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/2 flex flex-col relative">
-        {/* Background for mobile */}
-        <div className="absolute inset-0 lg:hidden">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-purple-600/30 via-blue-600/20 to-transparent blur-3xl" />
-        </div>
-
+        
         {/* Language Switcher */}
         <div className="absolute top-6 right-6 z-50">
           <LanguageSwitcher />

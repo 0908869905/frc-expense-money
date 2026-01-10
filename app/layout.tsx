@@ -11,11 +11,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 export const metadata = {
   title: "ExpenseFlow 報帳系統",
   description: "智慧企業費用報銷管理系統",
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
+
 }
 
 export default function RootLayout({

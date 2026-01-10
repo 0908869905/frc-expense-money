@@ -20,9 +20,6 @@ export default function RegisterPage() {
                 {/* Logo */}
                 <div className="flex justify-center mb-8">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="flex aspect-square size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                            <Shield className="size-6" />
-                        </div>
                         <span className="text-2xl font-bold">{t("expense_system")}</span>
                     </Link>
                 </div>

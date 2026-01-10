@@ -52,7 +52,6 @@ export default function AboutPage() {
         <div className="flex min-h-screen flex-col">
             <header className="px-4 lg:px-6 h-14 flex items-center border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
                 <Link className="flex items-center justify-center" href="/">
-                    <Shield className="h-6 w-6 mr-2" />
                     <span className="font-bold">ExpenseFlow</span>
                 </Link>
                 <nav className="ml-auto flex gap-4 sm:gap-6">

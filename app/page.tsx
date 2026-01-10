@@ -13,22 +13,18 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: <Zap className="h-5 w-5" />,
       title: language === "zh" ? "快速提交" : "Fast Submit",
       gradient: "from-amber-400 to-orange-500",
     },
     {
-      icon: <Shield className="h-5 w-5" />,
       title: language === "zh" ? "安全可靠" : "Secure",
       gradient: "from-blue-400 to-cyan-500",
     },
     {
-      icon: <BarChart3 className="h-5 w-5" />,
       title: language === "zh" ? "即時分析" : "Analytics",
       gradient: "from-purple-400 to-pink-500",
     },
     {
-      icon: <Clock className="h-5 w-5" />,
       title: language === "zh" ? "快速審批" : "Quick Approve",
       gradient: "from-emerald-400 to-teal-500",
     },
@@ -36,20 +32,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
-      {/* Artistic Background */}
-      <div className="fixed inset-0 -z-10">
-        {/* Large gradient circle - artistic focal point */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px]">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/40 via-blue-600/30 to-cyan-500/20 blur-3xl animate-pulse" />
-          <div className="absolute inset-[100px] rounded-full bg-gradient-to-tr from-pink-500/30 via-purple-500/20 to-transparent blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
-        </div>
-        {/* Accent lights */}
-        <div className="absolute top-20 left-20 w-32 h-32 rounded-full bg-purple-500/30 blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-40 h-40 rounded-full bg-blue-500/20 blur-3xl" />
-        {/* Subtle noise texture */}
-        <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
-      </div>
-
+      
       {/* Language Switcher */}
       <div className="absolute top-6 right-6 z-50">
         <LanguageSwitcher />
@@ -120,9 +103,7 @@ export default function LandingPage() {
               key={i}
               className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 transition-all duration-300"
             >
-              <span className={`p-1.5 rounded-lg bg-gradient-to-r ${feature.gradient} text-white`}>
-                {feature.icon}
-              </span>
+              <span className={`w-2 h-2 rounded-full bg-gradient-to-r ${feature.gradient}`} />
               <span className="text-sm font-medium text-gray-300">{feature.title}</span>
             </div>
           ))}
