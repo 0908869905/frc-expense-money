@@ -1,16 +1,16 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, ReactNode } from "react";
 
-// 組�??�置 - ?��???FRC
+// 蝯??蔭 - ?芯???FRC
 export const ORGANIZATIONS = {
     frc: {
-        id: "frc-6998",
-        name: "FRC 6998",
-        subtitle: "UNIPARDS",
-        logo: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
-        title: "FRC 6998 ?�帳",
-        titleEn: "FRC 6998 Expense",
+        id: "demo",
+        name: "測試公司",
+        subtitle: "Demo Corp",
+        logo: "/demo-logo.png",
+        title: "測試公司 ?勗董",
+        titleEn: "測試公司 Expense",
         bgColor: "bg-primary",
         themeClass: "theme-frc",
     },
@@ -27,7 +27,7 @@ interface OrganizationContextType {
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
 
 export function OrganizationProvider({ children }: { children: ReactNode }) {
-    // ?��?使用 FRC
+    // ?箏?雿輻 FRC
     const org = ORGANIZATIONS.frc;
     const orgId: OrgId = "frc";
 
@@ -45,4 +45,5 @@ export function useOrganization() {
     }
     return context;
 }
+
 

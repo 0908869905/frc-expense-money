@@ -124,16 +124,16 @@ export default function LoginPage() {
         <div className="relative z-10 text-center px-12">
           <h1 className="text-7xl font-black tracking-tighter leading-none mb-4">
             <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-              FRC
+              測試
             </span>
           </h1>
           <h1 className="text-7xl font-black tracking-tighter leading-none mb-8">
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-              6998
+              公司
             </span>
           </h1>
           <p className="text-xl tracking-[0.3em] text-gray-400 uppercase font-light">
-            UNIPARDS
+            Demo Corp
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <div className="h-px w-12 bg-gradient-to-r from-transparent to-purple-500/50" />
@@ -165,8 +165,8 @@ export default function LoginPage() {
             <div className="lg:hidden text-center mb-12">
               <Link href="/">
                 <h1 className="text-5xl font-black tracking-tighter">
-                  <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">FRC </span>
-                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">6998</span>
+                  <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">測試 </span>
+                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">公司</span>
                 </h1>
               </Link>
             </div>

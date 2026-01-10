@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useLanguage } from "@/lib/context/language-context"
 import { useState, useTransition } from "react"
@@ -25,21 +25,21 @@ interface InventoryContentProps {
 }
 
 const CATEGORIES: { value: ItemCategory; labelZh: string; labelEn: string }[] = [
-    { value: "MOTOR", labelZh: "馬�?", labelEn: "Motor" },
-    { value: "SENSOR", labelZh: "?�測??, labelEn: "Sensor" },
-    { value: "PNEUMATIC", labelZh: "�??", labelEn: "Pneumatic" },
-    { value: "CONTROLLER", labelZh: "?�制??, labelEn: "Controller" },
-    { value: "HARDWARE", labelZh: "五�?", labelEn: "Hardware" },
-    { value: "RAW_MATERIAL", labelZh: "?��?", labelEn: "Raw Material" },
-    { value: "TOOL", labelZh: "工具", labelEn: "Tool" },
+    { value: "MOTOR", labelZh: "擐祇?", labelEn: "Motor" },
+    { value: "SENSOR", labelZh: "?葫??, labelEn: "Sensor" },
+    { value: "PNEUMATIC", labelZh: "瘞??", labelEn: "Pneumatic" },
+    { value: "CONTROLLER", labelZh: "?批??, labelEn: "Controller" },
+    { value: "HARDWARE", labelZh: "鈭?", labelEn: "Hardware" },
+    { value: "RAW_MATERIAL", labelZh: "??", labelEn: "Raw Material" },
+    { value: "TOOL", labelZh: "撌亙", labelEn: "Tool" },
 ]
 
 const TRANSACTION_TYPES: { value: TransactionType; labelZh: string; labelEn: string }[] = [
-    { value: "PURCHASE_IN", labelZh: "?�購?�庫", labelEn: "Purchase In" },
-    { value: "PROJECT_USE", labelZh: "專�??�用", labelEn: "Project Use" },
-    { value: "DAMAGED", labelZh: "?��??�廢", labelEn: "Damaged" },
-    { value: "LOST", labelZh: "?�失", labelEn: "Lost" },
-    { value: "AUDIT_ADJUSTMENT", labelZh: "?��?調整", labelEn: "Audit Adjustment" },
+    { value: "PURCHASE_IN", labelZh: "?∟頃?亙澈", labelEn: "Purchase In" },
+    { value: "PROJECT_USE", labelZh: "撠??", labelEn: "Project Use" },
+    { value: "DAMAGED", labelZh: "???勗誥", labelEn: "Damaged" },
+    { value: "LOST", labelZh: "?箏仃", labelEn: "Lost" },
+    { value: "AUDIT_ADJUSTMENT", labelZh: "?日?隤踵", labelEn: "Audit Adjustment" },
 ]
 
 export function InventoryContent({ items, restockItems, userRole }: InventoryContentProps) {
@@ -105,11 +105,11 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         startTransition(async () => {
             const result = await createItem(formData)
             if (result.success) {
-                showMessage("success", result.message || "?��?")
+                showMessage("success", result.message || "??")
                 setShowAddModal(false)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || "失�?")
+                showMessage("error", result.message || "憭望?")
             }
         })
     }
@@ -119,24 +119,24 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         startTransition(async () => {
             const result = await updateItem(selectedItem.id, formData)
             if (result.success) {
-                showMessage("success", result.message || "?��?")
+                showMessage("success", result.message || "??")
                 setShowEditModal(false)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || "失�?")
+                showMessage("error", result.message || "憭望?")
             }
         })
     }
 
     const handleDeleteItem = async (itemId: string) => {
-        if (!confirm(language === "zh" ? "確�?要刪?�此?�件?��?" : "Delete this item?")) return
+        if (!confirm(language === "zh" ? "蝣箏?閬?斗迨?嗡辣??" : "Delete this item?")) return
         startTransition(async () => {
             const result = await deleteItem(itemId)
             if (result.success) {
                 setLocalItems((prev) => prev.filter((i) => i.id !== itemId))
-                showMessage("success", result.message || "已刪??)
+                showMessage("success", result.message || "撌脣??)
             } else {
-                showMessage("error", result.message || "失�?")
+                showMessage("error", result.message || "憭望?")
             }
         })
     }
@@ -151,11 +151,11 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 adjustData.projectId || undefined
             )
             if (result.success) {
-                showMessage("success", result.message || "?��?")
+                showMessage("success", result.message || "??")
                 setShowAdjustModal(false)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || "失�?")
+                showMessage("error", result.message || "憭望?")
             }
         })
     }
@@ -215,11 +215,11 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 undefined
             )
             if (result.success) {
-                showMessage("success", result.message || "?�庫?��?")
+                showMessage("success", result.message || "?亙澈??")
                 setShowStockInModal(false)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || "失�?")
+                showMessage("error", result.message || "憭望?")
             }
         })
     }
@@ -229,16 +229,16 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         startTransition(async () => {
             const result = await adjustStock(
                 selectedItem.id,
-                -adjustData.amount, // 負數表示?�庫
+                -adjustData.amount, // 鞎銵函內?箏澈
                 adjustData.type,
                 adjustData.projectId || undefined
             )
             if (result.success) {
-                showMessage("success", result.message || "?�用?��?")
+                showMessage("success", result.message || "???")
                 setShowStockOutModal(false)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || "失�?")
+                showMessage("error", result.message || "憭望?")
             }
         })
     }
@@ -249,10 +249,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
-                        {language === "zh" ? "庫�?管�?" : "Inventory Management"}
+                        {language === "zh" ? "摨怠?蝞∠?" : "Inventory Management"}
                     </h1>
                     <p className="text-muted-foreground">
-                        {language === "zh" ? "管�? FRC ?�件庫�?" : "Manage FRC parts inventory"}
+                        {language === "zh" ? "蝞∠? FRC ?嗡辣摨怠?" : "Manage parts inventory"}
                     </p>
                 </div>
                 <button
@@ -260,7 +260,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                     <Plus className="h-4 w-4" />
-                    {language === "zh" ? "?��??�件" : "Add Item"}
+                    {language === "zh" ? "?啣??嗡辣" : "Add Item"}
                 </button>
             </div>
 
@@ -282,7 +282,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="h-5 w-5 text-yellow-600" />
                         <h3 className="font-semibold text-yellow-800">
-                            {language === "zh" ? "?�要�?�? : "Need Restock"} ({restockItems.length})
+                            {language === "zh" ? "?閬?鞎? : "Need Restock"} ({restockItems.length})
                         </h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -304,7 +304,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
-                        placeholder={language === "zh" ? "?��??��??��???.." : "Search name or SKU..."}
+                        placeholder={language === "zh" ? "????????.." : "Search name or SKU..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
@@ -315,7 +315,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     className="px-4 py-2 border rounded-lg bg-background"
                 >
-                    <option value="all">{language === "zh" ? "?�?��??? : "All Categories"}</option>
+                    <option value="all">{language === "zh" ? "????? : "All Categories"}</option>
                     {CATEGORIES.map((cat) => (
                         <option key={cat.value} value={cat.value}>
                             {language === "zh" ? cat.labelZh : cat.labelEn}
@@ -329,13 +329,13 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?��?" : "Name"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?��?" : "SKU"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "類別" : "Category"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "位置" : "Location"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?��?" : "Qty"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "安全庫�?" : "Safety"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?��?" : "Actions"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "??" : "Name"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "??" : "SKU"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "憿" : "Category"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "雿蔭" : "Location"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "?賊?" : "Qty"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "摰摨怠?" : "Safety"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "??" : "Actions"}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -343,7 +343,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             <tr>
                                 <td colSpan={7} className="p-8 text-center text-muted-foreground">
                                     <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                    {language === "zh" ? "沒�??�件" : "No items"}
+                                    {language === "zh" ? "瘝??嗡辣" : "No items"}
                                 </td>
                             </tr>
                         ) : (
@@ -373,28 +373,28 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                             <button
                                                 onClick={() => openStockInModal(item)}
                                                 className="p-1.5 rounded hover:bg-green-100 text-green-600"
-                                                title={language === "zh" ? "?�庫" : "Stock In"}
+                                                title={language === "zh" ? "?亙澈" : "Stock In"}
                                             >
                                                 <ArrowDownToLine className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => openStockOutModal(item)}
                                                 className="p-1.5 rounded hover:bg-orange-100 text-orange-600"
-                                                title={language === "zh" ? "?�用" : "Stock Out"}
+                                                title={language === "zh" ? "?" : "Stock Out"}
                                             >
                                                 <ArrowUpFromLine className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => openAdjustModal(item)}
                                                 className="p-1.5 rounded hover:bg-muted"
-                                                title={language === "zh" ? "?��?調整" : "Advanced"}
+                                                title={language === "zh" ? "?脤?隤踵" : "Advanced"}
                                             >
                                                 <ArrowUpDown className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => openEditModal(item)}
                                                 className="p-1.5 rounded hover:bg-muted"
-                                                title={language === "zh" ? "編輯" : "Edit"}
+                                                title={language === "zh" ? "蝺刻摩" : "Edit"}
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
@@ -404,7 +404,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-1.5 rounded hover:bg-muted"
-                                                    title={language === "zh" ? "購買???" : "Vendor Link"}
+                                                    title={language === "zh" ? "鞈潸眺???" : "Vendor Link"}
                                                 >
                                                     <ExternalLink className="h-4 w-4" />
                                                 </a>
@@ -414,7 +414,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                                     onClick={() => handleDeleteItem(item.id)}
                                                     disabled={isPending}
                                                     className="p-1.5 rounded text-red-600 hover:bg-red-50"
-                                                    title={language === "zh" ? "?�除" : "Delete"}
+                                                    title={language === "zh" ? "?芷" : "Delete"}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
@@ -435,16 +435,16 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         <h2 className="text-xl font-bold mb-4">
                             {showAddModal
                                 ? language === "zh"
-                                    ? "?��??�件"
+                                    ? "?啣??嗡辣"
                                     : "Add Item"
                                 : language === "zh"
-                                    ? "編輯?�件"
+                                    ? "蝺刻摩?嗡辣"
                                     : "Edit Item"}
                         </h2>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?��?" : "Name"}
+                                    {language === "zh" ? "??" : "Name"}
                                 </label>
                                 <input
                                     type="text"
@@ -455,7 +455,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?��? (SKU)" : "SKU"}
+                                    {language === "zh" ? "?? (SKU)" : "SKU"}
                                 </label>
                                 <input
                                     type="text"
@@ -467,7 +467,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "類別" : "Category"}
+                                    {language === "zh" ? "憿" : "Category"}
                                 </label>
                                 <select
                                     value={formData.category}
@@ -485,20 +485,20 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?��?位置" : "Storage Location"}
+                                    {language === "zh" ? "?脣?雿蔭" : "Storage Location"}
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.storageLocation}
                                     onChange={(e) => setFormData({ ...formData, storageLocation: e.target.value })}
-                                    placeholder="A�?3�?
+                                    placeholder="A瑹?3撅?
                                     className="w-full px-3 py-2 border rounded-lg"
                                 />
                             </div>
                             {showAddModal && (
                                 <div>
                                     <label className="block text-sm font-medium mb-1">
-                                        {language === "zh" ? "?��??��?" : "Initial Quantity"}
+                                        {language === "zh" ? "???賊?" : "Initial Quantity"}
                                     </label>
                                     <input
                                         type="number"
@@ -512,7 +512,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             )}
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "安全庫�?水�?" : "Safety Stock Level"}
+                                    {language === "zh" ? "摰摨怠?瘞港?" : "Safety Stock Level"}
                                 </label>
                                 <input
                                     type="number"
@@ -525,7 +525,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "購買???" : "Vendor Link"}
+                                    {language === "zh" ? "鞈潸眺???" : "Vendor Link"}
                                 </label>
                                 <input
                                     type="url"
@@ -544,7 +544,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                 }}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
-                                {language === "zh" ? "?��?" : "Cancel"}
+                                {language === "zh" ? "??" : "Cancel"}
                             </button>
                             <button
                                 onClick={showAddModal ? handleAddItem : handleUpdateItem}
@@ -553,10 +553,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             >
                                 {isPending
                                     ? language === "zh"
-                                        ? "?��?�?.."
+                                        ? "??銝?.."
                                         : "Processing..."
                                     : language === "zh"
-                                        ? "?��?"
+                                        ? "?脣?"
                                         : "Save"}
                             </button>
                         </div>
@@ -569,15 +569,15 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-card rounded-xl p-6 w-full max-w-md mx-4">
                         <h2 className="text-xl font-bold mb-2">
-                            {language === "zh" ? "調整庫�?" : "Adjust Stock"}
+                            {language === "zh" ? "隤踵摨怠?" : "Adjust Stock"}
                         </h2>
                         <p className="text-muted-foreground mb-4">
-                            {selectedItem.name} ({language === "zh" ? "?��?" : "Current"}: {selectedItem.currentQuantity})
+                            {selectedItem.name} ({language === "zh" ? "?桀?" : "Current"}: {selectedItem.currentQuantity})
                         </p>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?��?類�?" : "Transaction Type"}
+                                    {language === "zh" ? "?啣?憿?" : "Transaction Type"}
                                 </label>
                                 <select
                                     value={adjustData.type}
@@ -595,7 +595,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?��? (�??�庫，�?=?�庫)" : "Amount (+in/-out)"}
+                                    {language === "zh" ? "?賊? (甇??亙澈嚗?=?箏澈)" : "Amount (+in/-out)"}
                                 </label>
                                 <input
                                     type="number"
@@ -609,7 +609,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             {adjustData.type === "PROJECT_USE" && (
                                 <div>
                                     <label className="block text-sm font-medium mb-1">
-                                        {language === "zh" ? "專�? ID" : "Project ID"}
+                                        {language === "zh" ? "撠? ID" : "Project ID"}
                                     </label>
                                     <input
                                         type="text"
@@ -626,7 +626,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                 onClick={() => setShowAdjustModal(false)}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
-                                {language === "zh" ? "?��?" : "Cancel"}
+                                {language === "zh" ? "??" : "Cancel"}
                             </button>
                             <button
                                 onClick={handleAdjustStock}
@@ -635,10 +635,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             >
                                 {isPending
                                     ? language === "zh"
-                                        ? "?��?�?.."
+                                        ? "??銝?.."
                                         : "Processing..."
                                     : language === "zh"
-                                        ? "確�?調整"
+                                        ? "蝣箄?隤踵"
                                         : "Confirm"}
                             </button>
                         </div>
@@ -652,15 +652,15 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
                         <h2 className="text-xl font-bold mb-2 text-green-600 flex items-center gap-2">
                             <ArrowDownToLine className="h-5 w-5" />
-                            {language === "zh" ? "?�件?�庫" : "Stock In"}
+                            {language === "zh" ? "?嗡辣?亙澈" : "Stock In"}
                         </h2>
                         <p className="text-muted-foreground mb-4">
-                            {selectedItem.name} ({language === "zh" ? "?��?" : "Current"}: {selectedItem.currentQuantity})
+                            {selectedItem.name} ({language === "zh" ? "?桀?" : "Current"}: {selectedItem.currentQuantity})
                         </p>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?�庫?��?" : "Quantity to Add"}
+                                    {language === "zh" ? "?亙澈?賊?" : "Quantity to Add"}
                                 </label>
                                 <input
                                     type="number"
@@ -678,7 +678,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                 onClick={() => setShowStockInModal(false)}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
-                                {language === "zh" ? "?��?" : "Cancel"}
+                                {language === "zh" ? "??" : "Cancel"}
                             </button>
                             <button
                                 onClick={handleQuickStockIn}
@@ -687,10 +687,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             >
                                 {isPending
                                     ? language === "zh"
-                                        ? "?��?�?.."
+                                        ? "??銝?.."
                                         : "Processing..."
                                     : language === "zh"
-                                        ? "確�??�庫"
+                                        ? "蝣箄??亙澈"
                                         : "Confirm"}
                             </button>
                         </div>
@@ -704,15 +704,15 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
                         <h2 className="text-xl font-bold mb-2 text-orange-600 flex items-center gap-2">
                             <ArrowUpFromLine className="h-5 w-5" />
-                            {language === "zh" ? "?�件?�用" : "Stock Out"}
+                            {language === "zh" ? "?嗡辣?" : "Stock Out"}
                         </h2>
                         <p className="text-muted-foreground mb-4">
-                            {selectedItem.name} ({language === "zh" ? "?��?" : "Current"}: {selectedItem.currentQuantity})
+                            {selectedItem.name} ({language === "zh" ? "?桀?" : "Current"}: {selectedItem.currentQuantity})
                         </p>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?�用?��?" : "Quantity to Take"}
+                                    {language === "zh" ? "??賊?" : "Quantity to Take"}
                                 </label>
                                 <input
                                     type="number"
@@ -727,13 +727,13 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">
-                                    {language === "zh" ? "?��?專�?" : "Purpose/Project"}
+                                    {language === "zh" ? "?券?撠?" : "Purpose/Project"}
                                 </label>
                                 <input
                                     type="text"
                                     value={adjustData.projectId}
                                     onChange={(e) => setAdjustData({ ...adjustData, projectId: e.target.value })}
-                                    placeholder={language === "zh" ? "例�?: 2024 機器�? : "e.g. 2024 Robot"}
+                                    placeholder={language === "zh" ? "靘?: 2024 璈鈭? : "e.g. 2024 Robot"}
                                     className="w-full px-3 py-2 border rounded-lg"
                                 />
                             </div>
@@ -743,7 +743,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                 onClick={() => setShowStockOutModal(false)}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
-                                {language === "zh" ? "?��?" : "Cancel"}
+                                {language === "zh" ? "??" : "Cancel"}
                             </button>
                             <button
                                 onClick={handleQuickStockOut}
@@ -752,10 +752,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             >
                                 {isPending
                                     ? language === "zh"
-                                        ? "?��?�?.."
+                                        ? "??銝?.."
                                         : "Processing..."
                                     : language === "zh"
-                                        ? "確�??�用"
+                                        ? "蝣箄??"
                                         : "Confirm"}
                             </button>
                         </div>
@@ -765,4 +765,5 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         </div>
     )
 }
+
 

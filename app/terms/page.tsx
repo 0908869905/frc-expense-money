@@ -37,8 +37,8 @@ export default function TermsPage() {
                         </h2>
                         <p className="text-muted-foreground leading-relaxed">
                             {language === "zh"
-                                ? `${org.name} 報帳系統（以下簡稱「本系統」）是專為 FRC 機器人競賽團隊設計的內部費用報銷管理平台。本系統提供費用申報、審核、追蹤等功能，僅供團隊成員內部使用。`
-                                : `The ${org.name} Expense System (hereinafter referred to as "the System") is an internal expense reimbursement management platform designed for FRC robotics competition teams. The System provides expense submission, approval, and tracking functions for internal team use only.`
+                                ? `${org.name} 報帳系統（以下簡稱「本系統」）是專為企業設計的內部費用報銷管理平台。本系統提供費用申報、審核、追蹤等功能，僅供團隊成員內部使用。`
+                                : `The ${org.name} Expense System (hereinafter referred to as "the System") is an internal expense reimbursement management platform designed for enterprises. The System provides expense submission, approval, and tracking functions for internal team use only.`
                             }
                         </p>
                     </section>

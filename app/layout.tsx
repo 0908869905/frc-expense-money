@@ -9,12 +9,12 @@ import { ThemeProvider } from "@/lib/theme-context"
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata = {
-  title: "FRC 6998 報帳系統",
-  description: "FRC 6998 費用報銷管理系統",
+  title: "測試公司 報帳系統",
+  description: "測試公司 費用報銷管理系統",
   icons: {
-    icon: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
-    shortcut: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
-    apple: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+    icon: "/demo-logo.png",
+    shortcut: "/demo-logo.png",
+    apple: "/demo-logo.png",
   },
 }
 

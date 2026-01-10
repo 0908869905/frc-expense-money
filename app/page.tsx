@@ -61,21 +61,21 @@ export default function LandingPage() {
         <div className="text-center space-y-6 max-w-4xl">
           {/* Main Title */}
           <h1 className="relative">
-            <span className="block text-8xl md:text-9xl lg:text-[12rem] font-black tracking-tighter leading-none">
+            <span className="block text-7xl md:text-8xl lg:text-[10rem] font-black tracking-tighter leading-none">
               <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent drop-shadow-2xl">
-                FRC
+                測試
               </span>
             </span>
-            <span className="block text-8xl md:text-9xl lg:text-[12rem] font-black tracking-tighter leading-none -mt-4 md:-mt-8">
+            <span className="block text-7xl md:text-8xl lg:text-[10rem] font-black tracking-tighter leading-none -mt-4 md:-mt-8">
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                6998
+                公司
               </span>
             </span>
           </h1>
 
           {/* Team English Name */}
           <p className="text-2xl md:text-3xl font-light tracking-[0.3em] text-gray-400 uppercase">
-            UNIPARDS
+            Demo Corp
           </p>
 
           {/* Divider */}
