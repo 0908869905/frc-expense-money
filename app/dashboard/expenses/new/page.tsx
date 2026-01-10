@@ -3,7 +3,7 @@ import { ExpenseForm } from "@/components/expense-form";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "New Expense Report | Ultimate Expense",
+  title: "New Expense Report | ExpenseFlow",
   description: "Submit a new expense report for approval.",
 };
 

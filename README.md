@@ -1,11 +1,7 @@
-# FRC 6998 UNIPARDS 報帳系統
+# ExpenseFlow 智慧報帳系統
 
 <p align="center">
-  <img src="public/Gemini_Generated_Image_wkar2twkar2twkar.png" alt="FRC 6998 UNIPARDS Logo" width="120" height="120" />
-</p>
-
-<p align="center">
-  <strong>專為 FRC 機器人團隊設計的現代化費用報銷、智慧收據審核與財務管理系統</strong>
+  <strong>企業級智慧費用報銷、收據審核與財務管理系統</strong>
 </p>
 
 <p align="center">
@@ -27,10 +23,10 @@
 | 📝 **報帳單管理** | 建立、編輯、提交費用報銷申請 | 副組長以上 |
 | 🤖 **智慧收據審核** | AI 自動辨識發票並比對金額、日期 | 全部 |
 | ✅ **智慧審核流程** | 依提交者權限自動跳過審核層級 | 組長以上 |
-| 💰 **組別預算管理** | 設定各組可用資金，超支即時警告 | 財務/管理員 |
-| 💵 **資金記錄追蹤** | 記錄贊助、捐款，追蹤團隊財務餘額 | 財務/管理員 |
-| 📦 **零件庫存系統** | 追蹤機器人零件進出、庫存與補貨提醒 | 機構組/財務/管理員 |
-| 👥 **用戶與組別管理** | 管理團隊成員、角色、組別指派 | 管理員 |
+| 💰 **部門預算管理** | 設定各部門可用資金，超支即時警告 | 財務/管理員 |
+| 💵 **資金記錄追蹤** | 記錄資金流入，追蹤企業財務餘額 | 財務/管理員 |
+| 📦 **庫存系統** | 追蹤物品進出、庫存與補貨提醒 | 倉管/財務/管理員 |
+| 👥 **用戶與部門管理** | 管理企業成員、角色、部門指派 | 管理員 |
 | 🌐 **多語言支援** | 繁體中文 / English 切換 | 全部 |
 
 ---
@@ -88,9 +84,9 @@
 | 角色 | 中文名稱 | 權限說明 |
 |------|---------|---------| 
 | `USER` | 僅檢視 | 僅可查看儀表板，無法建立報帳單 |
-| `VICE_LEADER` | 副組長 | 可建立報帳單、查看組別預算 |
+| `VICE_LEADER` | 副組長 | 可建立報帳單、查看部門預算 |
 | `LEADER` | 組長 | 副組長權限 + 審批報帳單（第一層）、提交時跳過組長審核 |
-| `FINANCE` | 財務 | 財務審批 + 資金管理 + 組別預算設定 + 所有組預算可見 |
+| `FINANCE` | 財務 | 財務審批 + 資金管理 + 部門預算設定 + 所有部門預算可見 |
 | `ADMIN` | 管理員 | 所有權限 + 用戶管理 + 系統設定 |
 
 ### 功能存取對照表
@@ -101,26 +97,26 @@
 | 建立報帳單 | ❌ | ✅ | ✅ | ✅ | ✅ |
 | 上傳收據 OCR 辨識 | ❌ | ✅ | ✅ | ✅ | ✅ |
 | 審批報帳單 | ❌ | ❌ | ✅ | ✅ | ✅ |
-| 查看組別預算 | ❌ | ⚡自己組 | ⚡自己組 | ✅全部 | ✅全部 |
-| 編輯組別預算 | ❌ | ❌ | ❌ | ✅ | ✅ |
+| 查看部門預算 | ❌ | ⚡自己部門 | ⚡自己部門 | ✅全部 | ✅全部 |
+| 編輯部門預算 | ❌ | ❌ | ❌ | ✅ | ✅ |
 | 資金記錄管理 | ❌ | ❌ | ❌ | ✅ | ✅ |
-| 庫存管理 | ❌ | ⚡機構組 | ⚡機構組 | ✅ | ✅ |
+| 庫存管理 | ❌ | ⚡倉管部門 | ⚡倉管部門 | ✅ | ✅ |
 | 用戶管理 | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ---
 
-## 🏢 組別架構
+## 🏢 部門架構
 
-團隊分為 6 個組別，每個組別有自己的預算額度：
+系統支援多部門架構，每個部門有獨立的預算額度：
 
 | 代號 | 中文名稱 | 英文名稱 | 圖示 |
 |------|---------|---------|------|
-| `ELECTRICAL` | 電資組 | Electrical | ⚡ |
-| `MECHANICAL` | 機構組 | Mechanical | ⚙️ |
-| `DOCUMENTATION` | 文書組 | Documentation | 📝 |
-| `PR` | 公關組 | PR | 📣 |
-| `FINANCE` | 財管組 | Finance | 💰 |
-| `DESIGN` | 意象組 | Design | 🎨 |
+| `ELECTRICAL` | 電資部 | Electrical | ⚡ |
+| `MECHANICAL` | 工程部 | Mechanical | ⚙️ |
+| `DOCUMENTATION` | 行政部 | Documentation | 📝 |
+| `PR` | 公關部 | PR | 📣 |
+| `FINANCE` | 財務部 | Finance | 💰 |
+| `DESIGN` | 設計部 | Design | 🎨 |
 
 ---
 
@@ -137,8 +133,8 @@
 
 ```bash
 # 1. 複製專案
-git clone https://github.com/your-repo/frc-expense-system.git
-cd frc-expense-system
+git clone https://github.com/your-repo/expense-flow.git
+cd expense-flow
 
 # 2. 安裝依賴
 npm install
@@ -231,11 +227,11 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account",...}'
 ### 專案結構
 
 ```
-frc-expense-system/
+expense-flow/
 ├── app/                    # Next.js App Router
 │   ├── actions/            # Server Actions
 │   │   ├── approvals.ts    # 審核相關
-│   │   ├── budget.ts       # 組別預算
+│   │   ├── budget.ts       # 部門預算
 │   │   ├── expenses.ts     # 報帳單
 │   │   ├── funding.ts      # 資金記錄
 │   │   ├── inventory.ts    # 庫存管理
@@ -280,16 +276,16 @@ frc-expense-system/
 | `ReceiptAudit` | 收據審核結果（OCR 資料、匹配分數） |
 | `ApprovalAction` | 審核紀錄 |
 | `AuditLog` | 操作審計日誌 |
-| `DepartmentBudget` | 各組別預算設定 |
-| `FundingRecord` | 資金記錄（贊助/捐款） |
-| `InventoryItem` | 零件庫存 |
-| `InventoryTransaction` | 零件異動紀錄 |
+| `DepartmentBudget` | 各部門預算設定 |
+| `FundingRecord` | 資金記錄 |
+| `InventoryItem` | 庫存 |
+| `InventoryTransaction` | 異動紀錄 |
 
 ---
 
 ## 📄 授權
 
-MIT License © 2024-2026 FRC 6998 UNIPARDS
+MIT License © 2024-2026
 
 ---
 
@@ -308,5 +304,5 @@ MIT License © 2024-2026 FRC 6998 UNIPARDS
 ---
 
 <p align="center">
-  Made with ❤️ by FRC 6998 UNIPARDS
+  Made with ❤️
 </p>

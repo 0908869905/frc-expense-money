@@ -2,17 +2,17 @@
 
 import React, { createContext, useContext, ReactNode } from "react";
 
-// 組織配置 - 只保留 FRC
+// 組織配置 - 通用展示版本
 export const ORGANIZATIONS = {
-    frc: {
-        id: "frc-6998",
-        name: "FRC 6998",
-        subtitle: "UNIPARDS",
-        logo: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
-        title: "FRC 6998 報帳",
-        titleEn: "FRC 6998 Expense",
+    demo: {
+        id: "expense-demo",
+        name: "ExpenseFlow",
+        subtitle: "智慧報帳系統",
+        logo: "/logo.png",
+        title: "ExpenseFlow 報帳",
+        titleEn: "ExpenseFlow Expense",
         bgColor: "bg-primary",
-        themeClass: "theme-frc",
+        themeClass: "theme-demo",
     },
 } as const;
 
@@ -27,9 +27,9 @@ interface OrganizationContextType {
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
 
 export function OrganizationProvider({ children }: { children: ReactNode }) {
-    // 固定使用 FRC
-    const org = ORGANIZATIONS.frc;
-    const orgId: OrgId = "frc";
+    // 使用展示版本
+    const org = ORGANIZATIONS.demo;
+    const orgId: OrgId = "demo";
 
     return (
         <OrganizationContext.Provider value={{ org, orgId }}>

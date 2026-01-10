@@ -53,7 +53,7 @@ export default function AboutPage() {
             <header className="px-4 lg:px-6 h-14 flex items-center border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
                 <Link className="flex items-center justify-center" href="/">
                     <Shield className="h-6 w-6 mr-2" />
-                    <span className="font-bold">Ultimate Expense</span>
+                    <span className="font-bold">ExpenseFlow</span>
                 </Link>
                 <nav className="ml-auto flex gap-4 sm:gap-6">
                     <Link className="text-sm font-medium hover:underline underline-offset-4" href="/login">
@@ -72,7 +72,7 @@ export default function AboutPage() {
                                 返回首頁
                             </Link>
                             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                                為什麼選擇 Ultimate Expense？
+                                為什麼選擇 ExpenseFlow？
                             </h1>
                             <p className="mx-auto max-w-[700px] text-muted-foreground md:text-lg">
                                 我們致力於簡化企業報帳流程，讓財務管理變得更簡單、更高效
@@ -172,7 +172,7 @@ export default function AboutPage() {
             </main>
 
             <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-                <p className="text-xs text-gray-500 dark:text-gray-400">© 2024 Ultimate Expense Inc. All rights reserved.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">© 2024 ExpenseFlow Inc. All rights reserved.</p>
                 <nav className="sm:ml-auto flex gap-4 sm:gap-6">
                     <Link className="text-xs hover:underline underline-offset-4" href="#">Terms of Service</Link>
                     <Link className="text-xs hover:underline underline-offset-4" href="#">Privacy</Link>

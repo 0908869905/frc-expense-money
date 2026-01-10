@@ -57,25 +57,25 @@ export default function LandingPage() {
 
       {/* Main Content */}
       <main className="relative min-h-screen flex flex-col items-center justify-center px-4">
-        {/* Team Name - HERO */}
+        {/* Brand Name - HERO */}
         <div className="text-center space-y-6 max-w-4xl">
           {/* Main Title */}
           <h1 className="relative">
-            <span className="block text-8xl md:text-9xl lg:text-[12rem] font-black tracking-tighter leading-none">
+            <span className="block text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-none">
               <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent drop-shadow-2xl">
-                FRC
+                Expense
               </span>
             </span>
-            <span className="block text-8xl md:text-9xl lg:text-[12rem] font-black tracking-tighter leading-none -mt-4 md:-mt-8">
+            <span className="block text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-none -mt-2 md:-mt-4">
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                6998
+                Flow
               </span>
             </span>
           </h1>
 
-          {/* Team English Name */}
-          <p className="text-2xl md:text-3xl font-light tracking-[0.3em] text-gray-400 uppercase">
-            UNIPARDS
+          {/* Tagline */}
+          <p className="text-xl md:text-2xl font-light tracking-widest text-gray-400 uppercase">
+            {language === "zh" ? "智慧報帳系統" : "Smart Expense System"}
           </p>
 
           {/* Divider */}
@@ -87,7 +87,7 @@ export default function LandingPage() {
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-gray-400 font-light">
-            {language === "zh" ? "團隊財務管理系統" : "Team Financial Management System"}
+            {language === "zh" ? "企業級財務管理解決方案" : "Enterprise Financial Management Solution"}
           </p>
         </div>
 
