@@ -45,7 +45,7 @@ export default function AboutPage() {
                         <p className="text-sm md:text-base tracking-[0.2em] text-gray-400 mb-4 ml-2 uppercase">
                             Since 2018 — Tainan, Taiwan
                         </p>
-                        <h1 className="font-serif text-[18vw] leading-[0.8] font-black tracking-tight text-white mix-blend-difference">
+                        <h1 className="font-serif text-[16vw] leading-[0.9] font-black tracking-tight text-white mix-blend-difference pb-4">
                             6998
                         </h1>
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 md:-mt-4">
