@@ -185,7 +185,7 @@ const translations: Record<Language, Record<string, string>> = {
         "passwords_not_match": "密碼不一致",
 
         // About Page
-        "why_choose_us": "為什麼選擇 ExpenseFlow？",
+        "why_choose_us": "為什麼選擇 Ultimate Expense？",
         "about_desc": "我們致力於簡化企業報帳流程，讓財務管理變得更簡單、更高效",
         "back_home": "返回首頁",
         "feature_fast": "快速報帳",
@@ -225,7 +225,7 @@ const translations: Record<Language, Record<string, string>> = {
         "hero_desc": "簡化審批流程，即時追蹤支出，更快獲得報銷。",
         "get_started": "開始使用",
         "learn_more": "了解更多",
-        "footer_rights": "© 2026 ExpenseFlow 保留所有權利。",
+        "footer_rights": "© 2026 FRC6998 保留所有權利。",
         "terms": "服務條款",
         "privacy": "隱私政策",
 
@@ -411,7 +411,7 @@ const translations: Record<Language, Record<string, string>> = {
         "passwords_not_match": "Passwords do not match",
 
         // About Page
-        "why_choose_us": "Why Choose ExpenseFlow?",
+        "why_choose_us": "Why Choose Ultimate Expense?",
         "about_desc": "We simplify enterprise expense management, making financial processes easier and more efficient",
         "back_home": "Back to Home",
         "feature_fast": "Fast Expense Reporting",
@@ -451,7 +451,7 @@ const translations: Record<Language, Record<string, string>> = {
         "hero_desc": "Streamline approvals, track spending in real-time, and get reimbursed faster than ever before.",
         "get_started": "Get Started",
         "learn_more": "Learn More",
-        "footer_rights": "© 2026 ExpenseFlow All rights reserved.",
+        "footer_rights": "© 2026 FRC6998 All rights reserved.",
         "terms": "Terms of Service",
         "privacy": "Privacy",
 

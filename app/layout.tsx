@@ -9,9 +9,13 @@ import { ThemeProvider } from "@/lib/theme-context"
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata = {
-  title: "ExpenseFlow 報帳系統",
-  description: "智慧企業費用報銷管理系統",
-
+  title: "FRC 6998 報帳系統",
+  description: "FRC 6998 費用報銷管理系統",
+  icons: {
+    icon: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+    shortcut: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+    apple: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
+  },
 }
 
 export default function RootLayout({
@@ -21,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-TW" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased dark", inter.variable)}>
+      <body className={cn("min-h-screen bg-background font-sans antialiased theme-frc dark", inter.variable)}>
         <ThemeProvider>
           <OrganizationProvider>
             <LanguageProvider>
