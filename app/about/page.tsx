@@ -106,8 +106,8 @@ export default function AboutPage() {
                                 year="2022"
                                 title={t("王者歸來", "The Return")}
                                 content={t(
-                                    "疫情並沒有澆熄我們的熱情。重返賽場後，我們在 New Taipei City x Hon Hai Regional 斬獲最高榮譽 Regional Chairman's Award 以及 Quality Award，首度取得前往 FIRST Championship 世界錦標賽的門票。",
-                                    "The pandemic didn't extinguish our passion. Returning to the field, we clinched the highest honor, the Regional Chairman's Award, and the Quality Award at the New Taipei City Regional, securing our first ticket to the FIRST Championship."
+                                    "疫情並沒有澆熄我們的熱情。重返賽場後，我們在 New Taipei City x Hon Hai Regional 斬獲最高榮譽 Regional Chairman's Award 以及 Quality Award，蔡汶鴻老師獲得 Woodie Flowers Finalist Award，並首度取得前往 FIRST Championship 世界錦標賽的門票。",
+                                    "The pandemic didn't extinguish our passion. Returning to the field, we clinched the Regional Chairman's Award and Quality Award at the New Taipei City x Hon Hai Regional. Mentor Wen-Hung Tsai received the Woodie Flowers Finalist Award. We secured our first FIRST Championship ticket."
                                 )}
                             />
                             <TimelineEntry 
@@ -130,8 +130,8 @@ export default function AboutPage() {
                                 year="2025"
                                 title={t("傳承", "Legacy")}
                                 content={t(
-                                    "在 New Taipei City Regional，劉芸珊老師獲得 Woodie Flowers Finalist Award，這是對導師卓越教學與啟發的最高肯定。我們帶著使命繼續前進。",
-                                    "At the New Taipei City Regional, our mentor Yun-Shan Liu received the Woodie Flowers Finalist Award—the highest recognition for outstanding mentorship. We continue forward with our mission."
+                                    "在 New Taipei City Regional，劉昀珊老師獲得 Woodie Flowers Finalist Award，使我們成為台灣第一支擁有兩位獲此殊榮導師的隊伍。這是對卓越教學與啟發的最高肯定，我們帶著使命繼續前進。",
+                                    "At the New Taipei City Regional, mentor Yun-Shan Liu received the Woodie Flowers Finalist Award, making us the first team in Taiwan with two mentors receiving this honor. We continue forward with our mission."
                                 )}
                             />
                         </div>
