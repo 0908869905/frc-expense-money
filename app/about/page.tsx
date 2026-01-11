@@ -54,7 +54,7 @@ export default function AboutPage() {
                             </h2>
                             <p className="max-w-md text-gray-400 text-sm md:text-base leading-relaxed text-justify md:mb-4">
                                 {t(
-                                    "南科實首支 FRC 隊伍。我們不只是建造機器人，我們建造夢想，並將 STEM 教育的種子播撒至偏鄉。",
+                                    "南科實中首支 FRC 隊伍。我們不只是建造機器人，我們建造夢想，並將 STEM 教育的種子播撒至偏鄉。",
                                     "NNKIEH's first FRC team. We don't just build robots; we build dreams and sow the heavy seeds of STEM education into underserved communities."
                                 )}
                             </p>
@@ -77,28 +77,36 @@ export default function AboutPage() {
                         </div>
 
                         {/* Timeline Content */}
-                        <div className="md:col-span-8 space-y-32">
+                        <div className="md:col-span-8 space-y-24">
                             <TimelineEntry 
                                 year="2018"
                                 title={t("起源", "The Origin")}
                                 content={t(
-                                    "在台積電 (TSMC) 的支持下，國立南科國際實驗高級中學成立了 FRC 6998 UNIPARDS。作為全台首間同時推動 FLL、FTC 與 FRC 的公立學校，我們開啟了這段不凡的旅程。",
-                                    "With the support of TSMC, National Nanke International Experimental High School founded FRC 6998 UNIPARDS. As the first public school in Taiwan to run FLL, FTC, and FRC simultaneously, we began our extraordinary journey."
+                                    "在台積電 (TSMC) 的支持下，國立南科國際實驗高級中學成立了 FRC 6998 UNIPARDS。作為全台首間同時推動 FLL、FTC 與 FRC 的公立學校，我們前往 Southern Cross Regional，開啟了這段不凡的旅程。",
+                                    "With the support of TSMC, National Nanke International Experimental High School founded FRC 6998 UNIPARDS. As the first public school in Taiwan to run FLL, FTC, and FRC, we competed at the Southern Cross Regional, beginning our extraordinary journey."
                                 )}
                             />
                             <TimelineEntry 
                                 year="2019"
                                 title={t("初試啼聲", "First Echo")}
                                 content={t(
-                                    "雖然還是新秀，我們在 Hawaii Regional 展現了強大的商業潛力，獲得了 Entrepreneurship Award，這是我們的首個國際獎項，證明了技術與商業思維並重的重要性。",
-                                    "Though still rookies, we demonstrated strong business potential at the Hawaii Regional, winning the Entrepreneurship Award. This was our first international award, proving the importance of balancing technology with business acumen."
+                                    "在 Hawaii Regional，我們展現了強大的商業潛力，獲得了 Entrepreneurship Award，這是我們的首個國際獎項，證明了技術與商業思維並重的重要性。",
+                                    "At the Hawaii Regional, we demonstrated strong business potential, winning the Entrepreneurship Award—our first international accolade, proving the importance of balancing technology with business acumen."
+                                )}
+                            />
+                            <TimelineEntry 
+                                year="2020–2021"
+                                title={t("蟄伏", "The Pause")}
+                                content={t(
+                                    "全球疫情迫使 FRC 賽季取消，但我們並沒有停下腳步。這段期間我們持續精進技術、培訓新血、強化社區推廣，為未來的回歸做好準備。",
+                                    "The global pandemic forced the cancellation of FRC seasons, but we never stopped. We continued refining our skills, training new members, and strengthening community outreach, preparing for our return."
                                 )}
                             />
                             <TimelineEntry 
                                 year="2022"
-                                title={t("突破", "Breakthrough")}
+                                title={t("王者歸來", "The Return")}
                                 content={t(
-                                    "疫情並沒有澆熄我們的熱情。重返賽場後，我們在 New Taipei City Regional 斬獲最高榮譽 Regional Chairman's Award 以及 Quality Award，首度取得前往 FIRST Championship 世界錦標賽的門票。",
+                                    "疫情並沒有澆熄我們的熱情。重返賽場後，我們在 New Taipei City x Hon Hai Regional 斬獲最高榮譽 Regional Chairman's Award 以及 Quality Award，首度取得前往 FIRST Championship 世界錦標賽的門票。",
                                     "The pandemic didn't extinguish our passion. Returning to the field, we clinched the highest honor, the Regional Chairman's Award, and the Quality Award at the New Taipei City Regional, securing our first ticket to the FIRST Championship."
                                 )}
                             />
@@ -106,16 +114,24 @@ export default function AboutPage() {
                                 year="2023"
                                 title={t("世界舞台", "World Stage")}
                                 content={t(
-                                    "這一年是豐收的一年。我們成為 Monterey Bay Regional Winner，並在休士頓的世界舞台上奪得 Industrial Design Award。同時，我們的教育推廣獲得肯定，榮獲教育部「創新教育領導獎」。",
-                                    "A year of harvest. We became Monterey Bay Regional Winners and won the Industrial Design Award on the world stage in Houston. Simultaneously, our outreach efforts were recognized with the Ministry of Education's Innovation Leadership Award."
+                                    "豐收的一年。我們成為 Monterey Bay Regional Winner 並獲得 Engineering Inspiration Award，再次晉級世錦賽。在休士頓奪得 Industrial Design Award。同時榮獲教育部「創新教育領導獎」。",
+                                    "A year of harvest. We became Monterey Bay Regional Winners with the Engineering Inspiration Award, qualifying for Worlds again. In Houston, we won the Industrial Design Award. We also received the Ministry of Education's Innovation Leadership Award."
                                 )}
                             />
                             <TimelineEntry 
-                                year="2024—Present"
-                                title={t("永續", "Sustainability")}
+                                year="2024"
+                                title={t("永續發展", "Sustainability")}
                                 content={t(
-                                    "我們持續進化，獲頒 Team Sustainability Award，並由劉老師獲得 Woodie Flowers Finalist Award。我們專注於傳承與永續，確保這份熱情能點燃更多未來的工程師。",
-                                    "We continue to evolve, earning the Team Sustainability Award and the Woodie Flowers Finalist Award for our mentor, Mr. Liu. We focus on legacy and sustainability, ensuring this passion ignites more future engineers."
+                                    "在 Central Valley Regional，我們獲頒 Team Sustainability Award，肯定我們對環境保護與團隊永續經營的承諾。",
+                                    "At the Central Valley Regional, we earned the Team Sustainability Award, recognizing our commitment to environmental protection and team sustainability."
+                                )}
+                            />
+                            <TimelineEntry 
+                                year="2025"
+                                title={t("傳承", "Legacy")}
+                                content={t(
+                                    "在 New Taipei City Regional，劉芸珊老師獲得 Woodie Flowers Finalist Award，這是對導師卓越教學與啟發的最高肯定。我們帶著使命繼續前進。",
+                                    "At the New Taipei City Regional, our mentor Yun-Shan Liu received the Woodie Flowers Finalist Award—the highest recognition for outstanding mentorship. We continue forward with our mission."
                                 )}
                             />
                         </div>
@@ -146,6 +162,7 @@ export default function AboutPage() {
                         <div>
                             <h4 className="font-serif text-4xl mb-8">{t("保持聯繫", "Connect")}</h4>
                             <div className="flex flex-col gap-4">
+                                <SocialLink href="mailto:frc6998@ms.nnkieh.tn.edu.tw" label="Email" id="frc6998@ms.nnkieh.tn.edu.tw" />
                                 <SocialLink href="https://www.instagram.com/frc_6998/" label="Instagram" id="@frc_6998" />
                                 <SocialLink href="https://www.facebook.com/frc6998" label="Facebook" id="frc6998" />
                                 <SocialLink href="https://github.com/frc-6998" label="GitHub" id="frc-6998" />
