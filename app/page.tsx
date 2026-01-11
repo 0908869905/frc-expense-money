@@ -113,20 +113,7 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        {/* Feature Pills */}
-        <div className="mt-16 flex flex-wrap justify-center gap-3">
-          {features.map((feature, i) => (
-            <div
-              key={i}
-              className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-            >
-              <span className={`p-1.5 rounded-lg bg-gradient-to-r ${feature.gradient} text-white`}>
-                {feature.icon}
-              </span>
-              <span className="text-sm font-medium text-gray-300">{feature.title}</span>
-            </div>
-          ))}
-        </div>
+
       </main>
 
       {/* Footer */}
