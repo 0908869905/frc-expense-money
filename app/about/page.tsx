@@ -82,7 +82,7 @@ export default function AboutPage() {
                                 year="2018"
                                 title={t("起源", "The Origin")}
                                 content={t(
-                                    "在台積電 (TSMC) 的支持下，國立南科國際實驗高級中學成立了 FRC 6998 UNIPARDS。作為全台首間同時推動 FLL、FTC 與 FRC 的公立學校，我們前往 Southern Cross Regional，開啟了這段不凡的旅程。",
+                                    "在國科會的支持下，國立南科國際實驗高級中學成立了 FRC 6998 UNIPARDS。作為全台首間同時推動 FLL、FTC 與 FRC 的公立學校，我們前往 Southern Cross Regional，開啟了這段不凡的旅程。",
                                     "With the support of TSMC, National Nanke International Experimental High School founded FRC 6998 UNIPARDS. As the first public school in Taiwan to run FLL, FTC, and FRC, we competed at the Southern Cross Regional, beginning our extraordinary journey."
                                 )}
                             />
