@@ -45,7 +45,7 @@ export default function AboutPage() {
                         <p className="text-sm md:text-base tracking-[0.2em] text-gray-400 mb-4 ml-2 uppercase">
                             Since 2018 — Tainan, Taiwan
                         </p>
-                        <h1 className="font-serif text-[16vw] leading-[0.9] font-black tracking-tight text-white mix-blend-difference pb-4">
+                        <h1 className="font-serif text-[14vw] md:text-[16vw] leading-none font-black tracking-tight text-white mix-blend-difference pb-8">
                             6998
                         </h1>
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 md:-mt-4">
@@ -149,7 +149,7 @@ export default function AboutPage() {
                                 <SocialLink href="https://www.instagram.com/frc_6998/" label="Instagram" id="@frc_6998" />
                                 <SocialLink href="https://www.facebook.com/frc6998" label="Facebook" id="frc6998" />
                                 <SocialLink href="https://github.com/frc-6998" label="GitHub" id="frc-6998" />
-                                <SocialLink href="https://www.youtube.com/@frc-fx4ig" label="YouTube" id="@frc-fx4ig" />
+                                <SocialLink href="https://www.youtube.com/@FRC-6998Unipards" label="YouTube" id="@FRC-6998Unipards" />
                             </div>
                         </div>
                         
