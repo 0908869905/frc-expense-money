@@ -4,164 +4,204 @@ import Link from "next/link"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ArrowLeft } from "lucide-react"
+import { Playfair_Display, Inter } from "next/font/google"
+import { cn } from "@/lib/utils"
+
+// Load Fonts
+const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "900"], variable: "--font-serif" })
+const inter = Inter({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--font-sans" })
+
+// Noise Texture SVG
+const NOISE_SVG = `data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E`
 
 export default function AboutPage() {
     const { language } = useLanguage()
     const t = (zh: string, en: string) => language === "zh" ? zh : en
 
     return (
-        <div className="min-h-screen bg-black text-white">
-            {/* Nav */}
-            <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center bg-black/80 backdrop-blur-sm">
-                <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
-                    <ArrowLeft className="w-4 h-4" />
+        <div className={cn("min-h-screen bg-[#0a0a0a] text-[#e5e5e5] selection:bg-white selection:text-black", playfair.variable, inter.variable, "font-sans")}>
+            
+            {/* Noise Overlay */}
+            <div 
+                className="fixed inset-0 z-50 pointer-events-none mix-blend-overlay opacity-50vh"
+                style={{ backgroundImage: `url("${NOISE_SVG}")` }}
+            />
+
+            {/* Navigation */}
+            <nav className="fixed top-0 left-0 right-0 z-40 px-6 py-6 md:px-12 flex justify-between items-center mix-blend-difference text-white">
+                <Link href="/" className="group flex items-center gap-3 text-sm tracking-widest uppercase hover:opacity-70 transition-opacity">
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     {t("返回", "Back")}
                 </Link>
                 <LanguageSwitcher />
             </nav>
 
-            {/* Content */}
-            <main className="max-w-2xl mx-auto px-6 pt-32 pb-20">
-                {/* Header */}
-                <header className="mb-20">
-                    <p className="text-gray-500 text-sm mb-4">{t("關於", "About")}</p>
-                    <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-2">
-                        6998
-                    </h1>
-                    <p className="text-2xl text-gray-400 tracking-widest">UNIPARDS</p>
-                </header>
-
-                {/* Intro */}
-                <section className="mb-16">
-                    <p className="text-lg text-gray-300 leading-relaxed">
-                        {t(
-                            "我們是來自台南南科實中的 FRC 機器人團隊，也是台灣首間公立學校同時推動 FLL、FTC、FRC 三項 FIRST 計畫的學校。",
-                            "We are an FRC robotics team from National Nanke International Experimental High School in Tainan — the first public school in Taiwan to run FLL, FTC, and FRC programs simultaneously."
-                        )}
-                    </p>
-                </section>
-
-                {/* Timeline */}
-                <section className="mb-20">
-                    <h2 className="text-sm text-gray-500 uppercase tracking-widest mb-8">
-                        {t("歷程", "Timeline")}
-                    </h2>
+            <main className="relative z-10">
+                {/* Hero Section - Magazine Cover Style */}
+                <section className="min-h-screen flex flex-col justify-end pb-20 px-6 md:px-12 pt-32 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-white/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                     
-                    <div className="space-y-12">
-                        <TimelineItem 
-                            year="2018" 
-                            content={t(
-                                "在台積電贊助下，南科實中成立 FRC 6998 UNIPARDS，成為新秀隊伍。",
-                                "Founded FRC 6998 UNIPARDS at Nanke with TSMC sponsorship as a rookie team."
-                            )}
-                        />
-                        <TimelineItem 
-                            year="2019" 
-                            content={t(
-                                "Hawaii Regional 獲得 Entrepreneurship Award，首次獲得國際賽獎項。",
-                                "Won the Entrepreneurship Award at Hawaii Regional — our first international award."
-                            )}
-                        />
-                        <TimelineItem 
-                            year="2022" 
-                            content={t(
-                                "New Taipei City Regional 獲 Chairman's Award 及 Quality Award，首次進入 FIRST Championship。",
-                                "Earned Chairman's Award and Quality Award at NTPC Regional, advancing to FIRST Championship."
-                            )}
-                        />
-                        <TimelineItem 
-                            year="2023" 
-                            content={t(
-                                "Monterey Bay Regional Winner。世錦賽獲 Industrial Design Award (GM)，並獲教育部「創新教育領導獎」。",
-                                "Regional Winners at Monterey Bay. Won Industrial Design Award at Worlds. Received Ministry of Education Innovation Award."
-                            )}
-                        />
-                        <TimelineItem 
-                            year="2024" 
-                            content={t(
-                                "Central Valley Regional 獲 Team Sustainability Award (Dow)。",
-                                "Received Team Sustainability Award at Central Valley Regional."
-                            )}
-                        />
-                        <TimelineItem 
-                            year="2025" 
-                            content={t(
-                                "New Taipei City Regional 獲 Woodie Flowers Finalist Award（劉老師）。",
-                                "Woodie Flowers Finalist Award at NTPC Regional — presented to mentor Yun-Shan Liu."
-                            )}
-                        />
+                    <div className="max-w-[90vw]">
+                        <p className="text-sm md:text-base tracking-[0.2em] text-gray-400 mb-4 ml-2 uppercase">
+                            Since 2018 — Tainan, Taiwan
+                        </p>
+                        <h1 className="font-serif text-[18vw] leading-[0.8] font-black tracking-tight text-white mix-blend-difference">
+                            6998
+                        </h1>
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 md:-mt-4">
+                            <h2 className="font-serif text-[8vw] md:text-[6vw] leading-none text-gray-500 italic">
+                                Unipards
+                            </h2>
+                            <p className="max-w-md text-gray-400 text-sm md:text-base leading-relaxed text-justify md:mb-4">
+                                {t(
+                                    "南科實首支 FRC 隊伍。我們不只是建造機器人，我們建造夢想，並將 STEM 教育的種子播撒至偏鄉。",
+                                    "NNKIEH's first FRC team. We don't just build robots; we build dreams and sow the heavy seeds of STEM education into underserved communities."
+                                )}
+                            </p>
+                        </div>
                     </div>
                 </section>
 
-                {/* Quick Facts */}
-                <section className="mb-20 py-8 border-y border-gray-800">
-                    <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm text-gray-400">
-                        <span>{t("台南市", "Tainan, Taiwan")}</span>
-                        <span>•</span>
-                        <span>{t("成立於 2018", "Since 2018")}</span>
-                        <span>•</span>
-                        <span>{t("台積電贊助", "TSMC Sponsored")}</span>
-                        <span>•</span>
-                        <span>{t("10 項獎項", "10 Awards")}</span>
+                {/* Sticky Timeline Section */}
+                <section className="px-6 md:px-12 py-32 border-t border-white/10">
+                    <div className="grid md:grid-cols-12 gap-12">
+                        {/* Sticky Header */}
+                        <div className="md:col-span-4 relative">
+                            <div className="sticky top-32">
+                                <h3 className="font-serif text-5xl md:text-6xl mb-4">{t("歷程", "History")}</h3>
+                                <p className="text-sm tracking-widest text-gray-500 uppercase">
+                                    {t("我們的足跡", "Our Journey")}
+                                </p>
+                                <div className="mt-12 hidden md:block w-px h-32 bg-gradient-to-b from-white/20 to-transparent" />
+                            </div>
+                        </div>
+
+                        {/* Timeline Content */}
+                        <div className="md:col-span-8 space-y-32">
+                            <TimelineEntry 
+                                year="2018"
+                                title={t("起源", "The Origin")}
+                                content={t(
+                                    "在台積電 (TSMC) 的支持下，國立南科國際實驗高級中學成立了 FRC 6998 UNIPARDS。作為全台首間同時推動 FLL、FTC 與 FRC 的公立學校，我們開啟了這段不凡的旅程。",
+                                    "With the support of TSMC, National Nanke International Experimental High School founded FRC 6998 UNIPARDS. As the first public school in Taiwan to run FLL, FTC, and FRC simultaneously, we began our extraordinary journey."
+                                )}
+                            />
+                            <TimelineEntry 
+                                year="2019"
+                                title={t("初試啼聲", "First Echo")}
+                                content={t(
+                                    "雖然還是新秀，我們在 Hawaii Regional 展現了強大的商業潛力，獲得了 Entrepreneurship Award，這是我們的首個國際獎項，證明了技術與商業思維並重的重要性。",
+                                    "Though still rookies, we demonstrated strong business potential at the Hawaii Regional, winning the Entrepreneurship Award. This was our first international award, proving the importance of balancing technology with business acumen."
+                                )}
+                            />
+                            <TimelineEntry 
+                                year="2022"
+                                title={t("突破", "Breakthrough")}
+                                content={t(
+                                    "疫情並沒有澆熄我們的熱情。重返賽場後，我們在 New Taipei City Regional 斬獲最高榮譽 Regional Chairman's Award 以及 Quality Award，首度取得前往 FIRST Championship 世界錦標賽的門票。",
+                                    "The pandemic didn't extinguish our passion. Returning to the field, we clinched the highest honor, the Regional Chairman's Award, and the Quality Award at the New Taipei City Regional, securing our first ticket to the FIRST Championship."
+                                )}
+                            />
+                            <TimelineEntry 
+                                year="2023"
+                                title={t("世界舞台", "World Stage")}
+                                content={t(
+                                    "這一年是豐收的一年。我們成為 Monterey Bay Regional Winner，並在休士頓的世界舞台上奪得 Industrial Design Award。同時，我們的教育推廣獲得肯定，榮獲教育部「創新教育領導獎」。",
+                                    "A year of harvest. We became Monterey Bay Regional Winners and won the Industrial Design Award on the world stage in Houston. Simultaneously, our outreach efforts were recognized with the Ministry of Education's Innovation Leadership Award."
+                                )}
+                            />
+                            <TimelineEntry 
+                                year="2024—Present"
+                                title={t("永續", "Sustainability")}
+                                content={t(
+                                    "我們持續進化，獲頒 Team Sustainability Award，並由劉老師獲得 Woodie Flowers Finalist Award。我們專注於傳承與永續，確保這份熱情能點燃更多未來的工程師。",
+                                    "We continue to evolve, earning the Team Sustainability Award and the Woodie Flowers Finalist Award for our mentor, Mr. Liu. We focus on legacy and sustainability, ensuring this passion ignites more future engineers."
+                                )}
+                            />
+                        </div>
                     </div>
                 </section>
 
-                {/* Social Links */}
-                <section className="mb-20">
-                    <h2 className="text-sm text-gray-500 uppercase tracking-widest mb-6">
-                        {t("追蹤我們", "Follow Us")}
-                    </h2>
-                    <div className="flex flex-wrap gap-4">
-                        <SocialLink href="https://www.instagram.com/frc_6998/" label="Instagram" />
-                        <SocialLink href="https://www.facebook.com/frc6998" label="Facebook" />
-                        <SocialLink href="https://github.com/frc-6998" label="GitHub" />
-                        <SocialLink href="https://www.youtube.com/@frc-fx4ig" label="YouTube" />
+                {/* Philosophy Section */}
+                <section className="py-40 bg-white text-black px-6 md:px-12 relative overflow-hidden">
+                    <div className="max-w-5xl mx-auto text-right">
+                        <p className="text-sm tracking-widest uppercase mb-6 text-gray-500">
+                            {t("核心哲學", "Philosophy")}
+                        </p>
+                        <h3 className="font-serif text-6xl md:text-8xl font-bold leading-tight mb-8">
+                            "Beyond <br/> the <span className="italic text-gray-400">Metal</span>."
+                        </h3>
+                        <p className="text-xl md:text-2xl text-gray-800 leading-relaxed max-w-2xl ml-auto font-light">
+                            {t(
+                                "機器人只是載體。我們真正的產品是那些具備解決問題能力、擁有同理心與領導力的未來領袖。",
+                                "The robot is just a vehicle. Our true products are future leaders equipped with problem-solving skills, empathy, and leadership."
+                            )}
+                        </p>
                     </div>
                 </section>
 
-                {/* CTA */}
-                <section className="text-center py-12">
-                    <Link 
-                        href="/login"
-                        className="inline-block px-8 py-3 bg-white text-black font-medium rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                        {t("進入系統", "Enter System")}
-                    </Link>
-                </section>
+                {/* Socials / Footer - Brutalist List Style */}
+                <footer className="bg-[#0a0a0a] text-white pt-32 pb-12 px-6 md:px-12 border-t border-white/10">
+                    <div className="grid md:grid-cols-2 gap-20 mb-32">
+                        <div>
+                            <h4 className="font-serif text-4xl mb-8">{t("保持聯繫", "Connect")}</h4>
+                            <div className="flex flex-col gap-4">
+                                <SocialLink href="https://www.instagram.com/frc_6998/" label="Instagram" id="@frc_6998" />
+                                <SocialLink href="https://www.facebook.com/frc6998" label="Facebook" id="frc6998" />
+                                <SocialLink href="https://github.com/frc-6998" label="GitHub" id="frc-6998" />
+                                <SocialLink href="https://www.youtube.com/@frc-fx4ig" label="YouTube" id="@frc-fx4ig" />
+                            </div>
+                        </div>
+                        
+                        <div className="flex flex-col justify-end">
+                             <div className="text-8xl md:text-[10rem] font-serif font-black leading-none opacity-10 select-none">
+                                6998
+                             </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row justify-between items-end border-t border-white/10 pt-8 gap-4 text-xs tracking-widest text-gray-500 uppercase">
+                        <div className="flex gap-8">
+                            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+                            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+                        </div>
+                        <p>© 2025 UNIPARDS. All Rights Reserved.</p>
+                    </div>
+                </footer>
             </main>
-
-            {/* Footer */}
-            <footer className="border-t border-gray-900 py-8 px-6">
-                <div className="max-w-2xl mx-auto flex justify-between items-center text-sm text-gray-600">
-                    <span>© 2025 FRC 6998</span>
-                    <div className="flex gap-6">
-                        <Link href="/terms" className="hover:text-gray-400">{t("條款", "Terms")}</Link>
-                        <Link href="/privacy" className="hover:text-gray-400">{t("隱私", "Privacy")}</Link>
-                    </div>
-                </div>
-            </footer>
         </div>
     )
 }
 
-function TimelineItem({ year, content }: { year: string; content: string }) {
+function TimelineEntry({ year, title, content }: { year: string, title: string, content: string }) {
     return (
-        <div className="flex gap-6">
-            <span className="text-sm text-gray-600 font-mono w-12 flex-shrink-0 pt-1">{year}</span>
-            <p className="text-gray-300 leading-relaxed">{content}</p>
+        <div className="group border-l border-white/20 pl-8 md:pl-16 relative pb-12 last:pb-0">
+            {/* Dot */}
+            <div className="absolute left-[-5px] top-2 w-2.5 h-2.5 bg-white rounded-full opacity-20 group-hover:opacity-100 group-hover:bg-purple-500 transition-all duration-500" />
+            
+            <span className="block font-serif text-2xl md:text-3xl text-gray-500 italic mb-2 group-hover:text-white transition-colors duration-300">
+                {year}
+            </span>
+            <h4 className="text-xl md:text-2xl font-bold mb-4 uppercase tracking-wider">
+                {title}
+            </h4>
+            <p className="text-gray-400 leading-relaxed text-lg max-w-2xl group-hover:text-gray-300 transition-colors duration-300">
+                {content}
+            </p>
         </div>
     )
 }
 
-function SocialLink({ href, label }: { href: string; label: string }) {
+function SocialLink({ href, label, id }: { href: string, label: string, id: string }) {
     return (
         <a 
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 border border-gray-800 rounded-full text-sm text-gray-400 hover:text-white hover:border-gray-600 transition-colors"
+            className="group flex items-baseline border-b border-white/10 py-4 hover:border-white transition-colors"
         >
-            {label}
+            <span className="w-32 text-sm text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">{label}</span>
+            <span className="font-serif text-xl md:text-2xl italic text-gray-300 group-hover:translate-x-4 transition-transform duration-300">{id}</span>
         </a>
     )
 }
