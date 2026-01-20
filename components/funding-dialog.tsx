@@ -45,7 +45,7 @@ export function FundingDialog() {
         return (
             <Button 
                 onClick={() => setOpen(true)} 
-                className="gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+                className="gap-2 bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/30 transition-all duration-300 hover:scale-105 hover:shadow-amber-500/50"
             >
                 <Plus className="h-4 w-4" />
                 新增資金
