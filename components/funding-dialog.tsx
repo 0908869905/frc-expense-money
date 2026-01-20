@@ -43,7 +43,10 @@ export function FundingDialog() {
 
     if (!open) {
         return (
-            <Button onClick={() => setOpen(true)} variant="outline" className="gap-2">
+            <Button 
+                onClick={() => setOpen(true)} 
+                className="gap-2 bg-amber-500 hover:bg-amber-600 text-white"
+            >
                 <Plus className="h-4 w-4" />
                 新增資金
             </Button>
