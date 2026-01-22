@@ -54,8 +54,8 @@ export async function getReportsForExport(filters?: {
         return reports.map((report) => ({
             報帳單編號: report.id,
             標題: report.title,
-            提交者: report.submitter.name || report.submitter.email || "Unknown",
-            提交者Email: report.submitter.email || "",
+            提交者: report.submitter?.name || report.submitter?.email || "Unknown",
+            提交者Email: report.submitter?.email || "",
             狀態: getStatusLabel(report.status),
             總金額: report.totalAmount,
             建立日期: report.createdAt.toISOString().split("T")[0],
@@ -98,7 +98,7 @@ export async function getItemsForExport(reportId?: string) {
 
         return items.map((item) => ({
             報帳單: item.report.title,
-            提交者: item.report.submitter.name || "Unknown",
+            提交者: item.report.submitter?.name || "Unknown",
             日期: item.date.toISOString().split("T")[0],
             類別: item.category,
             說明: item.description,
