@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useLanguage } from "@/lib/context/language-context"
-import { useOrganization } from "@/lib/context/organization-context"
+import { useOrganization } from "@/lib/organization-context"
 
 import {
   Sidebar,
