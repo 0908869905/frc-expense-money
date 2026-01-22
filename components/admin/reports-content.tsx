@@ -46,13 +46,13 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
 
     const getStatusLabel = (status: string) => {
         const labels: Record<string, Record<string, string>> = {
-            DRAFT: { zh: "?�稿", en: "Draft" },
-            PENDING_MANAGER: { zh: "待主管審??, en: "Pending Manager" },
-            PENDING_FINANCE: { zh: "待財?�審??, en: "Pending Finance" },
-            RETURNED: { zh: "已退??, en: "Returned" },
-            APPROVED: { zh: "已核??, en: "Approved" },
-            REJECTED: { zh: "已�?�?, en: "Rejected" },
-            PAID: { zh: "已�?�?, en: "Paid" }
+            DRAFT: { zh: "草稿", en: "Draft" },
+            PENDING_MANAGER: { zh: "待主管審核", en: "Pending Manager" },
+            PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
+            RETURNED: { zh: "已退回", en: "Returned" },
+            APPROVED: { zh: "已核准", en: "Approved" },
+            REJECTED: { zh: "已拒絕", en: "Rejected" },
+            PAID: { zh: "已撥款", en: "Paid" }
         }
         return labels[status]?.[language] || status
     }
@@ -64,37 +64,37 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
 
     const getDepartmentLabel = (dept: string) => {
         const labels: Record<string, { zh: string, en: string, icon: string }> = {
-            ELECTRICAL: { zh: "?��?�?, en: "Electrical", icon: "?? },
-            MECHANICAL: { zh: "機�?�?, en: "Mechanical", icon: "?��?" },
-            DOCUMENTATION: { zh: "?�書�?, en: "Documentation", icon: "??" },
-            PR: { zh: "?��?�?, en: "PR", icon: "?��" },
-            FINANCE: { zh: "財管�?, en: "Finance", icon: "?��" },
-            DESIGN: { zh: "?�象�?, en: "Design", icon: "?��" },
+            ELECTRICAL: { zh: "電控組", en: "Electrical", icon: "⚡" },
+            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
+            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
+            PR: { zh: "公關組", en: "PR", icon: "📢" },
+            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
+            DESIGN: { zh: "形象組", en: "Design", icon: "🎨" },
         }
         const found = labels[dept]
         return found ? `${found.icon} ${found[language as "zh" | "en"]}` : dept
     }
 
-    // ?�出??CSV
+    // 匯出為 CSV
     const handleExportCSV = async () => {
         setIsExporting(true)
         try {
             const data = await getReportsForExport()
             if (data.length === 0) {
-                showMessage("error", language === "zh" ? "沒�?資�??�匯?? : "No data to export")
+                showMessage("error", language === "zh" ? "沒有資料可匯出" : "No data to export")
                 return
             }
             const filename = `expense_reports_${new Date().toISOString().split("T")[0]}`
             exportToCSV(data, filename)
-            showMessage("success", language === "zh" ? "CSV ?�出?��?" : "CSV exported")
+            showMessage("success", language === "zh" ? "CSV 匯出成功" : "CSV exported")
         } catch (error) {
-            showMessage("error", language === "zh" ? "?�出失�?" : "Export failed")
+            showMessage("error", language === "zh" ? "匯出失敗" : "Export failed")
         } finally {
             setIsExporting(false)
         }
     }
 
-    // ?�出??Excel
+    // 匯出為 Excel
     const handleExportExcel = async () => {
         setIsExporting(true)
         try {
@@ -103,17 +103,17 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                 getItemsForExport()
             ])
             if (reports.length === 0) {
-                showMessage("error", language === "zh" ? "沒�?資�??�匯?? : "No data to export")
+                showMessage("error", language === "zh" ? "沒有資料可匯出" : "No data to export")
                 return
             }
             const filename = `expense_reports_${new Date().toISOString().split("T")[0]}`
             exportToExcelMultiSheet([
-                { name: language === "zh" ? "?�帳?? : "Reports", data: reports },
-                { name: language === "zh" ? "費用?�細" : "Items", data: items }
+                { name: language === "zh" ? "報帳單" : "Reports", data: reports },
+                { name: language === "zh" ? "費用明細" : "Items", data: items }
             ], filename)
-            showMessage("success", language === "zh" ? "Excel ?�出?��?" : "Excel exported")
+            showMessage("success", language === "zh" ? "Excel 匯出成功" : "Excel exported")
         } catch (error) {
-            showMessage("error", language === "zh" ? "?�出失�?" : "Export failed")
+            showMessage("error", language === "zh" ? "匯出失敗" : "Export failed")
         } finally {
             setIsExporting(false)
         }
@@ -131,7 +131,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     }
                     return r
                 }))
-                showMessage("success", language === "zh" ? "已批?? : "Approved")
+                showMessage("success", language === "zh" ? "已批准" : "Approved")
             } catch (error: any) {
                 showMessage("error", error.message)
             }
@@ -139,7 +139,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
     }
 
     const handleReject = async (reportId: string) => {
-        const reason = prompt(language === "zh" ? "請輸?��?絕�??��?" : "Please enter rejection reason:")
+        const reason = prompt(language === "zh" ? "請輸入拒絕原因：" : "Please enter rejection reason:")
         if (!reason) return
 
         startTransition(async () => {
@@ -148,7 +148,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                 setLocalReports(prev => prev.map(r =>
                     r.id === reportId ? { ...r, status: "REJECTED" } : r
                 ))
-                showMessage("success", language === "zh" ? "已�?�? : "Rejected")
+                showMessage("success", language === "zh" ? "已拒絕" : "Rejected")
             } catch (error: any) {
                 showMessage("error", error.message)
             }
@@ -168,7 +168,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     r.id === reportId ? { ...r, ...editData } : r
                 ))
                 setEditingId(null)
-                showMessage("success", language === "zh" ? "已更?? : "Updated")
+                showMessage("success", language === "zh" ? "已更新" : "Updated")
             } else {
                 showMessage("error", result.message || "Failed")
             }
@@ -176,14 +176,14 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
     }
 
     const handleDelete = async (reportId: string) => {
-        if (!confirm(language === "zh" ? "確�?要刪?�此?�帳?��?�? : "Are you sure you want to delete this report?")) {
+        if (!confirm(language === "zh" ? "確定要刪除此報帳單嗎？" : "Are you sure you want to delete this report?")) {
             return
         }
         startTransition(async () => {
             const result = await deleteReport(reportId)
             if (result.success) {
                 setLocalReports(prev => prev.filter(r => r.id !== reportId))
-                showMessage("success", language === "zh" ? "已刪?? : "Deleted")
+                showMessage("success", language === "zh" ? "已刪除" : "Deleted")
             } else {
                 showMessage("error", result.message || "Failed")
             }
@@ -199,16 +199,16 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
     })
 
     const statusOptions = [
-        { value: "DRAFT", label: language === "zh" ? "?�稿" : "Draft" },
-        { value: "PENDING_MANAGER", label: language === "zh" ? "待主管審?? : "Pending Manager" },
-        { value: "PENDING_FINANCE", label: language === "zh" ? "待財?�審?? : "Pending Finance" },
-        { value: "RETURNED", label: language === "zh" ? "已退?? : "Returned" },
-        { value: "PAID", label: language === "zh" ? "已�?�? : "Paid" },
-        { value: "REJECTED", label: language === "zh" ? "已�?�? : "Rejected" }
+        { value: "DRAFT", label: language === "zh" ? "草稿" : "Draft" },
+        { value: "PENDING_MANAGER", label: language === "zh" ? "待主管審核" : "Pending Manager" },
+        { value: "PENDING_FINANCE", label: language === "zh" ? "待財務審核" : "Pending Finance" },
+        { value: "RETURNED", label: language === "zh" ? "已退回" : "Returned" },
+        { value: "PAID", label: language === "zh" ? "已撥款" : "Paid" },
+        { value: "REJECTED", label: language === "zh" ? "已拒絕" : "Rejected" }
     ]
 
     const handleReturn = async (reportId: string) => {
-        const reason = prompt(language === "zh" ? "請輸?�退?��??��?" : "Please enter return reason:")
+        const reason = prompt(language === "zh" ? "請輸入退回原因：" : "Please enter return reason:")
         if (!reason) return
 
         startTransition(async () => {
@@ -217,7 +217,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                 setLocalReports(prev => prev.map(r =>
                     r.id === reportId ? { ...r, status: "RETURNED" } : r
                 ))
-                showMessage("success", language === "zh" ? "已退?�修?? : "Returned for revision")
+                showMessage("success", language === "zh" ? "已退回修改" : "Returned for revision")
             } catch (error: any) {
                 showMessage("error", error.message)
             }
@@ -230,10 +230,10 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
-                        {language === "zh" ? "?�?�報�? : "All Reports"}
+                        {language === "zh" ? "所有報表" : "All Reports"}
                     </h1>
                     <p className="text-muted-foreground">
-                        {language === "zh" ? "?��??�管?��??�報帳單" : "View and manage all expense reports"}
+                        {language === "zh" ? "查看並管理所有報帳單" : "View and manage all expense reports"}
                     </p>
                 </div>
                 {canExport && (
@@ -271,7 +271,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                            {language === "zh" ? "總�?" : "Total"}
+                            {language === "zh" ? "總數" : "Total"}
                         </span>
                     </div>
                     <p className="text-2xl font-bold mt-1">{localReports.length}</p>
@@ -280,7 +280,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-yellow-500" />
                         <span className="text-sm text-muted-foreground">
-                            {language === "zh" ? "待審?? : "Pending"}
+                            {language === "zh" ? "待審核" : "Pending"}
                         </span>
                     </div>
                     <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status.includes("PENDING")).length}</p>
@@ -289,7 +289,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-sm text-muted-foreground">
-                            {language === "zh" ? "已核?? : "Approved"}
+                            {language === "zh" ? "已核准" : "Approved"}
                         </span>
                     </div>
                     <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status === "PAID").length}</p>
@@ -298,7 +298,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     <div className="flex items-center gap-2">
                         <XCircle className="h-4 w-4 text-red-500" />
                         <span className="text-sm text-muted-foreground">
-                            {language === "zh" ? "已�?�? : "Rejected"}
+                            {language === "zh" ? "已拒絕" : "Rejected"}
                         </span>
                     </div>
                     <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status === "REJECTED").length}</p>
@@ -307,7 +307,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                     <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                            {language === "zh" ? "總�?�? : "Total"}
+                            {language === "zh" ? "總金額" : "Total"}
                         </span>
                     </div>
                     <p className="text-2xl font-bold mt-1">${localReports.reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
@@ -317,10 +317,10 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
             {/* Filter Tabs */}
             <div className="flex gap-2 border-b">
                 {[
-                    { key: "all", zh: "?�部", en: "All" },
-                    { key: "pending", zh: "待審??, en: "Pending" },
-                    { key: "approved", zh: "已核??, en: "Approved" },
-                    { key: "rejected", zh: "已�?�?, en: "Rejected" }
+                    { key: "all", zh: "全部", en: "All" },
+                    { key: "pending", zh: "待審核", en: "Pending" },
+                    { key: "approved", zh: "已核准", en: "Approved" },
+                    { key: "rejected", zh: "已拒絕", en: "Rejected" }
                 ].map(tab => (
                     <button
                         key={tab.key}
@@ -340,20 +340,20 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "標�?" : "Title"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "標題" : "Title"}</th>
                             <th className="text-left p-4 font-medium">{language === "zh" ? "組別" : "Dept"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?�交?? : "Submitter"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?��?" : "Date"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?��?" : "Amount"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?�?? : "Status"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "?��?" : "Actions"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "提交者" : "Submitter"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "日期" : "Date"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "金額" : "Amount"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "狀態" : "Status"}</th>
+                            <th className="text-left p-4 font-medium">{language === "zh" ? "操作" : "Actions"}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {filteredReports.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                                    {language === "zh" ? "沒�??�帳?? : "No expense reports"}
+                                    {language === "zh" ? "沒有報帳單" : "No expense reports"}
                                 </td>
                             </tr>
                         ) : (
@@ -370,7 +370,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                         ) : (
                                             <>
                                                 <p className="font-medium">{report.title}</p>
-                                                <p className="text-sm text-muted-foreground">{report.items.length} {language === "zh" ? "筆�??? : "items"}</p>
+                                                <p className="text-sm text-muted-foreground">{report.items.length} {language === "zh" ? "筆項目" : "items"}</p>
                                             </>
                                         )}
                                     </td>
@@ -434,7 +434,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                                 onClick={() => handleApprove(report.id)}
                                                                 disabled={isPending}
                                                                 className="p-1.5 rounded text-green-600 hover:bg-green-50"
-                                                                title={language === "zh" ? "?��?" : "Approve"}
+                                                                title={language === "zh" ? "核准" : "Approve"}
                                                             >
                                                                 <CheckCircle className="h-4 w-4" />
                                                             </button>
@@ -442,7 +442,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                                 onClick={() => handleReject(report.id)}
                                                                 disabled={isPending}
                                                                 className="p-1.5 rounded text-red-600 hover:bg-red-50"
-                                                                title={language === "zh" ? "?��?" : "Reject"}
+                                                                title={language === "zh" ? "拒絕" : "Reject"}
                                                             >
                                                                 <XCircle className="h-4 w-4" />
                                                             </button>
@@ -450,7 +450,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                                 onClick={() => handleReturn(report.id)}
                                                                 disabled={isPending}
                                                                 className="p-1.5 rounded text-yellow-600 hover:bg-yellow-50"
-                                                                title={language === "zh" ? "?�?�修?? : "Return for Revision"}
+                                                                title={language === "zh" ? "退回修改" : "Return for Revision"}
                                                             >
                                                                 <RotateCcw className="h-4 w-4" />
                                                             </button>
@@ -470,7 +470,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                                 onClick={() => handleDelete(report.id)}
                                                                 disabled={isPending}
                                                                 className="p-1.5 rounded text-red-600 hover:bg-red-50"
-                                                                title={language === "zh" ? "?�除" : "Delete"}
+                                                                title={language === "zh" ? "刪除" : "Delete"}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </button>

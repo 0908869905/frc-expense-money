@@ -1,6 +1,6 @@
 "use client";
 
-// ?‰ç¨¿?²å?ç®¡ç? - ä½¿ç”¨ localStorage ?²æ­¢è³‡æ??ºå¤±
+// è‰ç¨¿å„²å­˜ç®¡ç† - ä½¿ç”¨ localStorage é˜²æ­¢è³‡æ–™éºå¤±
 
 const DRAFT_PREFIX = "expense_draft_";
 const DRAFT_EXPIRY_HOURS = 24;
@@ -10,7 +10,7 @@ interface DraftData<T> {
     timestamp: number;
 }
 
-// ?²å??‰ç¨¿
+// å„²å­˜è‰ç¨¿
 export function saveDraft<T>(key: string, data: T): void {
     if (typeof window === "undefined") return;
 
@@ -21,11 +21,11 @@ export function saveDraft<T>(key: string, data: T): void {
         };
         localStorage.setItem(DRAFT_PREFIX + key, JSON.stringify(draftData));
     } catch (error) {
-        console.warn("?¡æ??²å??‰ç¨¿:", error);
+        console.warn("ç„¡æ³•å„²å­˜è‰ç¨¿:", error);
     }
 }
 
-// è®€?–è?ç¨?
+// è®€å–è‰ç¨¿
 export function loadDraft<T>(key: string): T | null {
     if (typeof window === "undefined") return null;
 
@@ -35,7 +35,7 @@ export function loadDraft<T>(key: string): T | null {
 
         const draftData: DraftData<T> = JSON.parse(stored);
 
-        // æª¢æŸ¥?¯å¦?æ?
+        // æª¢æŸ¥æ˜¯å¦éæœŸ
         const expiryTime = DRAFT_EXPIRY_HOURS * 60 * 60 * 1000;
         if (Date.now() - draftData.timestamp > expiryTime) {
             removeDraft(key);
@@ -44,23 +44,23 @@ export function loadDraft<T>(key: string): T | null {
 
         return draftData.data;
     } catch (error) {
-        console.warn("?¡æ?è®€?–è?ç¨?", error);
+        console.warn("ç„¡æ³•è®€å–è‰ç¨¿:", error);
         return null;
     }
 }
 
-// ?ªé™¤?‰ç¨¿
+// åˆªé™¤è‰ç¨¿
 export function removeDraft(key: string): void {
     if (typeof window === "undefined") return;
 
     try {
         localStorage.removeItem(DRAFT_PREFIX + key);
     } catch (error) {
-        console.warn("?¡æ??ªé™¤?‰ç¨¿:", error);
+        console.warn("ç„¡æ³•åˆªé™¤è‰ç¨¿:", error);
     }
 }
 
-// ?–å??€?‰è?ç¨?key
+// å–å¾—æ‰€æœ‰è‰ç¨¿ key
 export function getAllDraftKeys(): string[] {
     if (typeof window === "undefined") return [];
 
@@ -74,12 +74,12 @@ export function getAllDraftKeys(): string[] {
         }
         return keys;
     } catch (error) {
-        console.warn("?¡æ??–å??‰ç¨¿?—è¡¨:", error);
+        console.warn("ç„¡æ³•å–å¾—è‰ç¨¿åˆ—è¡¨:", error);
         return [];
     }
 }
 
-// æ¸…é™¤?€?‰é??Ÿè?ç¨?
+// æ¸…é™¤æ‰€æœ‰éæœŸè‰ç¨¿
 export function clearExpiredDrafts(): void {
     if (typeof window === "undefined") return;
 
@@ -100,7 +100,6 @@ export function clearExpiredDrafts(): void {
             }
         }
     } catch (error) {
-        console.warn("?¡æ?æ¸…é™¤?æ??‰ç¨¿:", error);
+        console.warn("ç„¡æ³•æ¸…é™¤éæœŸè‰ç¨¿:", error);
     }
 }
-

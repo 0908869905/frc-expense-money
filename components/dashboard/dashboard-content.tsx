@@ -64,7 +64,7 @@ export function DashboardContent({
                 </div>
             </div>
 
-            {/* 財�??��??��? - ?��? FINANCE/ADMIN ?��? */}
+            {/* 財務總覽卡片 - 僅限 FINANCE/ADMIN 可見 */}
             {canAddFunding && (
                 <BalanceCard
                     totalIncome={financialSummary.totalIncome}
@@ -103,7 +103,7 @@ export function DashboardContent({
                                     <div>
                                         <p className="font-medium">{report.title}</p>
                                         <p className="text-sm text-muted-foreground">
-                                            {report.submitter?.name || report.submitter?.email} ??{report.status}
+                                            {report.submitter?.name || report.submitter?.email} · {report.status}
                                         </p>
                                     </div>
                                     <p className="font-medium">${Number(report.totalAmount).toFixed(2)}</p>
@@ -116,4 +116,3 @@ export function DashboardContent({
         </div>
     )
 }
-

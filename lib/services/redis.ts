@@ -1,22 +1,22 @@
 /**
- * Upstash Redis ?�置
- * ?�於 Session 管�??�快??
+ * Upstash Redis 配置
+ * 用於 Session 管理與快取
  */
 
 import { Redis } from "@upstash/redis";
 
-// 建�? Redis 客戶�?
+// 建立 Redis 客戶端
 export const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,
     token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 });
 
-// Session ?��?常數
+// Session 相關常數
 export const SESSION_PREFIX = "session:";
-export const SESSION_TTL = 30 * 24 * 60 * 60; // 30 天�?秒�?
+export const SESSION_TTL = 30 * 24 * 60 * 60; // 30 天（秒）
 
 /**
- * ?��? Session
+ * 儲存 Session
  */
 export async function setSession(sessionId: string, data: object): Promise<void> {
     await redis.set(
@@ -27,7 +27,7 @@ export async function setSession(sessionId: string, data: object): Promise<void>
 }
 
 /**
- * ?��? Session
+ * 取得 Session
  */
 export async function getSession<T = object>(sessionId: string): Promise<T | null> {
     const data = await redis.get<string>(`${SESSION_PREFIX}${sessionId}`);
@@ -36,21 +36,21 @@ export async function getSession<T = object>(sessionId: string): Promise<T | nul
 }
 
 /**
- * ?�除 Session
+ * 刪除 Session
  */
 export async function deleteSession(sessionId: string): Promise<void> {
     await redis.del(`${SESSION_PREFIX}${sessionId}`);
 }
 
 /**
- * 延長 Session ?��???
+ * 延長 Session 有效期
  */
 export async function refreshSession(sessionId: string): Promise<void> {
     await redis.expire(`${SESSION_PREFIX}${sessionId}`, SESSION_TTL);
 }
 
 /**
- * ?�用快�??�數
+ * 通用快取函數
  */
 export async function cacheGet<T>(key: string): Promise<T | null> {
     const data = await redis.get<string>(key);
@@ -85,4 +85,3 @@ export async function rateLimit(
         remaining: Math.max(0, limit - current),
     };
 }
-

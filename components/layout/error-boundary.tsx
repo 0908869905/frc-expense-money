@@ -28,10 +28,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
         this.setState({ errorInfo });
 
-        // ?��??��??�誤?��?
+        // 呼叫自訂錯誤處理
         this.props.onError?.(error, errorInfo);
 
-        // ?�裡?�以?�送到 Sentry ?�其他監?��???
+        // 這裡可以發送到 Sentry 或其他監控服務
         console.error("ErrorBoundary caught:", error, errorInfo);
     }
 
@@ -54,15 +54,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                             </div>
                         </div>
                         <h2 className="text-xl font-semibold mb-2">
-                            ?��??�誤
+                            發生錯誤
                         </h2>
                         <p className="text-muted-foreground mb-6">
-                            系統?��?了�?些�?題�?請�?試�??�整?��??��?返�?首�???
+                            系統遇到了一些問題，請嘗試重新整理頁面或返回首頁。
                         </p>
                         {process.env.NODE_ENV === "development" && this.state.error && (
                             <details className="mb-6 text-left bg-muted p-4 rounded-lg">
                                 <summary className="cursor-pointer text-sm font-medium">
-                                    ?�誤詳�? (?�發模�?)
+                                    錯誤詳情 (開發模式)
                                 </summary>
                                 <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap text-red-600">
                                     {this.state.error.toString()}
@@ -76,14 +76,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                             >
                                 <RefreshCw className="h-4 w-4" />
-                                ?�試
+                                重試
                             </button>
                             <a
                                 href="/dashboard"
                                 className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-muted transition-colors"
                             >
                                 <Home className="h-4 w-4" />
-                                返�?首�?
+                                返回首頁
                             </a>
                         </div>
                     </div>
@@ -95,7 +95,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 }
 
-// ?��??�示組件
+// 離線提示組件
 export function OfflineIndicator({ isOnline }: { isOnline: boolean }) {
     if (isOnline) return null;
 
@@ -104,14 +104,14 @@ export function OfflineIndicator({ isOnline }: { isOnline: boolean }) {
             <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-yellow-950 rounded-full shadow-lg">
                 <div className="h-2 w-2 rounded-full bg-yellow-950 animate-pulse" />
                 <span className="text-sm font-medium">
-                    ?�目?�離線�??��??�能?�能?��?使用
+                    您目前離線，部分功能可能無法使用
                 </span>
             </div>
         </div>
     );
 }
 
-// ?�稿?�復?�示組件
+// 草稿恢復提示組件
 interface DraftRestorePromptProps {
     show: boolean;
     onRestore: () => void;
@@ -124,26 +124,25 @@ export function DraftRestorePrompt({ show, onRestore, onDismiss }: DraftRestoreP
     return (
         <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-right-4 duration-300">
             <div className="bg-card border rounded-lg shadow-lg p-4 max-w-sm">
-                <p className="font-medium mb-2">?�現?�儲存�??�稿</p>
+                <p className="font-medium mb-2">發現未儲存的草稿</p>
                 <p className="text-sm text-muted-foreground mb-4">
-                    系統?�測?�您上次編輯?�內容�??�儲存�??�否要恢復�?
+                    系統偵測到您上次編輯的內容未儲存，是否要恢復？
                 </p>
                 <div className="flex gap-2">
                     <button
                         onClick={onRestore}
                         className="flex-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
                     >
-                        ?�復?�稿
+                        恢復草稿
                     </button>
                     <button
                         onClick={onDismiss}
                         className="flex-1 px-3 py-1.5 border rounded-md text-sm hover:bg-muted transition-colors"
                     >
-                        ?��?
+                        捨棄
                     </button>
                 </div>
             </div>
         </div>
     );
 }
-

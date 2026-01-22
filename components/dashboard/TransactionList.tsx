@@ -45,7 +45,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions }
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium leading-none">{transaction.description}</p>
-                  <p className="text-xs text-muted-foreground">{formatDate(transaction.date)} ??{transaction.category}</p>
+                  <p className="text-xs text-muted-foreground">{formatDate(transaction.date)} · {transaction.category}</p>
                 </div>
               </div>
               <div className={cn(

@@ -48,36 +48,36 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
 
     const getRoleLabel = (role: string) => {
         const labels: Record<string, { zh: string, en: string }> = {
-            USER: { zh: "?�檢�?, en: "View Only" },
-            VICE_LEADER: { zh: "?��???, en: "Vice Leader" },
+            USER: { zh: "僅檢視", en: "View Only" },
+            VICE_LEADER: { zh: "副組長", en: "Vice Leader" },
             LEADER: { zh: "組長", en: "Leader" },
-            FINANCE: { zh: "財�?", en: "Finance" },
-            ADMIN: { zh: "管�???, en: "Admin" },
+            FINANCE: { zh: "財務", en: "Finance" },
+            ADMIN: { zh: "管理員", en: "Admin" },
         }
         return labels[role]?.[language as "zh" | "en"] || role
     }
 
     const getDepartmentLabel = (dept: string | null) => {
-        if (!dept) return t("?��?�?, "Not Set")
+        if (!dept) return t("未設定", "Not Set")
         const labels: Record<string, { zh: string, en: string, icon: string }> = {
-            ELECTRICAL: { zh: "?��?�?, en: "Electrical", icon: "?? },
-            MECHANICAL: { zh: "機�?�?, en: "Mechanical", icon: "?��?" },
-            DOCUMENTATION: { zh: "?�書�?, en: "Documentation", icon: "??" },
-            PR: { zh: "?��?�?, en: "PR", icon: "?��" },
-            FINANCE: { zh: "財管�?, en: "Finance", icon: "?��" },
-            DESIGN: { zh: "?�象�?, en: "Design", icon: "?��" },
+            ELECTRICAL: { zh: "電控組", en: "Electrical", icon: "⚡" },
+            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
+            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
+            PR: { zh: "公關組", en: "PR", icon: "📢" },
+            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
+            DESIGN: { zh: "形象組", en: "Design", icon: "🎨" },
         }
         const found = labels[dept]
         return found ? `${found.icon} ${found[language as "zh" | "en"]}` : dept
     }
 
     const DEPARTMENTS = [
-        { value: "ELECTRICAL", zh: "?��?�?, en: "Electrical", icon: "?? },
-        { value: "MECHANICAL", zh: "機�?�?, en: "Mechanical", icon: "?��?" },
-        { value: "DOCUMENTATION", zh: "?�書�?, en: "Documentation", icon: "??" },
-        { value: "PR", zh: "?��?�?, en: "PR", icon: "?��" },
-        { value: "FINANCE", zh: "財管�?, en: "Finance", icon: "?��" },
-        { value: "DESIGN", zh: "?�象�?, en: "Design", icon: "?��" },
+        { value: "ELECTRICAL", zh: "電控組", en: "Electrical", icon: "⚡" },
+        { value: "MECHANICAL", zh: "機構組", en: "Mechanical", icon: "⚙️" },
+        { value: "DOCUMENTATION", zh: "文書組", en: "Documentation", icon: "📝" },
+        { value: "PR", zh: "公關組", en: "PR", icon: "📢" },
+        { value: "FINANCE", zh: "財管組", en: "Finance", icon: "💰" },
+        { value: "DESIGN", zh: "形象組", en: "Design", icon: "🎨" },
     ]
 
     const showMessage = (type: "success" | "error", text: string) => {
@@ -90,7 +90,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
             try {
                 await updateUserRole(userId, role)
                 setLocalUsers(prev => prev.map(u => u.id === userId ? { ...u, role } : u))
-                showMessage("success", t("角色已更??, "Role updated"))
+                showMessage("success", t("角色已更新", "Role updated"))
                 setEditingUser(null)
                 setEditField(null)
             } catch (error: any) {
@@ -104,7 +104,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
             try {
                 await updateUserDepartment(userId, department)
                 setLocalUsers(prev => prev.map(u => u.id === userId ? { ...u, department } : u))
-                showMessage("success", t("組別已更??, "Department updated"))
+                showMessage("success", t("組別已更新", "Department updated"))
                 setEditingUser(null)
                 setEditField(null)
             } catch (error: any) {
@@ -115,14 +115,14 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
 
     const handleUpdateEmail = async (userId: string) => {
         if (!inputValue.includes("@")) {
-            showMessage("error", t("請輸?��??��? Email", "Please enter a valid email"))
+            showMessage("error", t("請輸入有效的 Email", "Please enter a valid email"))
             return
         }
         startTransition(async () => {
             try {
                 await updateUserEmail(userId, inputValue)
                 setLocalUsers(prev => prev.map(u => u.id === userId ? { ...u, email: inputValue } : u))
-                showMessage("success", t("Email 已更??, "Email updated"))
+                showMessage("success", t("Email 已更新", "Email updated"))
                 setEditingUser(null)
                 setEditField(null)
                 setInputValue("")
@@ -134,13 +134,13 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
 
     const handleUpdatePassword = async (userId: string) => {
         if (inputValue.length < 6) {
-            showMessage("error", t("密碼?��? 6 ?��???, "Password must be at least 6 characters"))
+            showMessage("error", t("密碼至少 6 個字元", "Password must be at least 6 characters"))
             return
         }
         startTransition(async () => {
             try {
                 await updateUserPassword(userId, inputValue)
-                showMessage("success", t("密碼已更??, "Password updated"))
+                showMessage("success", t("密碼已更新", "Password updated"))
                 setEditingUser(null)
                 setEditField(null)
                 setInputValue("")
@@ -155,7 +155,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
             try {
                 await verifyUserEmail(userId)
                 setLocalUsers(prev => prev.map(u => u.id === userId ? { ...u, emailVerified: new Date() } : u))
-                showMessage("success", t("Email 已�?�?, "Email verified"))
+                showMessage("success", t("Email 已驗證", "Email verified"))
             } catch (error: any) {
                 showMessage("error", error.message)
             }
@@ -163,14 +163,14 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
     }
 
     const handleDeleteUser = async (userId: string) => {
-        if (!confirm(t("確�?要刪?�此?�戶?��?此�?作無法復?��?, "Are you sure you want to delete this user? This action cannot be undone."))) {
+        if (!confirm(t("確定要刪除此帳戶嗎？此操作無法復原。", "Are you sure you want to delete this user? This action cannot be undone."))) {
             return
         }
         startTransition(async () => {
             try {
                 await deleteUser(userId)
                 setLocalUsers(prev => prev.filter(u => u.id !== userId))
-                showMessage("success", t("?�戶已刪??, "User deleted"))
+                showMessage("success", t("帳戶已刪除", "User deleted"))
             } catch (error: any) {
                 showMessage("error", error.message)
             }
@@ -182,10 +182,10 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
             <div>
                 <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                     <Users className="h-8 w-8" />
-                    {t("?�戶管�?", "User Management")}
+                    {t("使用者管理", "User Management")}
                 </h1>
                 <p className="text-muted-foreground">
-                    {t("管�??�?�用?�帳?��?權�?", "Manage all user accounts and permissions")}
+                    {t("管理所有用戶帳號及權限", "Manage all user accounts and permissions")}
                 </p>
             </div>
 
@@ -198,11 +198,11 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
             {/* Stats */}
             <div className="grid gap-4 md:grid-cols-4">
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("總用??, "Total Users")}</p>
+                    <p className="text-sm text-muted-foreground">{t("總用戶", "Total Users")}</p>
                     <p className="text-2xl font-bold">{localUsers.length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("管�???, "Admins")}</p>
+                    <p className="text-sm text-muted-foreground">{t("管理員", "Admins")}</p>
                     <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "ADMIN").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
@@ -210,11 +210,11 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                     <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "LEADER").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("?��???, "Vice Leaders")}</p>
+                    <p className="text-sm text-muted-foreground">{t("副組長", "Vice Leaders")}</p>
                     <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "VICE_LEADER").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("已�?�?, "Verified")}</p>
+                    <p className="text-sm text-muted-foreground">{t("已驗證", "Verified")}</p>
                     <p className="text-2xl font-bold">{localUsers.filter(u => u.emailVerified).length}</p>
                 </div>
             </div>
@@ -224,13 +224,13 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{t("?�戶", "User")}</th>
+                            <th className="text-left p-4 font-medium">{t("使用者", "User")}</th>
                             <th className="text-left p-4 font-medium">{t("角色", "Role")}</th>
                             <th className="text-left p-4 font-medium">{t("組別", "Dept")}</th>
-                            <th className="text-left p-4 font-medium">{t("?�??, "Status")}</th>
-                            <th className="text-left p-4 font-medium">{t("?�表??, "Reports")}</th>
-                            <th className="text-left p-4 font-medium">{t("建�??��?", "Created")}</th>
-                            <th className="text-left p-4 font-medium">{t("?��?", "Actions")}</th>
+                            <th className="text-left p-4 font-medium">{t("狀態", "Status")}</th>
+                            <th className="text-left p-4 font-medium">{t("報表數", "Reports")}</th>
+                            <th className="text-left p-4 font-medium">{t("建立時間", "Created")}</th>
+                            <th className="text-left p-4 font-medium">{t("操作", "Actions")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -244,7 +244,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                             </span>
                                         </div>
                                         <div>
-                                            <p className="font-medium">{user.name || t("?�設�?, "Not set")}</p>
+                                            <p className="font-medium">{user.name || t("未設定", "Not set")}</p>
                                             {editingUser === user.id && editField === "email" ? (
                                                 <div className="flex gap-2 mt-1">
                                                     <input
@@ -298,7 +298,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                 disabled={isPending}
                                                 className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 hover:opacity-80 disabled:opacity-50"
                                             >
-                                                {t("??, "None")}
+                                                {t("無", "None")}
                                             </button>
                                             {DEPARTMENTS.map((dept) => (
                                                 <button
@@ -328,10 +328,10 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                     {user.emailVerified ? (
                                         <span className="flex items-center gap-1 text-green-600 text-sm">
                                             <UserCheck className="h-4 w-4" />
-                                            {t("已�?�?, "Verified")}
+                                            {t("已驗證", "Verified")}
                                         </span>
                                     ) : (
-                                        <span className="text-muted-foreground text-sm">{t("?��?�?, "Unverified")}</span>
+                                        <span className="text-muted-foreground text-sm">{t("未驗證", "Unverified")}</span>
                                     )}
                                 </td>
                                 <td className="p-4 text-muted-foreground">
@@ -348,7 +348,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                 value={inputValue}
                                                 onChange={(e) => setInputValue(e.target.value)}
                                                 className="px-2 py-1 border rounded text-sm w-32"
-                                                placeholder={t("?��?�?, "New password")}
+                                                placeholder={t("新密碼", "New password")}
                                             />
                                             <button onClick={() => handleUpdatePassword(user.id)} className="text-green-600 hover:text-green-700">
                                                 <Check className="h-4 w-4" />
@@ -369,14 +369,14 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                             <button
                                                 onClick={() => { setEditingUser(user.id); setEditField("password"); setInputValue("") }}
                                                 className="p-1.5 rounded hover:bg-muted"
-                                                title={t("?�改密碼", "Change Password")}
+                                                title={t("修改密碼", "Change Password")}
                                             >
                                                 <Key className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => { setEditingUser(user.id); setEditField("role") }}
                                                 className="p-1.5 rounded hover:bg-muted"
-                                                title={t("?�改角色", "Change Role")}
+                                                title={t("修改角色", "Change Role")}
                                             >
                                                 <Shield className="h-4 w-4" />
                                             </button>
@@ -385,7 +385,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                     onClick={() => handleVerifyEmail(user.id)}
                                                     disabled={isPending}
                                                     className="p-1.5 rounded hover:bg-muted text-green-600"
-                                                    title={t("驗�? Email", "Verify Email")}
+                                                    title={t("驗證 Email", "Verify Email")}
                                                 >
                                                     <UserCheck className="h-4 w-4" />
                                                 </button>
@@ -395,7 +395,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                     onClick={() => handleDeleteUser(user.id)}
                                                     disabled={isPending}
                                                     className="p-1.5 rounded hover:bg-red-50 text-red-600"
-                                                    title={t("?�除?�戶", "Delete User")}
+                                                    title={t("刪除帳戶", "Delete User")}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>

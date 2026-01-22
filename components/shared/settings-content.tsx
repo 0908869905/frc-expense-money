@@ -20,7 +20,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
             await signOut({ callbackUrl: "/login" })
         } catch (error) {
             console.error("Logout error:", error)
-            // Fallback: ?��?清除 session 並�?定�?
+            // Fallback: 直接清除 session 並導向
             window.location.href = "/login"
         }
     }
@@ -30,7 +30,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">{t("settings")}</h1>
                 <p className="text-muted-foreground">
-                    {language === "zh" ? "管�?你�??�用程�?設�?" : "Manage your application settings"}
+                    {language === "zh" ? "管理你的應用程式設定" : "Manage your application settings"}
                 </p>
             </div>
 
@@ -38,13 +38,13 @@ export function SettingsContent({ session }: SettingsContentProps) {
             <div className="rounded-xl border bg-card p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <Globe className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="font-semibold">{language === "zh" ? "語�?設�?" : "Language Settings"}</h3>
+                    <h3 className="font-semibold">{language === "zh" ? "語言設定" : "Language Settings"}</h3>
                 </div>
                 <div className="flex items-center justify-between py-3">
                     <div>
-                        <p className="font-medium">{language === "zh" ? "介面語�?" : "Interface Language"}</p>
+                        <p className="font-medium">{language === "zh" ? "介面語言" : "Interface Language"}</p>
                         <p className="text-sm text-muted-foreground">
-                            {language === "zh" ? "?��?你�?好�?語�?" : "Choose your preferred language"}
+                            {language === "zh" ? "選擇你偏好的語言" : "Choose your preferred language"}
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -55,7 +55,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
                                 : "bg-muted hover:bg-muted/80"
                                 }`}
                         >
-                            中�?
+                            中文
                         </button>
                         <button
                             onClick={() => setLanguage("en")}
@@ -74,13 +74,13 @@ export function SettingsContent({ session }: SettingsContentProps) {
             <div className="rounded-xl border bg-card p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <Bell className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="font-semibold">{language === "zh" ? "?�知設�?" : "Notification Settings"}</h3>
+                    <h3 className="font-semibold">{language === "zh" ? "通知設定" : "Notification Settings"}</h3>
                 </div>
                 <div className="flex items-center justify-between py-3">
                     <div>
-                        <p className="font-medium">{language === "zh" ? "?��??�件?�知" : "Email Notifications"}</p>
+                        <p className="font-medium">{language === "zh" ? "電子郵件通知" : "Email Notifications"}</p>
                         <p className="text-sm text-muted-foreground">
-                            {language === "zh" ? "?�收?�帳審核?�?�更?? : "Receive expense approval status updates"}
+                            {language === "zh" ? "接收報帳審核狀態更新" : "Receive expense approval status updates"}
                         </p>
                     </div>
                     <button
@@ -98,11 +98,11 @@ export function SettingsContent({ session }: SettingsContentProps) {
 
             {/* Account Actions */}
             <div className="rounded-xl border bg-card p-6">
-                <h3 className="font-semibold mb-4">{language === "zh" ? "帳戶?��?" : "Account Actions"}</h3>
+                <h3 className="font-semibold mb-4">{language === "zh" ? "帳戶操作" : "Account Actions"}</h3>
                 <div className="space-y-3">
                     <div className="flex items-center justify-between py-3 border-b">
                         <div>
-                            <p className="font-medium">{language === "zh" ? "?�出" : "Sign Out"}</p>
+                            <p className="font-medium">{language === "zh" ? "登出" : "Sign Out"}</p>
                             <p className="text-sm text-muted-foreground">
                                 {session.user?.email}
                             </p>
@@ -112,7 +112,7 @@ export function SettingsContent({ session }: SettingsContentProps) {
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors text-sm font-medium"
                         >
                             <LogOut className="h-4 w-4" />
-                            {language === "zh" ? "?�出" : "Sign Out"}
+                            {language === "zh" ? "登出" : "Sign Out"}
                         </button>
                     </div>
                 </div>
@@ -120,5 +120,3 @@ export function SettingsContent({ session }: SettingsContentProps) {
         </div>
     )
 }
-
-

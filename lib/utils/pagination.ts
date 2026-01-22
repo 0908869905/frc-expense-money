@@ -1,4 +1,4 @@
-// ?��?工具 - Cursor-based Pagination
+// 分頁工具 - Cursor-based Pagination
 
 export interface PaginationParams {
     cursor?: string;
@@ -14,16 +14,16 @@ export interface PaginatedResult<T> {
     totalCount?: number;
 }
 
-// ?�設?��?大�?
+// 預設分頁大小
 export const DEFAULT_PAGE_SIZE = 20;
 
-// 建�? Prisma ?��??�數
+// 建立 Prisma 分頁參數
 export function buildPaginationQuery(params: PaginationParams) {
     const limit = Math.min(params.limit || DEFAULT_PAGE_SIZE, 100);
 
     if (!params.cursor) {
         return {
-            take: limit + 1, // 多�?一筆判?�是?��??�更�?
+            take: limit + 1, // 多取一筆判斷是否有更多
             orderBy: { createdAt: "desc" as const },
         };
     }
@@ -31,12 +31,12 @@ export function buildPaginationQuery(params: PaginationParams) {
     return {
         take: (params.direction === "backward" ? -1 : 1) * (limit + 1),
         cursor: { id: params.cursor },
-        skip: 1, // 跳�? cursor ?�身
+        skip: 1, // 跳過 cursor 本身
         orderBy: { createdAt: "desc" as const },
     };
 }
 
-// ?��??��?結�?
+// 處理分頁結果
 export function processPaginatedResult<T extends { id: string }>(
     items: T[],
     limit: number
@@ -52,7 +52,7 @@ export function processPaginatedResult<T extends { id: string }>(
     };
 }
 
-// ?��??�日?��??�查�?
+// 建立日期範圍查詢
 export function buildDateRangeFilter(startDate?: Date, endDate?: Date) {
     if (!startDate && !endDate) return {};
 
@@ -64,7 +64,7 @@ export function buildDateRangeFilter(startDate?: Date, endDate?: Date) {
     };
 }
 
-// 建�??��?條件
+// 建立搜尋條件
 export function buildSearchFilter(searchTerm?: string, fields: string[] = ["title"]) {
     if (!searchTerm || searchTerm.trim() === "") return {};
 
@@ -77,4 +77,3 @@ export function buildSearchFilter(searchTerm?: string, fields: string[] = ["titl
         })),
     };
 }
-

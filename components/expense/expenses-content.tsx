@@ -22,7 +22,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
     const [localReports, setLocalReports] = useState(reports)
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
 
-    // ?�新?��??�目?�審?��???
+    // 更新單一項目的審核結果
     const handleAuditComplete = (reportId: string, itemId: string, result: AuditResult) => {
         setLocalReports(prev => prev.map(report => {
             if (report.id !== reportId) return report;
@@ -34,13 +34,13 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
         }));
     };
 
-    // ?�新?�張?�表?�批次審?��???
+    // 更新整張報表的批次審核結果
     const handleBatchAuditComplete = (reportId: string, result: any) => {
-        // ?�新?��??�面以獲?��??��??��??�者只顯示?�知
-        // ?�裡?��?簡單?�新?�面?�通知
+        // 更新本地頁面以獲取最新結果或者只顯示通知
+        // 這裡先簡單更新頁面和通知
         if (result.success) {
-            showMessage("success", language === 'zh' ? `?�次審核完�?，通�??? ${Math.round(result.passedItems / result.auditedItems * 100)}%` : "Batch audit completed");
-            // 實�?上�??�以?�新 local state，�??�要�??��?多�??��?簡單起�??��??�新??reload
+            showMessage("success", language === 'zh' ? `批次審核完成，通過率 ${Math.round(result.passedItems / result.auditedItems * 100)}%` : "Batch audit completed");
+            // 實際上可以更新 local state，但需要更多邏輯簡單起見先重新 reload
             window.location.reload();
         }
     };
@@ -62,11 +62,11 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
 
     const getStatusLabel = (status: string) => {
         const labels: Record<string, Record<string, string>> = {
-            DRAFT: { zh: "?�稿", en: "Draft" },
-            PENDING_MANAGER: { zh: "待主管審??, en: "Pending Manager" },
-            PENDING_FINANCE: { zh: "待財?�審??, en: "Pending Finance" },
-            PAID: { zh: "已�?�?, en: "Paid" },
-            REJECTED: { zh: "已�?�?, en: "Rejected" }
+            DRAFT: { zh: "草稿", en: "Draft" },
+            PENDING_MANAGER: { zh: "待主管審核", en: "Pending Manager" },
+            PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
+            PAID: { zh: "已撥款", en: "Paid" },
+            REJECTED: { zh: "已拒絕", en: "Rejected" }
         }
         return labels[status]?.[language] || status
     }
@@ -84,12 +84,12 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
 
     const getDepartmentLabel = (dept: string) => {
         const labels: Record<string, { zh: string, en: string, icon: string }> = {
-            ELECTRICAL: { zh: "?��?�?, en: "Electrical", icon: "?? },
-            MECHANICAL: { zh: "機�?�?, en: "Mechanical", icon: "?��?" },
-            DOCUMENTATION: { zh: "?�書�?, en: "Documentation", icon: "??" },
-            PR: { zh: "?��?�?, en: "PR", icon: "?��" },
-            FINANCE: { zh: "財管�?, en: "Finance", icon: "?��" },
-            DESIGN: { zh: "?�象�?, en: "Design", icon: "?��" },
+            ELECTRICAL: { zh: "電控組", en: "Electrical", icon: "⚡" },
+            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
+            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
+            PR: { zh: "公關組", en: "PR", icon: "📣" },
+            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
+            DESIGN: { zh: "形象組", en: "Design", icon: "🎨" },
         }
         const found = labels[dept]
         return found ? `${found.icon} ${found[language]}` : dept
@@ -102,7 +102,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
 
     const handleSubmit = async (reportId: string) => {
         if (!confirm(language === "zh"
-            ? "確�?要�?交此?�帳?��?？�?交�?將無法編輯�?
+            ? "確定要提交此報帳單嗎？提交後將無法編輯。"
             : "Are you sure you want to submit this report? It cannot be edited after submission.")) {
             return
         }
@@ -113,16 +113,16 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                 setLocalReports(prev => prev.map(r =>
                     r.id === reportId ? { ...r, status: "PENDING_MANAGER" } : r
                 ))
-                showMessage("success", result.message || (language === "zh" ? "?�帳?�已?�交" : "Report submitted"))
+                showMessage("success", result.message || (language === "zh" ? "報帳單已提交" : "Report submitted"))
             } else {
-                showMessage("error", result.message || (language === "zh" ? "?�交失�?" : "Failed to submit"))
+                showMessage("error", result.message || (language === "zh" ? "提交失敗" : "Failed to submit"))
             }
         })
     }
 
     const handleDelete = async (reportId: string) => {
         if (!confirm(language === "zh"
-            ? "確�?要刪?�此?�帳?��?？此?��??��?復�???
+            ? "確定要刪除此報帳單嗎？此操作無法復原。"
             : "Are you sure you want to delete this report? This action cannot be undone.")) {
             return
         }
@@ -131,9 +131,9 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
             const result = await deleteReport(reportId)
             if (result.success) {
                 setLocalReports(prev => prev.filter(r => r.id !== reportId))
-                showMessage("success", result.message || (language === "zh" ? "?�帳?�已?�除" : "Report deleted"))
+                showMessage("success", result.message || (language === "zh" ? "報帳單已刪除" : "Report deleted"))
             } else {
-                showMessage("error", result.message || (language === "zh" ? "?�除失�?" : "Failed to delete"))
+                showMessage("error", result.message || (language === "zh" ? "刪除失敗" : "Failed to delete"))
             }
         })
     }
@@ -204,11 +204,11 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                                     {getDepartmentLabel(report.department)}
                                                 </span>
-                                                <span>??/span>
+                                                <span>•</span>
                                             </>
                                         )}
                                         <span>{t("created_on")}: {formatDate(report.createdAt)}</span>
-                                        <span>??/span>
+                                        <span>•</span>
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
                                             {getStatusIcon(report.status)}
                                             {getStatusLabel(report.status)}
@@ -232,16 +232,16 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                                 onClick={() => handleSubmit(report.id)}
                                                 disabled={isPending}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium disabled:opacity-50"
-                                                title={language === "zh" ? "?�交審核" : "Submit for approval"}
+                                                title={language === "zh" ? "提交審核" : "Submit for approval"}
                                             >
                                                 <Send className="h-4 w-4" />
-                                                {language === "zh" ? "?�交" : "Submit"}
+                                                {language === "zh" ? "提交" : "Submit"}
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(report.id)}
                                                 disabled={isPending}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-destructive text-destructive hover:bg-destructive/10 text-sm font-medium disabled:opacity-50"
-                                                title={language === "zh" ? "?�除" : "Delete"}
+                                                title={language === "zh" ? "刪除" : "Delete"}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -286,4 +286,3 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
         </div>
     )
 }
-

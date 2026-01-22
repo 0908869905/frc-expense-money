@@ -19,12 +19,12 @@ interface DepartmentBudgetContentProps {
 }
 
 const DEPARTMENTS = [
-    { value: "ELECTRICAL", zh: "?��?�?, en: "Electrical", icon: "?? },
-    { value: "MECHANICAL", zh: "機�?�?, en: "Mechanical", icon: "?��?" },
-    { value: "DOCUMENTATION", zh: "?�書�?, en: "Documentation", icon: "??" },
-    { value: "PR", zh: "?��?�?, en: "PR", icon: "?��" },
-    { value: "FINANCE", zh: "財管�?, en: "Finance", icon: "?��" },
-    { value: "DESIGN", zh: "?�象�?, en: "Design", icon: "?��" },
+    { value: "ELECTRICAL", zh: "電控組", en: "Electrical", icon: "⚡" },
+    { value: "MECHANICAL", zh: "機構組", en: "Mechanical", icon: "⚙️" },
+    { value: "DOCUMENTATION", zh: "文書組", en: "Documentation", icon: "📝" },
+    { value: "PR", zh: "公關組", en: "PR", icon: "📢" },
+    { value: "FINANCE", zh: "財管組", en: "Finance", icon: "💰" },
+    { value: "DESIGN", zh: "形象組", en: "Design", icon: "🎨" },
 ]
 
 export function DepartmentBudgetContent({ departmentSummary, userRole, userDepartment }: DepartmentBudgetContentProps) {
@@ -60,7 +60,7 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
         startTransition(async () => {
             try {
                 await updateDepartmentBudget(dept, editValue)
-                showMessage("success", t("?��?已更??, "Budget updated"))
+                showMessage("success", t("預算已更新", "Budget updated"))
                 setEditingDept(null)
                 // Force refresh
                 window.location.reload()
@@ -70,15 +70,15 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
         })
     }
 
-    // ?�濾顯示?��???
+    // 過濾顯示的組別
     const visibleDepartments = DEPARTMENTS.filter(dept => {
-        // 財�??�管?�員?�到?�?��???
+        // 財務和管理員看到所有組別
         if (canEdit) return true
-        // 如�??�戶?��?定�??��??��??�自己�?組別
+        // 如果用戶有指定組別，只顯示自己的組別
         if (userDepartment) {
             return dept.value === userDepartment
         }
-        // 沒�??��?組別??LEADER/VICE_LEADER ?�到?�?��???
+        // 沒有指定組別的 LEADER/VICE_LEADER 看到所有組別
         return true
     })
 
@@ -86,13 +86,13 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
 
     return (
         <div className="space-y-6">
-            {/* 超支警�? */}
+            {/* 超支警告 */}
             {canEdit && overspentDepts.length > 0 && (
                 <div className="rounded-xl border border-red-300 bg-red-50 p-4">
                     <div className="flex items-center gap-2 text-red-700">
                         <AlertTriangle className="h-5 w-5" />
                         <h3 className="font-semibold">
-                            {t("超支警�?", "Overspent Warning")}
+                            {t("超支警告", "Overspent Warning")}
                         </h3>
                     </div>
                     <div className="mt-2 space-y-1">
@@ -100,7 +100,7 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                             const data = departmentSummary[dept.value]
                             return (
                                 <p key={dept.value} className="text-sm text-red-600">
-                                    {dept.icon} {dept[language as "zh" | "en"]}�?
+                                    {dept.icon} {dept[language as "zh" | "en"]}：
                                     {t("超支 ", "Overspent by ")}
                                     <span className="font-bold">{formatCurrency(Math.abs(data.remaining))}</span>
                                 </p>
@@ -110,22 +110,22 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                 </div>
             )}
 
-            {/* 訊息?�示 */}
+            {/* 訊息提示 */}
             {message && (
                 <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
                     {message.text}
                 </div>
             )}
 
-            {/* 標�? */}
+            {/* 標題 */}
             <div className="flex items-center gap-2">
                 <Building2 className="h-5 w-5" />
                 <h2 className="text-xl font-bold">
-                    {t("組別?��?", "Department Budgets")}
+                    {t("組別預算", "Department Budgets")}
                 </h2>
             </div>
 
-            {/* 組別?��??��? */}
+            {/* 組別預算卡片 */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {visibleDepartments.map(dept => {
                     const data = departmentSummary[dept.value] || { budget: 0, spent: 0, remaining: 0, isOverspent: false }
@@ -148,10 +148,10 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                                 )}
                             </div>
 
-                            {/* ?��??��? */}
+                            {/* 預算明細 */}
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">{t("?��?", "Budget")}</span>
+                                    <span className="text-muted-foreground">{t("預算", "Budget")}</span>
                                     {editingDept === dept.value ? (
                                         <div className="flex items-center gap-1">
                                             <input
@@ -195,14 +195,14 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                                 </div>
 
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">{t("?��?", "Remaining")}</span>
+                                    <span className="text-muted-foreground">{t("剩餘", "Remaining")}</span>
                                     <span className={`font-bold ${data.isOverspent ? "text-red-600" : "text-green-600"}`}>
                                         {formatCurrency(data.remaining)}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* ?�度�?*/}
+                            {/* 進度條 */}
                             <div className="mt-3">
                                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                                     <div
@@ -211,7 +211,7 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                                     />
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1 text-right">
-                                    {progressPercent.toFixed(0)}% {t("已使??, "used")}
+                                    {progressPercent.toFixed(0)}% {t("已使用", "used")}
                                 </p>
                             </div>
                         </div>

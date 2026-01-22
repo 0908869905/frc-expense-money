@@ -14,11 +14,10 @@ export function LanguageSwitcher() {
         <button
             onClick={toggleLanguage}
             className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md border bg-background hover:bg-muted transition-colors"
-            title={language === "zh" ? "Switch to English" : "?‡æ??³ä¸­??}
+            title={language === "zh" ? "Switch to English" : "åˆ‡æ›è‡³ä¸­æ–‡"}
         >
             <Globe className="h-4 w-4" />
-            <span>{language === "zh" ? "EN" : "ä¸?}</span>
+            <span>{language === "zh" ? "EN" : "ä¸­"}</span>
         </button>
     )
 }
-
