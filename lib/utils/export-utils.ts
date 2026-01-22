@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
 // 匯出為 CSV
-export function exportToCSV(data: Record<string, unknown>[], filename: string): void {
+export function exportToCSV(data: Record<string, any>[], filename: string): void {
     if (data.length === 0) {
         alert("沒有資料可匯出");
         return;
@@ -36,7 +36,7 @@ export function exportToCSV(data: Record<string, unknown>[], filename: string): 
 
 // 匯出為 Excel
 export function exportToExcel(
-    data: Record<string, unknown>[],
+    data: Record<string, any>[],
     filename: string,
     sheetName?: string
 ): void {
@@ -73,7 +73,7 @@ export function exportToExcel(
 
 // 匯出多個工作表
 export function exportToExcelMultiSheet(
-    sheets: { name: string; data: Record<string, unknown>[] }[],
+    sheets: { name: string; data: Record<string, any>[] }[],
     filename: string
 ): void {
     const workbook = XLSX.utils.book_new();
