@@ -114,24 +114,10 @@ export async function getRestockList() {
   }
 
   try {
-    // 查詢庫存低於安全水位的零件
-    const items = await prisma.inventoryItem.findMany({
-      where: {
-        currentQuantity: {
-          lte: prisma.inventoryItem.fields.safetyStockLevel,
-        },
-      },
-      orderBy: [
-        { currentQuantity: "asc" }, // 數量最少的排前面
-      ],
-    });
-
-    // 由於 Prisma 不支援直接比較兩個欄位，使用 rawQuery 或過濾
     const allItems = await prisma.inventoryItem.findMany({
       orderBy: { currentQuantity: "asc" },
     });
 
-    // 手動過濾：currentQuantity <= safetyStockLevel
     return allItems.filter((item) => item.currentQuantity <= item.safetyStockLevel);
   } catch (error) {
     console.error("取得補貨清單失敗:", error);
@@ -151,17 +137,15 @@ export async function getAllItems() {
   }
 
   try {
-    const items = await prisma.inventoryItem.findMany({
+    return await prisma.inventoryItem.findMany({
       include: {
         transactions: {
           orderBy: { timestamp: "desc" },
-          take: 5, // 只取最近 5 筆異動
+          take: 5,
         },
       },
       orderBy: { name: "asc" },
     });
-
-    return items;
   } catch (error) {
     console.error("取得零件清單失敗:", error);
     return [];
@@ -178,7 +162,7 @@ export async function getItemWithTransactions(itemId: string) {
   }
 
   try {
-    const item = await prisma.inventoryItem.findUnique({
+    return await prisma.inventoryItem.findUnique({
       where: { id: itemId },
       include: {
         transactions: {
@@ -186,8 +170,6 @@ export async function getItemWithTransactions(itemId: string) {
         },
       },
     });
-
-    return item;
   } catch (error) {
     console.error("取得零件詳情失敗:", error);
     return null;
@@ -261,13 +243,9 @@ export async function updateItem(
   }
 
   try {
-    // 若要更新 SKU，檢查是否與其他零件衝突
     if (data.sku) {
       const existing = await prisma.inventoryItem.findFirst({
-        where: {
-          sku: data.sku,
-          NOT: { id: itemId },
-        },
+        where: { sku: data.sku, NOT: { id: itemId } },
       });
 
       if (existing) {
@@ -277,7 +255,7 @@ export async function updateItem(
 
     await prisma.inventoryItem.update({
       where: { id: itemId },
-      data: data,
+      data,
     });
 
     revalidatePath("/dashboard/inventory");

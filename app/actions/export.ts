@@ -71,7 +71,7 @@ function getCategoryLabel(category: string): string {
 }
 
 // --- Helper Functions ---
-async function checkFinanceAccess(): Promise<boolean> {
+async function hasFinanceAccess(): Promise<boolean> {
     const session = await auth();
     if (!session?.user?.id) return false;
 
@@ -79,12 +79,12 @@ async function checkFinanceAccess(): Promise<boolean> {
     return role === "FINANCE" || role === "ADMIN";
 }
 
-async function checkAuthenticated(): Promise<boolean> {
+async function isAuthenticated(): Promise<boolean> {
     const session = await auth();
     return !!session?.user?.id;
 }
 
-function formatDateString(date: Date): string {
+function formatDate(date: Date): string {
     return date.toISOString().split("T")[0];
 }
 
@@ -95,25 +95,18 @@ function formatDateString(date: Date): string {
  * 需要 FINANCE 或 ADMIN 權限
  */
 export async function getReportsForExport(filters?: ExportFilters): Promise<ReportExportRow[]> {
-    const hasAccess = await checkFinanceAccess();
-    if (!hasAccess) return [];
+    if (!(await hasFinanceAccess())) return [];
 
     try {
         const where: Record<string, unknown> = {};
 
-        // 日期篩選
         if (filters?.startDate || filters?.endDate) {
             const createdAt: Record<string, Date> = {};
-            if (filters.startDate) {
-                createdAt.gte = new Date(filters.startDate);
-            }
-            if (filters.endDate) {
-                createdAt.lte = new Date(filters.endDate);
-            }
+            if (filters.startDate) createdAt.gte = new Date(filters.startDate);
+            if (filters.endDate) createdAt.lte = new Date(filters.endDate);
             where.createdAt = createdAt;
         }
 
-        // 狀態篩選
         if (filters?.status && filters.status !== "all") {
             where.status = filters.status;
         }
@@ -121,9 +114,7 @@ export async function getReportsForExport(filters?: ExportFilters): Promise<Repo
         const reports = await prisma.expenseReport.findMany({
             where,
             include: {
-                submitter: {
-                    select: { name: true, email: true },
-                },
+                submitter: { select: { name: true, email: true } },
                 items: true,
             },
             orderBy: { createdAt: "desc" },
@@ -136,7 +127,7 @@ export async function getReportsForExport(filters?: ExportFilters): Promise<Repo
             提交者Email: report.submitter?.email || "",
             狀態: getStatusLabel(report.status),
             總金額: report.totalAmount,
-            建立日期: formatDateString(report.createdAt),
+            建立日期: formatDate(report.createdAt),
             項目數: report.items.length,
             說明: report.description || "",
         }));
@@ -151,14 +142,10 @@ export async function getReportsForExport(filters?: ExportFilters): Promise<Repo
  * 需要 FINANCE 或 ADMIN 權限
  */
 export async function getItemsForExport(reportId?: string): Promise<ItemExportRow[]> {
-    const hasAccess = await checkFinanceAccess();
-    if (!hasAccess) return [];
+    if (!(await hasFinanceAccess())) return [];
 
     try {
-        const where: Record<string, string> = {};
-        if (reportId) {
-            where.reportId = reportId;
-        }
+        const where = reportId ? { reportId } : {};
 
         const items = await prisma.expenseItem.findMany({
             where,
@@ -173,7 +160,7 @@ export async function getItemsForExport(reportId?: string): Promise<ItemExportRo
         return items.map((item) => ({
             報帳單: item.report.title,
             提交者: item.report.submitter?.name || "Unknown",
-            日期: formatDateString(item.date),
+            日期: formatDate(item.date),
             類別: item.category,
             說明: item.description,
             金額: item.amount,
@@ -190,8 +177,7 @@ export async function getItemsForExport(reportId?: string): Promise<ItemExportRo
  * 需要登入權限
  */
 export async function getInventoryForExport(): Promise<InventoryExportRow[]> {
-    const isAuthenticated = await checkAuthenticated();
-    if (!isAuthenticated) return [];
+    if (!(await isAuthenticated())) return [];
 
     try {
         const items = await prisma.inventoryItem.findMany({

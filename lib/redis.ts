@@ -5,7 +5,6 @@
 
 import { Redis } from "@upstash/redis";
 
-// 環境變數驗證
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -15,60 +14,43 @@ if (!REDIS_URL || !REDIS_TOKEN) {
     );
 }
 
-// 建立 Redis 客戶端
-export const redis = new Redis({
-    url: REDIS_URL,
-    token: REDIS_TOKEN,
-});
+export const redis = new Redis({ url: REDIS_URL, token: REDIS_TOKEN });
 
-// Session 相關常數
 export const SESSION_PREFIX = "session:";
-export const SESSION_TTL = 30 * 24 * 60 * 60; // 30 天（秒）
+export const SESSION_TTL = 30 * 24 * 60 * 60; // 30 天
 
-/**
- * 儲存 Session
- */
-export async function setSession(sessionId: string, data: object): Promise<void> {
-    await redis.set(
-        `${SESSION_PREFIX}${sessionId}`,
-        JSON.stringify(data),
-        { ex: SESSION_TTL }
-    );
+function sessionKey(sessionId: string): string {
+    return `${SESSION_PREFIX}${sessionId}`;
 }
 
-/**
- * 取得 Session
- */
-export async function getSession<T = object>(sessionId: string): Promise<T | null> {
-    const data = await redis.get<string>(`${SESSION_PREFIX}${sessionId}`);
+function parseJson<T>(data: unknown): T | null {
     if (!data) return null;
-    return typeof data === "string" ? JSON.parse(data) : data as T;
+    return typeof data === "string" ? JSON.parse(data) : (data as T);
 }
 
-/**
- * 刪除 Session
- */
+export async function setSession(sessionId: string, data: object): Promise<void> {
+    await redis.set(sessionKey(sessionId), JSON.stringify(data), { ex: SESSION_TTL });
+}
+
+export async function getSession<T = object>(sessionId: string): Promise<T | null> {
+    const data = await redis.get<string>(sessionKey(sessionId));
+    return parseJson<T>(data);
+}
+
 export async function deleteSession(sessionId: string): Promise<void> {
-    await redis.del(`${SESSION_PREFIX}${sessionId}`);
+    await redis.del(sessionKey(sessionId));
 }
 
-/**
- * 延長 Session 有效期
- */
 export async function refreshSession(sessionId: string): Promise<void> {
-    await redis.expire(`${SESSION_PREFIX}${sessionId}`, SESSION_TTL);
+    await redis.expire(sessionKey(sessionId), SESSION_TTL);
 }
 
-/**
- * 通用快取函數
- */
 export async function cacheGet<T>(key: string): Promise<T | null> {
     const data = await redis.get<string>(key);
-    if (!data) return null;
-    return typeof data === "string" ? JSON.parse(data) : data as T;
+    return parseJson<T>(data);
 }
 
-export async function cacheSet(key: string, data: object, ttlSeconds: number = 3600): Promise<void> {
+export async function cacheSet(key: string, data: object, ttlSeconds = 3600): Promise<void> {
     await redis.set(key, JSON.stringify(data), { ex: ttlSeconds });
 }
 
@@ -76,9 +58,6 @@ export async function cacheDelete(key: string): Promise<void> {
     await redis.del(key);
 }
 
-/**
- * Rate Limiting
- */
 export async function rateLimit(
     key: string,
     limit: number,

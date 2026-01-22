@@ -10,6 +10,8 @@ export type NotificationState = {
 
 type NotificationFrequency = "INSTANT" | "DAILY_DIGEST" | "OFF";
 
+const DEFAULT_FREQUENCY: NotificationFrequency = "INSTANT";
+
 export async function updateNotificationFrequency(
     frequency: NotificationFrequency
 ): Promise<NotificationState> {
@@ -34,7 +36,7 @@ export async function updateNotificationFrequency(
 export async function getNotificationFrequency(): Promise<NotificationFrequency> {
     const session = await auth();
     if (!session?.user?.id) {
-        return "INSTANT";
+        return DEFAULT_FREQUENCY;
     }
 
     try {
@@ -43,9 +45,9 @@ export async function getNotificationFrequency(): Promise<NotificationFrequency>
             select: { notificationFrequency: true },
         });
 
-        return (user?.notificationFrequency as NotificationFrequency) || "INSTANT";
+        return (user?.notificationFrequency as NotificationFrequency) ?? DEFAULT_FREQUENCY;
     } catch (error) {
         console.error("Get notification frequency error:", error);
-        return "INSTANT";
+        return DEFAULT_FREQUENCY;
     }
 }

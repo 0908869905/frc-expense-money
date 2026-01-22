@@ -3,7 +3,11 @@ import { redirect } from "next/navigation"
 import { getAllItems, getRestockList } from "@/app/actions/inventory"
 import { InventoryContent } from "@/components/inventory-content"
 
-export default async function InventoryPage() {
+function canAccessInventory(role: string, department: string | null): boolean {
+    return department === "MECHANICAL" || role === "FINANCE" || role === "ADMIN"
+}
+
+export default async function InventoryPage(): Promise<React.JSX.Element> {
     const session = await auth()
 
     if (!session?.user) {
@@ -11,15 +15,12 @@ export default async function InventoryPage() {
     }
 
     const userRole = session.user.role || "USER"
-    const userDepartment = (session.user as any).department || null
+    const userDepartment = (session.user as { department?: string }).department ?? null
 
-    // 只有機構組用戶、財務、管理員可以存取
-    const canAccess = userDepartment === "MECHANICAL" || userRole === "FINANCE" || userRole === "ADMIN"
-    if (!canAccess) {
+    if (!canAccessInventory(userRole, userDepartment)) {
         redirect("/dashboard")
     }
 
-    // 取得所有零件和需補貨清單
     const [items, restockItems] = await Promise.all([
         getAllItems(),
         getRestockList(),

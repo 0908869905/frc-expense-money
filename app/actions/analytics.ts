@@ -3,32 +3,41 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-// 取得按月份的支出統計
-export async function getMonthlyExpenseStats() {
+async function requireAuth(): Promise<boolean> {
     const session = await auth();
-    if (!session?.user?.id) {
-        return [];
+    return !!session?.user?.id;
+}
+
+function aggregateByKey<T, K extends string>(
+    items: T[],
+    getKey: (item: T) => K,
+    getValue: (item: T) => number
+): Record<K, number> {
+    const result = {} as Record<K, number>;
+    for (const item of items) {
+        const key = getKey(item);
+        result[key] = (result[key] || 0) + getValue(item);
     }
+    return result;
+}
+
+export async function getMonthlyExpenseStats(): Promise<{ month: string; amount: number }[]> {
+    if (!(await requireAuth())) return [];
 
     try {
         const reports = await prisma.expenseReport.findMany({
             where: {
                 status: { in: ["PAID", "PENDING_FINANCE", "PENDING_MANAGER"] },
             },
-            select: {
-                totalAmount: true,
-                createdAt: true,
-            },
+            select: { totalAmount: true, createdAt: true },
         });
 
-        // 按月份分組
-        const monthlyData: Record<string, number> = {};
-        reports.forEach((report) => {
-            const month = report.createdAt.toISOString().slice(0, 7); // YYYY-MM
-            monthlyData[month] = (monthlyData[month] || 0) + report.totalAmount;
-        });
+        const monthlyData = aggregateByKey(
+            reports,
+            (r) => r.createdAt.toISOString().slice(0, 7),
+            (r) => r.totalAmount
+        );
 
-        // 轉換為陣列並排序
         return Object.entries(monthlyData)
             .map(([month, amount]) => ({ month, amount }))
             .sort((a, b) => a.month.localeCompare(b.month));
@@ -38,28 +47,20 @@ export async function getMonthlyExpenseStats() {
     }
 }
 
-// 取得按類別的支出統計
-export async function getCategoryExpenseStats() {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
+export async function getCategoryExpenseStats(): Promise<{ category: string; amount: number }[]> {
+    if (!(await requireAuth())) return [];
 
     try {
         const items = await prisma.expenseItem.findMany({
-            select: {
-                category: true,
-                amount: true,
-            },
+            select: { category: true, amount: true },
         });
 
-        // 按類別分組
-        const categoryData: Record<string, number> = {};
-        items.forEach((item) => {
-            categoryData[item.category] = (categoryData[item.category] || 0) + item.amount;
-        });
+        const categoryData = aggregateByKey(
+            items,
+            (i) => i.category,
+            (i) => i.amount
+        );
 
-        // 轉換為陣列
         return Object.entries(categoryData)
             .map(([category, amount]) => ({ category, amount }))
             .sort((a, b) => b.amount - a.amount);
@@ -69,12 +70,8 @@ export async function getCategoryExpenseStats() {
     }
 }
 
-// 取得報表狀態統計
-export async function getStatusStats() {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
+export async function getStatusStats(): Promise<{ status: string; count: number; amount: number }[]> {
+    if (!(await requireAuth())) return [];
 
     try {
         const reports = await prisma.expenseReport.groupBy({
@@ -94,25 +91,24 @@ export async function getStatusStats() {
     }
 }
 
-// 取得整體統計摘要
-export async function getOverviewStats() {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return null;
-    }
+export async function getOverviewStats(): Promise<{
+    totalReports: number;
+    totalItems: number;
+    totalAmount: number;
+    thisMonthAmount: number;
+} | null> {
+    if (!(await requireAuth())) return null;
 
     try {
+        const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
         const [totalReports, totalItems, totalAmount, thisMonthAmount] = await Promise.all([
             prisma.expenseReport.count(),
             prisma.expenseItem.count(),
             prisma.expenseReport.aggregate({ _sum: { totalAmount: true } }),
             prisma.expenseReport.aggregate({
                 _sum: { totalAmount: true },
-                where: {
-                    createdAt: {
-                        gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-                    },
-                },
+                where: { createdAt: { gte: startOfMonth } },
             }),
         ]);
 

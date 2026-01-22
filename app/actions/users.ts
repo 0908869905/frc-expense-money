@@ -4,13 +4,24 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
+import { TeamDepartment } from "@prisma/client"
 
-// Get all users (Admin only)
-export async function getUsers() {
+type UserRole = "USER" | "VICE_LEADER" | "LEADER" | "FINANCE" | "ADMIN";
+
+async function requireAdmin(): Promise<string> {
     const session = await auth()
     if (!session?.user || session.user.role !== "ADMIN") {
         throw new Error("Unauthorized")
     }
+    return session.user.id!
+}
+
+function revalidateUsers(): void {
+    revalidatePath("/dashboard/users")
+}
+
+export async function getUsers() {
+    await requireAdmin()
 
     return prisma.user.findMany({
         select: {
@@ -20,23 +31,16 @@ export async function getUsers() {
             role: true,
             emailVerified: true,
             createdAt: true,
-            _count: {
-                select: { expenseReports: true }
-            }
+            _count: { select: { expenseReports: true } }
         },
         orderBy: { createdAt: "desc" }
     })
 }
 
-// Update user role
-export async function updateUserRole(userId: string, role: "USER" | "VICE_LEADER" | "LEADER" | "FINANCE" | "ADMIN") {
-    const session = await auth()
-    if (!session?.user || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
-    }
+export async function updateUserRole(userId: string, role: UserRole): Promise<{ success: boolean }> {
+    const adminId = await requireAdmin()
 
-    // Prevent admin from changing their own role
-    if (userId === session.user.id) {
+    if (userId === adminId) {
         throw new Error("Cannot change your own role")
     }
 
@@ -45,34 +49,28 @@ export async function updateUserRole(userId: string, role: "USER" | "VICE_LEADER
         data: { role }
     })
 
-    revalidatePath("/dashboard/users")
+    revalidateUsers()
     return { success: true }
 }
 
-// Update user department
-export async function updateUserDepartment(userId: string, department: string | null) {
-    const session = await auth()
-    if (!session?.user || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
-    }
+export async function updateUserDepartment(
+    userId: string,
+    department: string | null
+): Promise<{ success: boolean }> {
+    await requireAdmin()
 
     await prisma.user.update({
         where: { id: userId },
-        data: { department: department as any }
+        data: { department: department as TeamDepartment | null }
     })
 
-    revalidatePath("/dashboard/users")
+    revalidateUsers()
     return { success: true }
 }
 
-// Update user email
-export async function updateUserEmail(userId: string, email: string) {
-    const session = await auth()
-    if (!session?.user || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
-    }
+export async function updateUserEmail(userId: string, email: string): Promise<{ success: boolean }> {
+    await requireAdmin()
 
-    // Check if email already exists
     const existing = await prisma.user.findFirst({
         where: { email, NOT: { id: userId } }
     })
@@ -85,16 +83,12 @@ export async function updateUserEmail(userId: string, email: string) {
         data: { email }
     })
 
-    revalidatePath("/dashboard/users")
+    revalidateUsers()
     return { success: true }
 }
 
-// Update user password
-export async function updateUserPassword(userId: string, password: string) {
-    const session = await auth()
-    if (!session?.user || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
-    }
+export async function updateUserPassword(userId: string, password: string): Promise<{ success: boolean }> {
+    await requireAdmin()
 
     if (password.length < 6) {
         throw new Error("Password must be at least 6 characters")
@@ -107,87 +101,53 @@ export async function updateUserPassword(userId: string, password: string) {
         data: { password: hashedPassword }
     })
 
-    revalidatePath("/dashboard/users")
+    revalidateUsers()
     return { success: true }
 }
 
-// Verify user email
-export async function verifyUserEmail(userId: string) {
-    const session = await auth()
-    if (!session?.user || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
-    }
+export async function verifyUserEmail(userId: string): Promise<{ success: boolean }> {
+    await requireAdmin()
 
     await prisma.user.update({
         where: { id: userId },
         data: { emailVerified: new Date() }
     })
 
-    revalidatePath("/dashboard/users")
+    revalidateUsers()
     return { success: true }
 }
 
-// Delete user
-export async function deleteUser(userId: string) {
-    const session = await auth()
-    if (!session?.user || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
-    }
+export async function deleteUser(userId: string): Promise<{ success: boolean }> {
+    const adminId = await requireAdmin()
 
-    // Prevent admin from deleting themselves
-    if (userId === session.user.id) {
+    if (userId === adminId) {
         throw new Error("Cannot delete yourself")
     }
 
     try {
-        // Use transaction to delete all related data first
         await prisma.$transaction(async (tx) => {
-            // Delete expense items related to user's reports
             await tx.expenseItem.deleteMany({
-                where: {
-                    report: { submitterId: userId }
-                }
+                where: { report: { submitterId: userId } }
             })
 
-            // Delete approval actions by user
+            await tx.approvalAction.deleteMany({ where: { actorId: userId } })
+
             await tx.approvalAction.deleteMany({
-                where: { actorId: userId }
+                where: { report: { submitterId: userId } }
             })
 
-            // Delete approval actions on user's reports
-            await tx.approvalAction.deleteMany({
-                where: {
-                    report: { submitterId: userId }
-                }
-            })
+            await tx.expenseReport.deleteMany({ where: { submitterId: userId } })
 
-            // Delete user's expense reports
-            await tx.expenseReport.deleteMany({
-                where: { submitterId: userId }
-            })
+            await tx.auditLog.deleteMany({ where: { actorId: userId } })
 
-            // Delete audit logs by user
-            await tx.auditLog.deleteMany({
-                where: { actorId: userId }
-            })
+            await tx.account.deleteMany({ where: { userId } })
 
-            // Delete user's accounts (OAuth)
-            await tx.account.deleteMany({
-                where: { userId }
-            })
+            await tx.session.deleteMany({ where: { userId } })
 
-            // Delete user's sessions
-            await tx.session.deleteMany({
-                where: { userId }
-            })
-
-            // Finally delete the user
-            await tx.user.delete({
-                where: { id: userId }
-            })
+            await tx.user.delete({ where: { id: userId } })
         })
 
-        revalidatePath("/dashboard/users")
+        revalidateUsers()
         return { success: true }
     } catch (error) {
         console.error("Delete user error:", error)

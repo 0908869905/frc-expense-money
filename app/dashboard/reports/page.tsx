@@ -3,7 +3,25 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { ReportsContent } from "@/components/reports-content"
 
-export default async function ReportsPage() {
+interface ReportStats {
+    total: number
+    pending: number
+    approved: number
+    rejected: number
+    totalAmount: number
+}
+
+function calculateStats(reports: { status: string; totalAmount: unknown }[]): ReportStats {
+    return {
+        total: reports.length,
+        pending: reports.filter(r => r.status.includes("PENDING")).length,
+        approved: reports.filter(r => r.status === "PAID").length,
+        rejected: reports.filter(r => r.status === "REJECTED").length,
+        totalAmount: reports.reduce((sum, r) => sum + Number(r.totalAmount), 0)
+    }
+}
+
+export default async function ReportsPage(): Promise<React.JSX.Element> {
     const session = await auth()
 
     if (!session?.user) {
@@ -12,12 +30,10 @@ export default async function ReportsPage() {
 
     const role = session.user.role || "USER"
 
-    // Redirect if user doesn't have permission
     if (role !== "FINANCE" && role !== "ADMIN") {
         redirect("/dashboard")
     }
 
-    // Fetch all reports
     const reports = await prisma.expenseReport.findMany({
         include: {
             submitter: {
@@ -28,14 +44,7 @@ export default async function ReportsPage() {
         orderBy: { createdAt: "desc" }
     })
 
-    // Calculate stats
-    const stats = {
-        total: reports.length,
-        pending: reports.filter(r => r.status.includes("PENDING")).length,
-        approved: reports.filter(r => r.status === "PAID").length,
-        rejected: reports.filter(r => r.status === "REJECTED").length,
-        totalAmount: reports.reduce((acc, r) => acc + Number(r.totalAmount), 0)
-    }
+    const stats = calculateStats(reports)
 
     return (
         <ReportsContent

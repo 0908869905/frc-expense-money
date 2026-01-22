@@ -10,7 +10,6 @@ import {
   LogOut,
   Package,
   Settings,
-  Shield,
   User,
   Users,
   Wallet,

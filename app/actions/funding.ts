@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { FundingType } from "@prisma/client"
 
-// Schema for funding record validation
 const fundingRecordSchema = z.object({
   title: z.string().min(1, "標題為必填"),
   amount: z.number().positive("金額必須大於 0"),
@@ -21,28 +21,42 @@ export type FundingState = {
   errors?: Record<string, string[]>
 }
 
-// 新增資金記錄
+const FINANCE_ROLES = ["FINANCE", "ADMIN"] as const;
+
+async function requireFinanceAccess(): Promise<{ userId: string; userName: string } | null> {
+  const session = await auth()
+
+  if (!session?.user?.id) return null
+
+  const role = session.user.role || ""
+  if (!FINANCE_ROLES.includes(role as typeof FINANCE_ROLES[number])) return null
+
+  return {
+    userId: session.user.id,
+    userName: session.user.name || session.user.email || "Unknown"
+  }
+}
+
+function revalidateFundingPaths(): void {
+  revalidatePath("/dashboard")
+  revalidatePath("/dashboard/reports")
+}
+
 export async function createFundingRecord(
   prevState: FundingState,
   formData: FormData
 ): Promise<FundingState> {
-  const session = await auth()
-
-  if (!session?.user?.id) {
-    return { success: false, message: "未授權" }
-  }
-
-  // 只有 FINANCE 和 ADMIN 可以新增資金記錄
-  if (!["FINANCE", "ADMIN"].includes(session.user.role || "")) {
-    return { success: false, message: "權限不足" }
+  const access = await requireFinanceAccess()
+  if (!access) {
+    return { success: false, message: "未授權或權限不足" }
   }
 
   const rawData = {
-    title: formData.get("title") as string,
+    title: formData.get("title"),
     amount: parseFloat(formData.get("amount") as string),
-    type: formData.get("type") as string,
-    source: formData.get("source") as string || undefined,
-    description: formData.get("description") as string || undefined,
+    type: formData.get("type"),
+    source: (formData.get("source") as string) || undefined,
+    description: (formData.get("description") as string) || undefined,
     date: formData.get("date") ? new Date(formData.get("date") as string) : new Date(),
   }
 
@@ -52,7 +66,7 @@ export async function createFundingRecord(
     return {
       success: false,
       message: "驗證失敗",
-      errors: validatedFields.error.flatten().fieldErrors as any,
+      errors: validatedFields.error.flatten().fieldErrors as Record<string, string[]>,
     }
   }
 
@@ -63,17 +77,15 @@ export async function createFundingRecord(
       data: {
         title,
         amount,
-        type: type as any,
+        type: type as FundingType,
         source,
         description,
-        date: date || new Date(),
-        recordedBy: session.user.name || session.user.email || "Unknown",
+        date: date ?? new Date(),
+        recordedBy: access.userName,
       },
     })
 
-    revalidatePath("/dashboard")
-    revalidatePath("/dashboard/reports")
-
+    revalidateFundingPaths()
     return { success: true, message: "資金記錄已新增" }
   } catch (error) {
     console.error("Failed to create funding record:", error)
@@ -81,13 +93,9 @@ export async function createFundingRecord(
   }
 }
 
-// 取得資金記錄列表
 export async function getFundingRecords() {
   const session = await auth()
-
-  if (!session?.user?.id) {
-    return []
-  }
+  if (!session?.user?.id) return []
 
   try {
     return await prisma.fundingRecord.findMany({
@@ -100,69 +108,54 @@ export async function getFundingRecords() {
   }
 }
 
-// 取得財務摘要 (餘額計算)
-export async function getFinancialSummary() {
+type FinancialSummary = {
+  totalIncome: number
+  totalExpense: number
+  currentBalance: number
+}
+
+const EMPTY_SUMMARY: FinancialSummary = {
+  totalIncome: 0,
+  totalExpense: 0,
+  currentBalance: 0,
+}
+
+export async function getFinancialSummary(): Promise<FinancialSummary> {
   const session = await auth()
-  if (!session?.user?.id) {
-    return {
-      totalIncome: 0,
-      totalExpense: 0,
-      currentBalance: 0,
-    }
-  }
+  if (!session?.user?.id) return EMPTY_SUMMARY
 
   try {
-    // 計算總收入 (所有資金記錄)
-    const fundingResult = await prisma.fundingRecord.aggregate({
-      _sum: { amount: true },
-    })
-    const totalIncome = fundingResult._sum.amount || 0
+    const [fundingResult, expenseResult] = await Promise.all([
+      prisma.fundingRecord.aggregate({ _sum: { amount: true } }),
+      prisma.expenseReport.aggregate({
+        where: { status: "PAID" },
+        _sum: { totalAmount: true },
+      }),
+    ])
 
-    // 計算總支出 (已付款的報帳單)
-    const expenseResult = await prisma.expenseReport.aggregate({
-      where: { status: "PAID" },
-      _sum: { totalAmount: true },
-    })
-    const totalExpense = expenseResult._sum.totalAmount || 0
-
-    // 目前餘額
-    const currentBalance = totalIncome - totalExpense
+    const totalIncome = fundingResult._sum.amount ?? 0
+    const totalExpense = expenseResult._sum.totalAmount ?? 0
 
     return {
       totalIncome,
       totalExpense,
-      currentBalance,
+      currentBalance: totalIncome - totalExpense,
     }
   } catch (error) {
     console.error("Failed to calculate financial summary:", error)
-    return {
-      totalIncome: 0,
-      totalExpense: 0,
-      currentBalance: 0,
-    }
+    return EMPTY_SUMMARY
   }
 }
 
-// 刪除資金記錄
 export async function deleteFundingRecord(id: string): Promise<FundingState> {
-  const session = await auth()
-
-  if (!session?.user?.id) {
-    return { success: false, message: "未授權" }
-  }
-
-  if (!["FINANCE", "ADMIN"].includes(session.user.role || "")) {
-    return { success: false, message: "權限不足" }
+  const access = await requireFinanceAccess()
+  if (!access) {
+    return { success: false, message: "未授權或權限不足" }
   }
 
   try {
-    await prisma.fundingRecord.delete({
-      where: { id },
-    })
-
-    revalidatePath("/dashboard")
-    revalidatePath("/dashboard/reports")
-
+    await prisma.fundingRecord.delete({ where: { id } })
+    revalidateFundingPaths()
     return { success: true, message: "記錄已刪除" }
   } catch (error) {
     console.error("Failed to delete funding record:", error)
@@ -170,7 +163,6 @@ export async function deleteFundingRecord(id: string): Promise<FundingState> {
   }
 }
 
-// 更新資金記錄
 export async function updateFundingRecord(
   id: string,
   data: {
@@ -182,14 +174,9 @@ export async function updateFundingRecord(
     date?: Date
   }
 ): Promise<FundingState> {
-  const session = await auth()
-
-  if (!session?.user?.id) {
-    return { success: false, message: "未授權" }
-  }
-
-  if (!["FINANCE", "ADMIN"].includes(session.user.role || "")) {
-    return { success: false, message: "權限不足" }
+  const access = await requireFinanceAccess()
+  if (!access) {
+    return { success: false, message: "未授權或權限不足" }
   }
 
   const validatedFields = fundingRecordSchema.safeParse(data)
@@ -198,7 +185,7 @@ export async function updateFundingRecord(
     return {
       success: false,
       message: "驗證失敗",
-      errors: validatedFields.error.flatten().fieldErrors as any,
+      errors: validatedFields.error.flatten().fieldErrors as Record<string, string[]>,
     }
   }
 
@@ -210,16 +197,14 @@ export async function updateFundingRecord(
       data: {
         title,
         amount,
-        type: type as any,
+        type: type as FundingType,
         source,
         description,
-        date: date || new Date(),
+        date: date ?? new Date(),
       },
     })
 
-    revalidatePath("/dashboard")
-    revalidatePath("/dashboard/reports")
-
+    revalidateFundingPaths()
     return { success: true, message: "資金記錄已更新" }
   } catch (error) {
     console.error("Failed to update funding record:", error)

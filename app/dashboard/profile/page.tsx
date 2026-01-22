@@ -3,31 +3,30 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { ProfileContent } from "@/components/profile-content"
 
-export default async function ProfilePage() {
+export default async function ProfilePage(): Promise<React.JSX.Element> {
     const session = await auth()
 
     if (!session?.user) {
         redirect("/login")
     }
 
-    // Fetch user details from database
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-            _count: {
-                select: {
-                    expenseReports: true,
+    const userId = session.user.id
+
+    const [user, stats] = await Promise.all([
+        prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                _count: {
+                    select: { expenseReports: true }
                 }
             }
-        }
-    })
-
-    // Calculate user stats
-    const stats = await prisma.expenseReport.aggregate({
-        where: { submitterId: session.user.id },
-        _sum: { totalAmount: true },
-        _count: true
-    })
+        }),
+        prisma.expenseReport.aggregate({
+            where: { submitterId: userId },
+            _sum: { totalAmount: true },
+            _count: true
+        })
+    ])
 
     return (
         <ProfileContent

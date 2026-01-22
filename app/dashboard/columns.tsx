@@ -1,14 +1,27 @@
 "use client"
 
+import { useTransition, useState } from "react"
 import { ColumnDef } from "@tanstack/react-table"
+import { Check, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { approveReport, rejectReport } from "@/app/actions/approvals"
-import { Check, X, Eye, Loader2 } from "lucide-react"
-import { useTransition, useState } from "react"
 
-export type Report = {
+function getStatusVariant(status: string): "success" | "destructive" | "secondary" | "default" {
+  switch (status) {
+    case "PAID":
+      return "success"
+    case "REJECTED":
+      return "destructive"
+    case "DRAFT":
+      return "secondary"
+    default:
+      return "default"
+  }
+}
+
+export interface Report {
   id: string
   title: string
   totalAmount: number
@@ -20,44 +33,44 @@ export type Report = {
   }
 }
 
-// Helper component for action buttons to manage transition state
-const ActionCell = ({ report, userRole }: { report: Report; userRole: string }) => {
+interface ActionCellProps {
+  report: Report
+  userRole: string
+}
+
+function ActionCell({ report, userRole }: ActionCellProps): React.JSX.Element {
   const [isPending, startTransition] = useTransition()
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
 
-  const handleApprove = () => {
+  function handleApprove(): void {
     startTransition(async () => {
       try {
         await approveReport(report.id)
-      } catch (error) {
+      } catch {
         alert("Failed to approve")
       }
     })
   }
 
-  const handleReject = () => {
+  function handleReject(): void {
     if (!rejectReason) return
     startTransition(async () => {
       try {
         await rejectReport(report.id, rejectReason)
         setShowRejectInput(false)
-      } catch (error) {
+      } catch {
         alert("Failed to reject")
       }
     })
   }
 
-  const canApprove =
+  const canModify =
     (report.status === "PENDING_MANAGER" && (userRole === "MANAGER" || userRole === "ADMIN")) ||
     (report.status === "PENDING_FINANCE" && (userRole === "FINANCE" || userRole === "ADMIN"))
 
-  const canReject =
-    (report.status === "PENDING_MANAGER" && (userRole === "MANAGER" || userRole === "ADMIN")) ||
-    (report.status === "PENDING_FINANCE" && (userRole === "FINANCE" || userRole === "ADMIN"))
-
-  if (!canApprove && !canReject) {
-     return <div className="text-muted-foreground text-xs italic">Read Only</div>
+  if (!canModify) {
+    return <div className="text-muted-foreground text-xs italic">Read Only</div>
   }
 
   if (showRejectInput) {
@@ -83,30 +96,26 @@ const ActionCell = ({ report, userRole }: { report: Report; userRole: string }) 
 
   return (
     <div className="flex items-center gap-2">
-      {canApprove && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-8 border-green-200 hover:bg-green-100 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/30"
-          onClick={handleApprove}
-          disabled={isPending}
-        >
-          {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 mr-1" />}
-          Approve
-        </Button>
-      )}
-      {canReject && (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-8 text-destructive hover:bg-destructive/10"
-          onClick={() => setShowRejectInput(true)}
-          disabled={isPending}
-        >
-          <X className="h-3 w-3 mr-1" />
-          Reject
-        </Button>
-      )}
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-8 border-green-200 hover:bg-green-100 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/30"
+        onClick={handleApprove}
+        disabled={isPending}
+      >
+        {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 mr-1" />}
+        Approve
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-8 text-destructive hover:bg-destructive/10"
+        onClick={() => setShowRejectInput(true)}
+        disabled={isPending}
+      >
+        <X className="h-3 w-3 mr-1" />
+        Reject
+      </Button>
     </div>
   )
 }
@@ -143,21 +152,8 @@ export const getColumns = (userRole: string): ColumnDef<Report>[] => [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string
-      return (
-        <Badge
-          variant={
-            status === "PAID"
-              ? "success"
-              : status === "REJECTED"
-              ? "destructive"
-              : status === "DRAFT"
-              ? "secondary"
-              : "default"
-          }
-        >
-          {status.replace("_", " ")}
-        </Badge>
-      )
+      const variant = getStatusVariant(status)
+      return <Badge variant={variant}>{status.replace("_", " ")}</Badge>
     },
   },
   {

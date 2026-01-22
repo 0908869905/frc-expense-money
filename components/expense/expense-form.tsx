@@ -9,7 +9,7 @@ import { scanInvoice } from "@/app/actions/ocr";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Trash2, Plus, Upload, Loader2, AlertCircle, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils/utils";
+import { cn } from "@/lib/utils";
 import { useFormState } from "react-dom";
 
 // --- Simple UI Wrappers ---

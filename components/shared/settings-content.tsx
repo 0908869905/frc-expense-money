@@ -13,8 +13,6 @@ export function SettingsContent({ session }: SettingsContentProps) {
     const { t, language, setLanguage } = useLanguage()
     const [notifications, setNotifications] = useState(true)
 
-    const isAdmin = session?.user?.role === "ADMIN"
-
     const handleLogout = async () => {
         try {
             await signOut({ callbackUrl: "/login" })

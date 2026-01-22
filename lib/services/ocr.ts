@@ -6,7 +6,7 @@
  */
 
 import vision from "@google-cloud/vision";
-import { toStorageUnit } from "@/lib/utils/money";
+import { toStorageUnit } from "@/lib/money";
 
 // ========== SSRF 防護 ==========
 

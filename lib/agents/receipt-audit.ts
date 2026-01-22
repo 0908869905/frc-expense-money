@@ -9,48 +9,49 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { recognizeInvoice } from "@/lib/agents/ocr";
 import { toDisplayUnit } from "@/lib/money";
-import type {
-    AuditIssue,
-    AuditResult,
-    BatchAuditResult
-} from "@/types/audit";
+import type { AuditIssue, AuditResult, BatchAuditResult } from "@/types/audit";
 
-// 重新導出類型（供 Server Actions 使用）
 export type {
     AuditIssueSeverity,
     AuditIssueType,
     AuditIssue,
     AuditResult,
-    BatchAuditResult
+    BatchAuditResult,
 } from "@/types/audit";
 
-// ========== 金額容許誤差 ==========
-const AMOUNT_TOLERANCE_PERCENT = 5; // 容許 5% 誤差
-const AMOUNT_TOLERANCE_ABSOLUTE = 10; // 或 $10 絕對誤差
+const AMOUNT_TOLERANCE_PERCENT = 5;
+const AMOUNT_TOLERANCE_ABSOLUTE = 10;
+const DATE_TOLERANCE_DAYS = 7;
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-// ========== 核心審核函數 ==========
+function normalizeInvoiceNumber(num: string): string {
+    return num.replace(/-/g, "").toUpperCase();
+}
 
-/**
- * 審核單筆費用項目的收據
- */
+function clampScore(score: number): number {
+    return Math.max(0, Math.min(100, score));
+}
+
+function getDaysDiff(date1: Date, date2: Date): number {
+    return Math.abs(Math.floor((date1.getTime() - date2.getTime()) / MS_PER_DAY));
+}
+
+interface ExpenseItemInput {
+    id: string;
+    amount: number;
+    amountCents: number;
+    date: Date;
+    description: string;
+    receiptUrl?: string | null;
+}
+
 export async function auditReceipt(
-    expenseItem: {
-        id: string;
-        amount: number;      // 報帳金額（顯示單位）
-        amountCents: number; // 報帳金額（儲存單位）
-        date: Date;
-        description: string;
-        receiptUrl?: string | null;
-    },
-    receiptImage: string  // Base64 或 URL
+    expenseItem: ExpenseItemInput,
+    receiptImage: string
 ): Promise<AuditResult> {
-    const issues: AuditIssue[] = [];
-    let matchScore = 100;
-
-    // 1. 執行 OCR 辨識
     const ocrResult = await recognizeInvoice(receiptImage);
 
-    if (!ocrResult.success || !ocrResult.data) {
+    if (!ocrResult.success) {
         return {
             success: false,
             isValid: false,
@@ -58,15 +59,17 @@ export async function auditReceipt(
             issues: [{
                 type: "INVALID_FORMAT",
                 severity: "error",
-                message: ocrResult.error || "無法辨識收據內容",
+                message: ocrResult.error ?? "無法辨識收據內容",
             }],
             error: ocrResult.error,
         };
     }
 
     const extractedData = ocrResult.data;
+    const issues: AuditIssue[] = [];
+    let matchScore = 100;
 
-    // 2. 檢查 OCR 信心度
+    // 檢查 OCR 信心度
     if (extractedData.confidence < 0.5) {
         issues.push({
             type: "LOW_CONFIDENCE",
@@ -76,7 +79,7 @@ export async function auditReceipt(
         matchScore -= 15;
     }
 
-    // 3. 比對金額
+    // 比對金額
     if (extractedData.totalAmount !== null) {
         const extractedAmount = toDisplayUnit(extractedData.totalAmount, "TWD");
         const reportedAmount = expenseItem.amount;
@@ -93,7 +96,6 @@ export async function auditReceipt(
             });
             matchScore -= 40;
         } else if (amountDiff > 0) {
-            // 有小差異但在容許範圍內
             matchScore -= 5;
         }
     } else {
@@ -105,16 +107,14 @@ export async function auditReceipt(
         matchScore -= 20;
     }
 
-    // 4. 比對日期（允許前後 7 天）
+    // 比對日期
     if (extractedData.date) {
         const extractedDate = parseExtractedDate(extractedData.date);
         if (extractedDate) {
             const itemDate = new Date(expenseItem.date);
-            const daysDiff = Math.abs(
-                Math.floor((extractedDate.getTime() - itemDate.getTime()) / (1000 * 60 * 60 * 24))
-            );
+            const daysDiff = getDaysDiff(extractedDate, itemDate);
 
-            if (daysDiff > 7) {
+            if (daysDiff > DATE_TOLERANCE_DAYS) {
                 issues.push({
                     type: "DATE_MISMATCH",
                     severity: "warning",
@@ -127,13 +127,10 @@ export async function auditReceipt(
         }
     }
 
-    // 5. 檢查重複發票
+    // 檢查重複發票
     if (extractedData.invoiceNumber) {
-        const duplicate = await checkDuplicateInvoice(
-            extractedData.invoiceNumber,
-            expenseItem.id
-        );
-        if (duplicate) {
+        const isDuplicate = await checkDuplicateInvoice(extractedData.invoiceNumber, expenseItem.id);
+        if (isDuplicate) {
             issues.push({
                 type: "DUPLICATE_INVOICE",
                 severity: "error",
@@ -143,75 +140,49 @@ export async function auditReceipt(
         }
     }
 
-    // 確保分數在 0-100 範圍內
-    matchScore = Math.max(0, Math.min(100, matchScore));
-
-    // 判斷是否通過：無 error 級問題
     const hasErrors = issues.some((i) => i.severity === "error");
 
     return {
         success: true,
         isValid: !hasErrors,
-        matchScore,
+        matchScore: clampScore(matchScore),
         issues,
         extractedData,
     };
 }
 
-/**
- * 檢查重複發票
- */
-async function checkDuplicateInvoice(
-    invoiceNumber: string,
-    excludeItemId: string
-): Promise<boolean> {
+async function checkDuplicateInvoice(invoiceNumber: string, excludeItemId: string): Promise<boolean> {
     const existing = await prisma.receiptAudit.findFirst({
         where: {
-            invoiceNumber: invoiceNumber.replace(/-/g, "").toUpperCase(),
+            invoiceNumber: normalizeInvoiceNumber(invoiceNumber),
             expenseItemId: { not: excludeItemId },
         },
     });
-    return !!existing;
+    return existing !== null;
 }
 
-/**
- * 儲存審核結果到資料庫
- */
-export async function saveAuditResult(
-    expenseItemId: string,
-    result: AuditResult
-): Promise<void> {
+export async function saveAuditResult(expenseItemId: string, result: AuditResult): Promise<void> {
     const data = result.extractedData;
-    // 將 issues 轉換為 Prisma JSON 相容格式
     const issuesJson = result.issues.length > 0
         ? (result.issues as unknown as Prisma.InputJsonValue)
         : Prisma.JsonNull;
 
+    const auditData = {
+        extractedAmount: data?.totalAmount ?? null,
+        extractedDate: data?.date ? parseExtractedDate(data.date) : null,
+        extractedVendor: data?.vendorName ?? null,
+        invoiceNumber: data?.invoiceNumber ? normalizeInvoiceNumber(data.invoiceNumber) : null,
+        rawText: data?.rawText ?? null,
+        isValid: result.isValid,
+        matchScore: result.matchScore,
+        issues: issuesJson,
+        confidence: data?.confidence ?? 0,
+    };
+
     await prisma.receiptAudit.upsert({
         where: { expenseItemId },
-        create: {
-            expenseItemId,
-            extractedAmount: data?.totalAmount ?? null,
-            extractedDate: data?.date ? parseExtractedDate(data.date) : null,
-            extractedVendor: data?.vendorName ?? null,
-            invoiceNumber: data?.invoiceNumber?.replace(/-/g, "").toUpperCase() ?? null,
-            rawText: data?.rawText ?? null,
-            isValid: result.isValid,
-            matchScore: result.matchScore,
-            issues: issuesJson,
-            confidence: data?.confidence ?? 0,
-        },
-        update: {
-            extractedAmount: data?.totalAmount ?? null,
-            extractedDate: data?.date ? parseExtractedDate(data.date) : null,
-            extractedVendor: data?.vendorName ?? null,
-            invoiceNumber: data?.invoiceNumber?.replace(/-/g, "").toUpperCase() ?? null,
-            rawText: data?.rawText ?? null,
-            isValid: result.isValid,
-            matchScore: result.matchScore,
-            issues: issuesJson,
-            confidence: data?.confidence ?? 0,
-        },
+        create: { expenseItemId, ...auditData },
+        update: auditData,
     });
 }
 
@@ -305,29 +276,20 @@ export async function batchAuditReport(reportId: string): Promise<BatchAuditResu
     }
 }
 
-// ========== 工具函數 ==========
-
-/**
- * 解析 OCR 提取的日期字串
- */
 function parseExtractedDate(dateStr: string): Date | null {
-    // 嘗試民國年格式
     const rocMatch = dateStr.match(/(\d{2,3})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
     if (rocMatch) {
-        const year = parseInt(rocMatch[1], 10) + 1911;
-        const month = parseInt(rocMatch[2], 10) - 1;
-        const day = parseInt(rocMatch[3], 10);
-        return new Date(year, month, day);
+        return new Date(
+            parseInt(rocMatch[1], 10) + 1911,
+            parseInt(rocMatch[2], 10) - 1,
+            parseInt(rocMatch[3], 10)
+        );
     }
 
-    // 嘗試標準日期格式
     const date = new Date(dateStr);
     return isNaN(date.getTime()) ? null : date;
 }
 
-/**
- * 格式化日期
- */
 function formatDate(date: Date): string {
     return date.toLocaleDateString("zh-TW", {
         year: "numeric",

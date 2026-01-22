@@ -1,9 +1,28 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { ApprovalsContent } from "@/components/approvals-content"
 
-export default async function ApprovalsPage() {
+function getWhereClauseByRole(role: string): Prisma.ExpenseReportWhereInput {
+    switch (role) {
+        case "LEADER":
+            return { status: "PENDING_MANAGER" }
+        case "FINANCE":
+            return { status: "PENDING_FINANCE" }
+        case "ADMIN":
+            return {
+                OR: [
+                    { status: "PENDING_MANAGER" },
+                    { status: "PENDING_FINANCE" }
+                ]
+            }
+        default:
+            return {}
+    }
+}
+
+export default async function ApprovalsPage(): Promise<React.JSX.Element> {
     const session = await auth()
 
     if (!session?.user) {
@@ -12,26 +31,11 @@ export default async function ApprovalsPage() {
 
     const role = session.user.role || "USER"
 
-    // Redirect if user doesn't have permission
-    if (role !== "LEADER" && role !== "FINANCE" && role !== "ADMIN") {
+    if (!["LEADER", "FINANCE", "ADMIN"].includes(role)) {
         redirect("/dashboard")
     }
 
-    // Fetch pending reports based on role
-    let whereClause: any = {}
-
-    if (role === "LEADER") {
-        whereClause = { status: "PENDING_MANAGER" }
-    } else if (role === "FINANCE") {
-        whereClause = { status: "PENDING_FINANCE" }
-    } else if (role === "ADMIN") {
-        whereClause = {
-            OR: [
-                { status: "PENDING_MANAGER" },
-                { status: "PENDING_FINANCE" }
-            ]
-        }
-    }
+    const whereClause = getWhereClauseByRole(role)
 
     const reports = await prisma.expenseReport.findMany({
         where: whereClause,

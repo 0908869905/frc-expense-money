@@ -29,7 +29,7 @@ function buildWhereClause(role: string, userId: string | undefined): Prisma.Expe
   }
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage(): Promise<React.JSX.Element> {
   const session = await auth()
 
   if (!session?.user) {
@@ -42,11 +42,8 @@ export default async function DashboardPage() {
 
   const whereClause = buildWhereClause(role, userId)
 
-  let reports: Awaited<ReturnType<typeof prisma.expenseReport.findMany>> = []
-  let totalAmount = 0
-
-  try {
-    reports = await prisma.expenseReport.findMany({
+  const [reports, financialSummary, fundingRecords] = await Promise.all([
+    prisma.expenseReport.findMany({
       where: whereClause,
       include: {
         submitter: {
@@ -56,17 +53,12 @@ export default async function DashboardPage() {
       },
       orderBy: { createdAt: "desc" },
       take: 10,
-    })
-    totalAmount = reports.reduce((acc, r) => acc + Number(r.totalAmount), 0)
-  } catch (error) {
-    console.error("Error fetching reports:", error)
-  }
-
-  const [financialSummary, fundingRecords] = await Promise.all([
+    }),
     getFinancialSummary(),
     getFundingRecords()
   ])
 
+  const totalAmount = reports.reduce((sum, report) => sum + Number(report.totalAmount), 0)
   const canAddFunding = role === "FINANCE" || role === "ADMIN"
 
   return (

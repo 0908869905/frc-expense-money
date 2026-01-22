@@ -1,47 +1,36 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
-// 定期清理過期 Session 的 API Route
-// 建議使用 Vercel Cron 或外部服務定時呼叫
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
-export async function GET(request: Request) {
-    // 驗證 API Key（防止未授權呼叫）
-    const authHeader = request.headers.get("Authorization");
-    const expectedKey = process.env.CRON_SECRET_KEY;
+function validateCronAuth(request: Request): NextResponse | null {
+    const authHeader = request.headers.get("Authorization")
+    const expectedKey = process.env.CRON_SECRET_KEY
 
-    // 強制要求 CRON_SECRET_KEY
     if (!expectedKey) {
-        console.error("CRON_SECRET_KEY is not configured");
-        return NextResponse.json(
-            { error: "Service unavailable" },
-            { status: 503 }
-        );
+        console.error("CRON_SECRET_KEY is not configured")
+        return NextResponse.json({ error: "Service unavailable" }, { status: 503 })
     }
 
     if (authHeader !== `Bearer ${expectedKey}`) {
-        return NextResponse.json(
-            { error: "Unauthorized" },
-            { status: 401 }
-        );
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    return null
+}
+
+export async function GET(request: Request): Promise<NextResponse> {
+    const authError = validateCronAuth(request)
+    if (authError) return authError
+
     try {
-        const now = new Date();
+        const now = new Date()
+        const thirtyDaysAgo = new Date(now.getTime() - THIRTY_DAYS_MS)
 
-        // 清理過期的 Session（超過 30 天）
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         const deletedSessions = await prisma.session.deleteMany({
-            where: {
-                expires: {
-                    lt: thirtyDaysAgo,
-                },
-            },
-        });
+            where: { expires: { lt: thirtyDaysAgo } },
+        })
 
-        // 清理過期的驗證 Token（如有）
-        // 可根據需要添加更多清理邏輯
-
-        // 記錄審計日誌
         await prisma.auditLog.create({
             data: {
                 entityType: "System",
@@ -53,24 +42,18 @@ export async function GET(request: Request) {
                     executedAt: now.toISOString(),
                 },
             },
-        });
+        })
 
         return NextResponse.json({
             success: true,
             message: "Session cleanup completed",
             deletedSessions: deletedSessions.count,
             executedAt: now.toISOString(),
-        });
+        })
     } catch (error) {
-        console.error("Session cleanup failed:", error);
-        return NextResponse.json(
-            { error: "Cleanup failed" },
-            { status: 500 }
-        );
+        console.error("Session cleanup failed:", error)
+        return NextResponse.json({ error: "Cleanup failed" }, { status: 500 })
     }
 }
 
-// 也支援 POST 請求（Vercel Cron 使用）
-export async function POST(request: Request) {
-    return GET(request);
-}
+export const POST = GET

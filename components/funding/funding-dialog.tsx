@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Plus, X, DollarSign } from "lucide-react"
-import { useLanguage } from "@/lib/context/language-context"
 
 const FUNDING_TYPES = [
     { value: "SPONSORSHIP", label: "贊助" },
@@ -20,7 +19,6 @@ const FUNDING_TYPES = [
 export function FundingDialog() {
     const [open, setOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
-    const { t } = useLanguage()
 
     const [state, formAction] = useFormState<FundingState, FormData>(
         createFundingRecord,

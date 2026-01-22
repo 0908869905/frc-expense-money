@@ -1,14 +1,14 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import {
-    getMonthlyExpenseStats,
     getCategoryExpenseStats,
+    getMonthlyExpenseStats,
+    getOverviewStats,
     getStatusStats,
-    getOverviewStats
 } from "@/app/actions/analytics"
 import { AnalyticsContent } from "@/components/analytics-content"
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage(): Promise<React.JSX.Element> {
     const session = await auth()
 
     if (!session?.user) {

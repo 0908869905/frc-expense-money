@@ -1,4 +1,3 @@
-import React from "react"
 import { cookies } from "next/headers"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -6,19 +5,13 @@ import { DashboardHeader, DashboardWrapper } from "@/components/dashboard-header
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 
-export default async function DashboardLayout({
-  children,
-}: {
+interface DashboardLayoutProps {
   children: React.ReactNode
-}) {
-  let defaultOpen = true
+}
 
-  try {
-    const cookieStore = await cookies()
-    defaultOpen = cookieStore.get("sidebar:state")?.value !== "false"
-  } catch (e) {
-    // Ignore cookie errors
-  }
+export default async function DashboardLayout({ children }: DashboardLayoutProps): Promise<React.JSX.Element> {
+  const cookieStore = await cookies()
+  const defaultOpen = cookieStore.get("sidebar:state")?.value !== "false"
 
   const session = await auth()
 

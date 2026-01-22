@@ -30,13 +30,12 @@ export async function registerUser(
     formData: FormData
 ): Promise<RegisterState> {
     const rawFormData = {
-        name: formData.get("name") as string,
-        email: formData.get("email") as string,
-        password: formData.get("password") as string,
-        confirmPassword: formData.get("confirmPassword") as string,
+        name: formData.get("name"),
+        email: formData.get("email"),
+        password: formData.get("password"),
+        confirmPassword: formData.get("confirmPassword"),
     }
 
-    // Validate form data
     const validatedFields = registerSchema.safeParse(rawFormData)
 
     if (!validatedFields.success) {
@@ -50,7 +49,6 @@ export async function registerUser(
     const { name, email, password } = validatedFields.data
 
     try {
-        // Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email },
         })
@@ -63,28 +61,15 @@ export async function registerUser(
             }
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        // Create user
         await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                role: "USER",
-            },
+            data: { name, email, password: hashedPassword, role: "USER" },
         })
 
-        return {
-            success: true,
-            message: "註冊成功！請登入",
-        }
+        return { success: true, message: "註冊成功！請登入" }
     } catch (error) {
         console.error("Registration error:", error)
-        return {
-            success: false,
-            message: "註冊失敗，請稍後再試",
-        }
+        return { success: false, message: "註冊失敗，請稍後再試" }
     }
 }

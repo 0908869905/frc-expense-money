@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Upload, Camera, X, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, X, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { scanInvoice, OCRResult } from "@/app/actions/ocr";
-import { useLanguage } from "@/lib/context/language-context";
-import { cn } from "@/lib/utils/utils";
+import { cn } from "@/lib/utils";
 
 interface InvoiceScannerProps {
     onScanComplete?: (data: OCRResult["data"]) => void;
@@ -13,7 +12,6 @@ interface InvoiceScannerProps {
 }
 
 export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceScannerProps) {
-    const { t } = useLanguage();
     const [isScanning, setIsScanning] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
     const [result, setResult] = useState<OCRResult | null>(null);

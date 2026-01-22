@@ -9,32 +9,33 @@ export type AvatarState = {
     imageUrl?: string;
 };
 
-// 最大圖片大小 500KB (Base64 會比原檔大約 33%)
-const MAX_IMAGE_SIZE = 500 * 1024;
+const MAX_IMAGE_SIZE_BYTES = 500 * 1024;
+
+async function getAuthenticatedUserId(): Promise<string | null> {
+    const session = await auth();
+    return session?.user?.id ?? null;
+}
 
 export async function uploadAvatar(imageBase64: string): Promise<AvatarState> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
         return { success: false, message: "未授權的操作" };
     }
 
+    if (!imageBase64.startsWith("data:image/")) {
+        return { success: false, message: "無效的圖片格式" };
+    }
+
+    const base64Data = imageBase64.split(",")[1];
+    const sizeInBytes = (base64Data.length * 3) / 4;
+
+    if (sizeInBytes > MAX_IMAGE_SIZE_BYTES) {
+        return { success: false, message: "圖片大小不能超過 500KB" };
+    }
+
     try {
-        // 驗證 Base64 格式
-        if (!imageBase64.startsWith("data:image/")) {
-            return { success: false, message: "無效的圖片格式" };
-        }
-
-        // 檢查圖片大小
-        const base64Data = imageBase64.split(",")[1];
-        const sizeInBytes = (base64Data.length * 3) / 4;
-        
-        if (sizeInBytes > MAX_IMAGE_SIZE) {
-            return { success: false, message: "圖片大小不能超過 500KB" };
-        }
-
-        // 更新用戶頭像
         await prisma.user.update({
-            where: { id: session.user.id },
+            where: { id: userId },
             data: { image: imageBase64 },
         });
 
@@ -46,14 +47,14 @@ export async function uploadAvatar(imageBase64: string): Promise<AvatarState> {
 }
 
 export async function removeAvatar(): Promise<AvatarState> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
         return { success: false, message: "未授權的操作" };
     }
 
     try {
         await prisma.user.update({
-            where: { id: session.user.id },
+            where: { id: userId },
             data: { image: null },
         });
 

@@ -6,7 +6,7 @@ import { useState, useTransition } from "react"
 import { approveReport, rejectReport, returnForRevision } from "@/app/actions/approvals"
 import { updateReport, deleteReport } from "@/app/actions/expenses"
 import { getReportsForExport, getItemsForExport } from "@/app/actions/export"
-import { exportToCSV, exportToExcel, exportToExcelMultiSheet } from "@/lib/utils/export-utils"
+import { exportToCSV, exportToExcel, exportToExcelMultiSheet } from "@/lib/export-utils"
 
 interface ReportsContentProps {
     reports: any[]

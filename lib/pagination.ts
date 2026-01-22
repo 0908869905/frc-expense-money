@@ -1,4 +1,6 @@
-// 分頁工具 - Cursor-based Pagination
+/**
+ * 分頁工具 - Cursor-based Pagination
+ */
 
 export interface PaginationParams {
     cursor?: string;
@@ -14,29 +16,33 @@ export interface PaginatedResult<T> {
     totalCount?: number;
 }
 
-// 預設分頁大小
 export const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
 
-// 建立 Prisma 分頁參數
-export function buildPaginationQuery(params: PaginationParams) {
-    const limit = Math.min(params.limit || DEFAULT_PAGE_SIZE, 100);
+interface PaginationQuery {
+    take: number;
+    orderBy: { createdAt: "desc" };
+    cursor?: { id: string };
+    skip?: number;
+}
+
+export function buildPaginationQuery(params: PaginationParams): PaginationQuery {
+    const limit = Math.min(params.limit ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
+    const take = limit + 1;
 
     if (!params.cursor) {
-        return {
-            take: limit + 1, // 多取一筆判斷是否還有更多
-            orderBy: { createdAt: "desc" as const },
-        };
+        return { take, orderBy: { createdAt: "desc" } };
     }
 
+    const direction = params.direction === "backward" ? -1 : 1;
     return {
-        take: (params.direction === "backward" ? -1 : 1) * (limit + 1),
+        take: direction * take,
         cursor: { id: params.cursor },
-        skip: 1, // 跳過 cursor 本身
-        orderBy: { createdAt: "desc" as const },
+        skip: 1,
+        orderBy: { createdAt: "desc" },
     };
 }
 
-// 處理分頁結果
 export function processPaginatedResult<T extends { id: string }>(
     items: T[],
     limit: number
@@ -46,14 +52,16 @@ export function processPaginatedResult<T extends { id: string }>(
 
     return {
         items: resultItems,
-        nextCursor: hasMore ? resultItems[resultItems.length - 1]?.id || null : null,
-        prevCursor: resultItems.length > 0 ? resultItems[0]?.id || null : null,
+        nextCursor: hasMore ? resultItems.at(-1)?.id ?? null : null,
+        prevCursor: resultItems[0]?.id ?? null,
         hasMore,
     };
 }
 
-// 格式化日期範圍查詢
-export function buildDateRangeFilter(startDate?: Date, endDate?: Date) {
+export function buildDateRangeFilter(
+    startDate?: Date,
+    endDate?: Date
+): { createdAt?: { gte?: Date; lte?: Date } } {
     if (!startDate && !endDate) return {};
 
     return {
@@ -64,16 +72,16 @@ export function buildDateRangeFilter(startDate?: Date, endDate?: Date) {
     };
 }
 
-// 建立搜尋條件
-export function buildSearchFilter(searchTerm?: string, fields: string[] = ["title"]) {
-    if (!searchTerm || searchTerm.trim() === "") return {};
+export function buildSearchFilter(
+    searchTerm?: string,
+    fields: string[] = ["title"]
+): { OR?: Array<Record<string, { contains: string; mode: "insensitive" }>> } {
+    const trimmed = searchTerm?.trim();
+    if (!trimmed) return {};
 
     return {
-        OR: fields.map(field => ({
-            [field]: {
-                contains: searchTerm,
-                mode: "insensitive" as const,
-            },
+        OR: fields.map((field) => ({
+            [field]: { contains: trimmed, mode: "insensitive" as const },
         })),
     };
 }

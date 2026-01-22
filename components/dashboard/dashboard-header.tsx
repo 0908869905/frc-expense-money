@@ -25,7 +25,6 @@ export function DashboardHeader({ userName, children }: DashboardHeaderProps) {
                 </span>
             </div>
             <div className="flex items-center gap-2 px-4">
-                {/* Theme Toggle Button */}
                 <button
                     onClick={toggleTheme}
                     className="p-2 rounded-lg hover:bg-muted transition-colors"
@@ -41,9 +40,4 @@ export function DashboardHeader({ userName, children }: DashboardHeaderProps) {
             </div>
         </header>
     )
-}
-
-// DashboardWrapper no longer needs LanguageProvider since it's in root layout
-export function DashboardWrapper({ children }: { children: ReactNode }) {
-    return <>{children}</>
 }

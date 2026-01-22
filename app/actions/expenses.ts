@@ -42,16 +42,15 @@ function parseItemDate(dateInput: Date | string): Date {
 }
 
 function determineSubmitStatus(role: string): { status: string; skipMessage: string } {
-    // ADMIN, FINANCE -> 直接付款
-    // LEADER -> 跳過組長審核，進入財務審核
-    // VICE_LEADER 或其他 -> 正常流程
-    if (role === "ADMIN" || role === "FINANCE") {
-        return { status: "PAID", skipMessage: "（管理員/財務直接付款）" };
+    switch (role) {
+        case "ADMIN":
+        case "FINANCE":
+            return { status: "PAID", skipMessage: "（管理員/財務直接付款）" };
+        case "LEADER":
+            return { status: "PENDING_FINANCE", skipMessage: "（組長跳過組長審核）" };
+        default:
+            return { status: "PENDING_MANAGER", skipMessage: "" };
     }
-    if (role === "LEADER") {
-        return { status: "PENDING_FINANCE", skipMessage: "（組長跳過組長審核）" };
-    }
-    return { status: "PENDING_MANAGER", skipMessage: "" };
 }
 
 function canAccessReport(report: { submitterEmail: string }, userEmail: string, userRole: string): boolean {
@@ -294,18 +293,13 @@ export async function deleteReport(reportId: string): Promise<State> {
             return { success: false, message: "You can only delete your own reports" };
         }
 
-        const isAdmin = session.user.role === "ADMIN";
-        if (report.status !== "DRAFT" && !isAdmin) {
+        if (report.status !== "DRAFT" && session.user.role !== "ADMIN") {
             return { success: false, message: "Only draft reports can be deleted" };
         }
 
         await prisma.$transaction(async (tx) => {
-            await tx.expenseItem.deleteMany({
-                where: { reportId },
-            });
-            await tx.expenseReport.delete({
-                where: { id: reportId },
-            });
+            await tx.expenseItem.deleteMany({ where: { reportId } });
+            await tx.expenseReport.delete({ where: { id: reportId } });
         });
 
         revalidateExpensePaths();

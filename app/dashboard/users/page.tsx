@@ -3,14 +3,13 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { UsersContent } from "@/components/users-content"
 
-export default async function UsersPage() {
+export default async function UsersPage(): Promise<React.JSX.Element> {
     const session = await auth()
 
     if (!session?.user) {
         redirect("/login")
     }
 
-    // Only ADMIN can access this page
     if (session.user.role !== "ADMIN") {
         redirect("/dashboard")
     }

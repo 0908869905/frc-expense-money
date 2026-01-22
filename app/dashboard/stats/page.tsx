@@ -1,15 +1,19 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import { prisma } from "@/lib/prisma"
 
-// 金融敏感頁面強制動態渲染，確保數據即時性
-// 參考企業架構規範：不使用 ISR 於餘額等敏感數據
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
-// 取得統計資料（這會在構建時和每 60 秒後更新）
-async function getPublicStats() {
+interface Stats {
+    totalReports: number
+    totalPaid: number
+    recentActivity: number
+}
+
+async function getStats(): Promise<Stats> {
     const [totalReports, totalPaid, recentActivity] = await Promise.all([
         prisma.expenseReport.count(),
         prisma.expenseReport.count({
@@ -18,36 +22,33 @@ async function getPublicStats() {
         prisma.expenseReport.count({
             where: {
                 createdAt: {
-                    gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 過去 7 天
+                    gte: new Date(Date.now() - SEVEN_DAYS_MS),
                 },
             },
         }),
-    ]);
+    ])
 
-    return { totalReports, totalPaid, recentActivity };
+    return { totalReports, totalPaid, recentActivity }
 }
 
-export default async function StatsPage() {
-    const session = await auth();
+export default async function StatsPage(): Promise<React.JSX.Element> {
+    const session = await auth()
 
     if (!session?.user) {
-        redirect("/login");
+        redirect("/login")
     }
 
-    // 只有 Admin 和 Finance 可以看這個頁面
     if (session.user.role !== "ADMIN" && session.user.role !== "FINANCE") {
-        redirect("/dashboard");
+        redirect("/dashboard")
     }
 
-    const stats = await getPublicStats();
+    const stats = await getStats()
 
     return (
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">系統統計</h1>
-                <p className="text-muted-foreground">
-                    使用 ISR 快取，每 60 秒更新一次
-                </p>
+                <p className="text-muted-foreground">即時數據</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -64,10 +65,6 @@ export default async function StatsPage() {
                     <div className="text-3xl font-bold mt-2 text-blue-600">{stats.recentActivity}</div>
                 </div>
             </div>
-
-            <div className="text-xs text-muted-foreground">
-                * 資料每 60 秒自動更新（ISR）
-            </div>
         </div>
-    );
+    )
 }
