@@ -198,7 +198,7 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
                         action: "UPDATE",
                         actorId: session.user.id,
                         oldData: JSON.parse(JSON.stringify(report)),
-                        newData: data,
+                        newData: JSON.parse(JSON.stringify(data)),
                     },
                 });
             }
