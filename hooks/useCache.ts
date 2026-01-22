@@ -7,7 +7,6 @@ interface UseCacheOptions<T> {
     key: string;
     fetcher: () => Promise<T>;
     ttl?: number; // Time to live in milliseconds
-    revalidateOnFocus?: boolean;
 }
 
 interface CacheEntry<T> {
@@ -21,7 +20,6 @@ export function useCache<T>({
     key,
     fetcher,
     ttl = 60000, // 預設 1 分鐘
-    revalidateOnFocus = true,
 }: UseCacheOptions<T>) {
     const [data, setData] = useState<T | null>(() => {
         const cached = cache.get(key);
@@ -70,11 +68,6 @@ export function useCache<T>({
             mutate();
         }
     }, [data, mutate]);
-
-    // Focus revalidation
-    if (typeof window !== "undefined" && revalidateOnFocus) {
-        // 使用 visibilitychange 事件來實現
-    }
 
     return {
         data,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { auth } from '@/auth'
 
 // Demo users to seed
 const DEMO_USERS = [
@@ -15,6 +16,15 @@ export async function GET() {
         return NextResponse.json(
             { error: 'Seed endpoint is disabled in production' },
             { status: 404 }
+        )
+    }
+
+    // 需要 ADMIN 權限（首次設置時可能需要暫時移除此檢查）
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'ADMIN') {
+        return NextResponse.json(
+            { error: 'Unauthorized - ADMIN role required' },
+            { status: 401 }
         )
     }
     try {

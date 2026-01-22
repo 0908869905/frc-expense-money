@@ -123,6 +123,7 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON  # For OCR
 
 ## Security Notes
 
+- **`.env` 不可提交到 Git** - 只有 `.env.example` 可以追蹤（參見全域 CLAUDE.md）
 - Debug/seed/test-user endpoints are disabled in production
 - All Server Actions require `auth()` check
 - OCR URL endpoint has SSRF protection (blocks internal IPs)

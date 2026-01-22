@@ -8,6 +8,55 @@
 import vision from "@google-cloud/vision";
 import { toStorageUnit } from "@/lib/utils/money";
 
+// ========== SSRF 防護 ==========
+
+/**
+ * 檢查是否為內部 IP 地址
+ */
+function isInternalIp(hostname: string): boolean {
+    // IPv4 內部 IP 範圍
+    const internalPatterns = [
+        /^127\./,                    // localhost
+        /^10\./,                     // 10.0.0.0/8
+        /^172\.(1[6-9]|2[0-9]|3[01])\./, // 172.16.0.0/12
+        /^192\.168\./,               // 192.168.0.0/16
+        /^169\.254\./,               // link-local
+        /^0\./,                      // 0.0.0.0/8
+    ];
+
+    // 特殊主機名
+    const internalHosts = ["localhost", "127.0.0.1", "::1", "0.0.0.0"];
+
+    if (internalHosts.includes(hostname.toLowerCase())) {
+        return true;
+    }
+
+    return internalPatterns.some((pattern) => pattern.test(hostname));
+}
+
+/**
+ * 驗證 URL 是否安全（防止 SSRF）
+ */
+function isUrlSafe(urlString: string): { safe: boolean; error?: string } {
+    try {
+        const url = new URL(urlString);
+
+        // 只允許 https
+        if (url.protocol !== "https:") {
+            return { safe: false, error: "只允許 HTTPS URL" };
+        }
+
+        // 阻擋內部 IP
+        if (isInternalIp(url.hostname)) {
+            return { safe: false, error: "不允許內部網路 URL" };
+        }
+
+        return { safe: true };
+    } catch {
+        return { safe: false, error: "無效的 URL 格式" };
+    }
+}
+
 // Google Vision Client（使用環境變數中的服務帳號金鑰）
 function getVisionClient() {
     // 如果有 GOOGLE_APPLICATION_CREDENTIALS_JSON 環境變數，使用它

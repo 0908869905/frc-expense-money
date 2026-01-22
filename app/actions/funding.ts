@@ -102,6 +102,15 @@ export async function getFundingRecords() {
 
 // 取得財務摘要 (餘額計算)
 export async function getFinancialSummary() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return {
+      totalIncome: 0,
+      totalExpense: 0,
+      currentBalance: 0,
+    }
+  }
+
   try {
     // 計算總收入 (所有資金記錄)
     const fundingResult = await prisma.fundingRecord.aggregate({

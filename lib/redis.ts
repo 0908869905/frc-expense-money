@@ -5,10 +5,20 @@
 
 import { Redis } from "@upstash/redis";
 
+// 環境變數驗證
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+if (!REDIS_URL || !REDIS_TOKEN) {
+    throw new Error(
+        "Missing Redis configuration. Please set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables."
+    );
+}
+
 // 建立 Redis 客戶端
 export const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL!,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    url: REDIS_URL,
+    token: REDIS_TOKEN,
 });
 
 // Session 相關常數

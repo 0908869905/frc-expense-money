@@ -1,8 +1,33 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { DashboardContent } from "@/components/dashboard-content"
 import { getFinancialSummary, getFundingRecords } from "@/app/actions/funding"
+
+function buildWhereClause(role: string, userId: string | undefined): Prisma.ExpenseReportWhereInput {
+  switch (role) {
+    case "ADMIN":
+      return {}
+    case "FINANCE":
+      return {
+        OR: [
+          { submitterId: userId },
+          { status: "PENDING_FINANCE" },
+          { status: "PAID" }
+        ]
+      }
+    case "MANAGER":
+      return {
+        OR: [
+          { submitterId: userId },
+          { status: "PENDING_MANAGER" }
+        ]
+      }
+    default:
+      return { submitterId: userId }
+  }
+}
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -15,32 +40,9 @@ export default async function DashboardPage() {
   const role = session.user.role || "USER"
   const userName = session.user.name || session.user.email || "User"
 
-  // Build where clause based on role
-  let whereClause: any = {}
+  const whereClause = buildWhereClause(role, userId)
 
-  if (role === "USER") {
-    whereClause = { submitterId: userId }
-  } else if (role === "MANAGER") {
-    whereClause = {
-      OR: [
-        { submitterId: userId },
-        { status: "PENDING_MANAGER" }
-      ]
-    }
-  } else if (role === "FINANCE") {
-    whereClause = {
-      OR: [
-        { submitterId: userId },
-        { status: "PENDING_FINANCE" },
-        { status: "PAID" }
-      ]
-    }
-  } else if (role === "ADMIN") {
-    whereClause = {}
-  }
-
-  // Fetch data
-  let reports: any[] = []
+  let reports: Awaited<ReturnType<typeof prisma.expenseReport.findMany>> = []
   let totalAmount = 0
 
   try {
@@ -60,12 +62,12 @@ export default async function DashboardPage() {
     console.error("Error fetching reports:", error)
   }
 
-  // 取得財務摘要和資金記錄
-  const financialSummary = await getFinancialSummary()
-  const fundingRecords = await getFundingRecords()
+  const [financialSummary, fundingRecords] = await Promise.all([
+    getFinancialSummary(),
+    getFundingRecords()
+  ])
 
-  // 判斷是否可以新增資金記錄
-  const canAddFunding = ["FINANCE", "ADMIN"].includes(role)
+  const canAddFunding = role === "FINANCE" || role === "ADMIN"
 
   return (
     <DashboardContent

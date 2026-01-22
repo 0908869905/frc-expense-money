@@ -22,8 +22,8 @@ export async function approveReport(reportId: string) {
   let nextStatus = report.status;
 
   if (report.status === "PENDING_MANAGER") {
-    if (role !== "MANAGER" && role !== "ADMIN") {
-      throw new Error("Insufficient permissions: Manager approval required");
+    if (role !== "LEADER" && role !== "ADMIN") {
+      throw new Error("Insufficient permissions: Leader approval required");
     }
     nextStatus = "PENDING_FINANCE";
   } else if (report.status === "PENDING_FINANCE") {
@@ -89,8 +89,8 @@ export async function rejectReport(reportId: string, comment: string) {
   }
 
   // More granular checks based on stage
-  if (report.status === "PENDING_MANAGER" && role !== "MANAGER" && role !== "ADMIN") {
-    throw new Error("Only Managers can reject at this stage");
+  if (report.status === "PENDING_MANAGER" && role !== "LEADER" && role !== "ADMIN") {
+    throw new Error("Only Leaders can reject at this stage");
   }
   if (report.status === "PENDING_FINANCE" && role !== "FINANCE" && role !== "ADMIN") {
     throw new Error("Only Finance can reject at this stage");
@@ -146,8 +146,8 @@ export async function returnForRevision(reportId: string, comment: string) {
 
   const role = session.user.role;
 
-  // 只有 MANAGER, FINANCE, ADMIN 可以退回修改
-  if (role !== "MANAGER" && role !== "FINANCE" && role !== "ADMIN") {
+  // 只有 LEADER, FINANCE, ADMIN 可以退回修改
+  if (role !== "LEADER" && role !== "FINANCE" && role !== "ADMIN") {
     throw new Error("Insufficient permissions to return for revision");
   }
 

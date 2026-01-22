@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { signIn } from '@/auth'
+import { auth } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +10,15 @@ export async function GET(request: Request) {
         return NextResponse.json(
             { error: 'Test endpoint is disabled in production' },
             { status: 404 }
+        )
+    }
+
+    // 需要 ADMIN 權限
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'ADMIN') {
+        return NextResponse.json(
+            { error: 'Unauthorized - ADMIN role required' },
+            { status: 401 }
         )
     }
 
@@ -42,10 +51,11 @@ export async function GET(request: Request) {
                 'Click Sign In'
             ]
         })
-    } catch (error: any) {
+    } catch (error: unknown) {
+        console.error('Test-user endpoint error:', error)
         return NextResponse.json({
             success: false,
-            error: error.message
+            error: 'Internal server error'
         }, { status: 500 })
     }
 }
