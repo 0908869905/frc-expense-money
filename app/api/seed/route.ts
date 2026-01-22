@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 // Demo users to seed
 const DEMO_USERS = [
     { email: 'admin@demo.com', name: 'Admin User', role: 'ADMIN' as const },
-    { email: 'manager@demo.com', name: 'Manager User', role: 'MANAGER' as const },
+    { email: 'manager@demo.com', name: 'Manager User', role: 'LEADER' as const },
     { email: 'finance@demo.com', name: 'Finance User', role: 'FINANCE' as const },
     { email: 'user@demo.com', name: 'Regular User', role: 'USER' as const },
 ]
@@ -52,7 +52,7 @@ export async function GET() {
                 note: 'Use any of these emails to login (password can be anything)',
                 accounts: [
                     'admin@demo.com (Admin)',
-                    'manager@demo.com (Manager)',
+                    'manager@demo.com (Leader)',
                     'finance@demo.com (Finance)',
                     'user@demo.com (User)',
                 ]
