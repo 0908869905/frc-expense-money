@@ -97,11 +97,11 @@ export function clearCache() {
 
 // 帶前綴的快取 key 清除
 export function invalidateCacheByPrefix(prefix: string) {
-    for (const key of cache.keys()) {
+    Array.from(cache.keys()).forEach(key => {
         if (key.startsWith(prefix)) {
             cache.delete(key);
         }
-    }
+    });
 }
 
 // 無限滾動 Hook
