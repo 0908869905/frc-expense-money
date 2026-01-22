@@ -3,35 +3,114 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-// 取得報表資料用於匯出
-export async function getReportsForExport(filters?: {
+// --- Type Definitions ---
+interface ExportFilters {
     startDate?: string;
     endDate?: string;
     status?: string;
-}) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
+}
 
-    // 只有 FINANCE 或 ADMIN 可以匯出所有報表
+interface ReportExportRow {
+    報帳單編號: string;
+    標題: string;
+    提交者: string;
+    提交者Email: string;
+    狀態: string;
+    總金額: number;
+    建立日期: string;
+    項目數: number;
+    說明: string;
+}
+
+interface ItemExportRow {
+    報帳單: string;
+    提交者: string;
+    日期: string;
+    類別: string;
+    說明: string;
+    金額: number;
+    收據: string;
+}
+
+interface InventoryExportRow {
+    品名: string;
+    料號: string;
+    類別: string;
+    儲存位置: string;
+    當前數量: number;
+    安全庫存: number;
+    購買連結: string;
+}
+
+// --- Label Mappings ---
+const STATUS_LABELS: Record<string, string> = {
+    DRAFT: "草稿",
+    PENDING_MANAGER: "待主管審核",
+    PENDING_FINANCE: "待財務審核",
+    RETURNED: "已退回",
+    PAID: "已付款",
+    REJECTED: "已拒絕",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+    MOTOR: "馬達",
+    SENSOR: "感測器",
+    PNEUMATIC: "氣壓",
+    CONTROLLER: "控制器",
+    HARDWARE: "五金",
+    RAW_MATERIAL: "原料",
+    TOOL: "工具",
+};
+
+function getStatusLabel(status: string): string {
+    return STATUS_LABELS[status] || status;
+}
+
+function getCategoryLabel(category: string): string {
+    return CATEGORY_LABELS[category] || category;
+}
+
+// --- Helper Functions ---
+async function checkFinanceAccess(): Promise<boolean> {
+    const session = await auth();
+    if (!session?.user?.id) return false;
+
     const role = session.user.role;
-    if (role !== "FINANCE" && role !== "ADMIN") {
-        return [];
-    }
+    return role === "FINANCE" || role === "ADMIN";
+}
+
+async function checkAuthenticated(): Promise<boolean> {
+    const session = await auth();
+    return !!session?.user?.id;
+}
+
+function formatDateString(date: Date): string {
+    return date.toISOString().split("T")[0];
+}
+
+// --- Export Functions ---
+
+/**
+ * 取得報表資料用於匯出
+ * 需要 FINANCE 或 ADMIN 權限
+ */
+export async function getReportsForExport(filters?: ExportFilters): Promise<ReportExportRow[]> {
+    const hasAccess = await checkFinanceAccess();
+    if (!hasAccess) return [];
 
     try {
-        const where: any = {};
+        const where: Record<string, unknown> = {};
 
         // 日期篩選
         if (filters?.startDate || filters?.endDate) {
-            where.createdAt = {};
+            const createdAt: Record<string, Date> = {};
             if (filters.startDate) {
-                where.createdAt.gte = new Date(filters.startDate);
+                createdAt.gte = new Date(filters.startDate);
             }
             if (filters.endDate) {
-                where.createdAt.lte = new Date(filters.endDate);
+                createdAt.lte = new Date(filters.endDate);
             }
+            where.createdAt = createdAt;
         }
 
         // 狀態篩選
@@ -50,7 +129,6 @@ export async function getReportsForExport(filters?: {
             orderBy: { createdAt: "desc" },
         });
 
-        // 轉換為匯出格式
         return reports.map((report) => ({
             報帳單編號: report.id,
             標題: report.title,
@@ -58,7 +136,7 @@ export async function getReportsForExport(filters?: {
             提交者Email: report.submitter?.email || "",
             狀態: getStatusLabel(report.status),
             總金額: report.totalAmount,
-            建立日期: report.createdAt.toISOString().split("T")[0],
+            建立日期: formatDateString(report.createdAt),
             項目數: report.items.length,
             說明: report.description || "",
         }));
@@ -68,20 +146,16 @@ export async function getReportsForExport(filters?: {
     }
 }
 
-// 取得報表細項用於匯出
-export async function getItemsForExport(reportId?: string) {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
-
-    const role = session.user.role;
-    if (role !== "FINANCE" && role !== "ADMIN") {
-        return [];
-    }
+/**
+ * 取得報表細項用於匯出
+ * 需要 FINANCE 或 ADMIN 權限
+ */
+export async function getItemsForExport(reportId?: string): Promise<ItemExportRow[]> {
+    const hasAccess = await checkFinanceAccess();
+    if (!hasAccess) return [];
 
     try {
-        const where: any = {};
+        const where: Record<string, string> = {};
         if (reportId) {
             where.reportId = reportId;
         }
@@ -99,7 +173,7 @@ export async function getItemsForExport(reportId?: string) {
         return items.map((item) => ({
             報帳單: item.report.title,
             提交者: item.report.submitter?.name || "Unknown",
-            日期: item.date.toISOString().split("T")[0],
+            日期: formatDateString(item.date),
             類別: item.category,
             說明: item.description,
             金額: item.amount,
@@ -111,12 +185,13 @@ export async function getItemsForExport(reportId?: string) {
     }
 }
 
-// 取得庫存資料用於匯出
-export async function getInventoryForExport() {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
+/**
+ * 取得庫存資料用於匯出
+ * 需要登入權限
+ */
+export async function getInventoryForExport(): Promise<InventoryExportRow[]> {
+    const isAuthenticated = await checkAuthenticated();
+    if (!isAuthenticated) return [];
 
     try {
         const items = await prisma.inventoryItem.findMany({
@@ -136,29 +211,4 @@ export async function getInventoryForExport() {
         console.error("匯出庫存取得失敗:", error);
         return [];
     }
-}
-
-function getStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-        DRAFT: "草稿",
-        PENDING_MANAGER: "待主管審核",
-        PENDING_FINANCE: "待財務審核",
-        RETURNED: "已退回",
-        PAID: "已付款",
-        REJECTED: "已拒絕",
-    };
-    return labels[status] || status;
-}
-
-function getCategoryLabel(category: string): string {
-    const labels: Record<string, string> = {
-        MOTOR: "馬達",
-        SENSOR: "感測器",
-        PNEUMATIC: "氣壓",
-        CONTROLLER: "控制器",
-        HARDWARE: "五金",
-        RAW_MATERIAL: "原料",
-        TOOL: "工具",
-    };
-    return labels[category] || category;
 }

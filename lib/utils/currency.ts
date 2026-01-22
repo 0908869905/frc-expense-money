@@ -1,39 +1,40 @@
-// �?��工具?�數
+// 幣別工具函數
 
 export const SUPPORTED_CURRENCIES = [
-    { code: "TWD", name: "?�台�?, symbol: "NT$", locale: "zh-TW" },
-    { code: "USD", name: "美�?", symbol: "$", locale: "en-US" },
-    { code: "EUR", name: "歐�?", symbol: "??, locale: "de-DE" },
-    { code: "JPY", name: "?��?", symbol: "¥", locale: "ja-JP" },
-    { code: "CNY", name: "人�?�?, symbol: "¥", locale: "zh-CN" },
+    { code: "TWD", name: "新台幣", symbol: "NT$", locale: "zh-TW" },
+    { code: "USD", name: "美元", symbol: "$", locale: "en-US" },
+    { code: "EUR", name: "歐元", symbol: "€", locale: "de-DE" },
+    { code: "JPY", name: "日圓", symbol: "¥", locale: "ja-JP" },
+    { code: "CNY", name: "人民幣", symbol: "¥", locale: "zh-CN" },
     { code: "HKD", name: "港幣", symbol: "HK$", locale: "zh-HK" },
-    { code: "KRW", name: "?��?", symbol: "??, locale: "ko-KR" },
-    { code: "GBP", name: "?��?", symbol: "£", locale: "en-GB" },
+    { code: "KRW", name: "韓圓", symbol: "₩", locale: "ko-KR" },
+    { code: "GBP", name: "英鎊", symbol: "£", locale: "en-GB" },
 ] as const;
 
 export type CurrencyCode = typeof SUPPORTED_CURRENCIES[number]["code"];
 
-// ?��?�?��資�?
+// 取得幣別資訊
 export function getCurrencyInfo(code: string) {
     return SUPPORTED_CURRENCIES.find((c) => c.code === code) || SUPPORTED_CURRENCIES[0];
 }
 
-// ?��??��?�?(帶幣?�符??
+// 格式化金額（帶幣別符號）
 export function formatCurrencyAmount(
     amount: number,
     currencyCode: string = "TWD"
 ): string {
     const currency = getCurrencyInfo(currencyCode);
+    const hasNoDecimals = currencyCode === "JPY" || currencyCode === "KRW";
 
     return new Intl.NumberFormat(currency.locale, {
         style: "currency",
         currency: currency.code,
-        minimumFractionDigits: currencyCode === "JPY" || currencyCode === "KRW" ? 0 : 2,
-        maximumFractionDigits: currencyCode === "JPY" || currencyCode === "KRW" ? 0 : 2,
+        minimumFractionDigits: hasNoDecimals ? 0 : 2,
+        maximumFractionDigits: hasNoDecimals ? 0 : 2,
     }).format(amount);
 }
 
-// ?��?�?��
+// 幣別轉換
 export async function convertCurrency(
     amount: number,
     fromCurrency: string,
@@ -45,12 +46,12 @@ export async function convertCurrency(
     const fromRate = rates[fromCurrency] || 1;
     const toRate = rates[toCurrency] || 1;
 
-    // ?��?算�? USD (?��?)，�??��??�目標幣??
+    // 先換算成 USD（基準），再換算為目標幣別
     const usdAmount = amount / fromRate;
     return usdAmount * toRate;
 }
 
-// ?�設?��? (作為?�用)
+// 預設匯率（作為備用）
 export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
     USD: 1,
     TWD: 31.5,
@@ -62,10 +63,9 @@ export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
     GBP: 0.79,
 };
 
-// 模擬?��??��??��? (實�??�用中可??API)
+// 模擬取得匯率（實際應用中可改用 API）
 export async function fetchExchangeRates(): Promise<Record<string, number>> {
-    // ?�裡?�以?�入�?Open Exchange Rates, Fixer.io �?API
-    // ?��?返�??�設??
+    // 這裡可以接入如 Open Exchange Rates, Fixer.io 等 API
+    // 暫時返回預設值
     return DEFAULT_EXCHANGE_RATES;
 }
-

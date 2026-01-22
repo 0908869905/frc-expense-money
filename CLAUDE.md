@@ -127,4 +127,3 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON  # For OCR
 - All Server Actions require `auth()` check
 - OCR URL endpoint has SSRF protection (blocks internal IPs)
 - Cron endpoint requires `CRON_SECRET_KEY` header
-#
