@@ -409,7 +409,7 @@ export function TransitionButton({ language }: TransitionButtonProps) {
               left: phase === "claw-enter"
                 ? "-80px"
                 : `calc(${tearProgress * 110}% - 80px)`,
-              opacity: phase === "idle" ? 0 : 1,
+              opacity: 1,
               // 爪子旋轉使其指向撕裂方向（右下）
               transform: "rotate(135deg)",
               transition: phase === "claw-enter"
