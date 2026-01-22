@@ -3,7 +3,7 @@
  * 此檔案不含 "use server"，可被客戶端元件安全 import
  */
 
-import type { InvoiceData } from "@/lib/ocr";
+import type { InvoiceData } from "@/lib/agents/ocr";
 
 export type AuditIssueSeverity = "error" | "warning" | "info";
 
