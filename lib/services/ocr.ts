@@ -111,7 +111,12 @@ export async function recognizeInvoice(
                 ],
             };
         } else if (imageSource.startsWith("http")) {
-            // URL 格式
+            // URL 格式 - 需要 SSRF 防護
+            const urlCheck = isUrlSafe(imageSource);
+            if (!urlCheck.safe) {
+                return { success: false, error: urlCheck.error || "URL 不被允許" };
+            }
+
             request = {
                 image: { source: { imageUri: imageSource } },
                 features: [

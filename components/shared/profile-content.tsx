@@ -76,13 +76,19 @@ export function ProfileContent({ user, stats, session }: ProfileContentProps) {
                 </div>
             </div>
 
-            {/* Session Info (Debug) */}
-            <div className="rounded-xl border bg-card p-6">
-                <h3 className="font-semibold mb-4">{t("session_info")}</h3>
-                <pre className="text-xs bg-muted p-4 rounded-lg overflow-auto">
-                    {JSON.stringify(session.user, null, 2)}
-                </pre>
-            </div>
+            {/* Session Info - Only show in development */}
+            {process.env.NODE_ENV === "development" && (
+                <div className="rounded-xl border bg-card p-6">
+                    <h3 className="font-semibold mb-4">{t("session_info")} (Dev Only)</h3>
+                    <pre className="text-xs bg-muted p-4 rounded-lg overflow-auto">
+                        {JSON.stringify({
+                            id: session.user?.id ? "[REDACTED]" : null,
+                            role: session.user?.role,
+                            // 只顯示非敏感資訊
+                        }, null, 2)}
+                    </pre>
+                </div>
+            )}
         </div>
     )
 }
