@@ -41,7 +41,13 @@ export async function createExpense(prevState: State, formData: FormData): Promi
     return { success: false, message: "Invalid form data submission" };
   }
 
-  const parsedData = JSON.parse(rawData);
+  let parsedData: unknown;
+  try {
+    parsedData = JSON.parse(rawData);
+  } catch {
+    return { success: false, message: "無效的 JSON 資料格式" };
+  }
+
   const validatedFields = expenseReportSchema.safeParse(parsedData);
 
   if (!validatedFields.success) {

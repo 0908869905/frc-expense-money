@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/Button"
-import { ArrowRight, Zap, Shield, BarChart3, Clock } from "lucide-react"
+import { Zap, Shield, BarChart3, Clock } from "lucide-react"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useOrganization } from "@/lib/organization-context"
+import { TransitionButton } from "@/components/transitions/transition-button"
 
 export default function LandingPage() {
   const { t, language } = useLanguage()
@@ -56,7 +57,7 @@ export default function LandingPage() {
       </div>
 
       {/* Main Content */}
-      <main className="relative min-h-screen flex flex-col items-center justify-center px-4">
+      <main className="relative min-h-screen flex flex-col items-center justify-center px-4 z-10">
         {/* Team Name - HERO */}
         <div className="text-center space-y-6 max-w-4xl">
           {/* Main Title */}
@@ -92,16 +93,8 @@ export default function LandingPage() {
         </div>
 
         {/* CTA Buttons */}
-        <div className="mt-12 flex flex-col sm:flex-row items-center gap-4">
-          <Link href="/login">
-            <Button 
-              size="lg" 
-              className="h-14 px-10 text-base font-medium bg-white text-black hover:bg-gray-100 rounded-full shadow-xl shadow-white/10 transition-all duration-300 hover:scale-105 hover:shadow-white/20"
-            >
-              {language === "zh" ? "進入系統" : "Enter System"}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+        <div className="mt-12 flex flex-col sm:flex-row items-center gap-4 relative z-20">
+          <TransitionButton language={language} />
           <Link href="/about">
             <Button 
               variant="outline" 
@@ -119,12 +112,12 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="absolute bottom-0 left-0 right-0 py-6">
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 px-6 mx-auto">
-          <p className="text-xs text-gray-600">{t("footer_rights")}</p>
+          <p className="text-xs text-gray-500">{t("footer_rights")}</p>
           <nav className="flex gap-6">
-            <Link className="text-xs text-gray-600 hover:text-gray-400 transition-colors" href="/terms">
+            <Link className="text-xs text-gray-500 hover:text-gray-300 transition-colors" href="/terms">
               {t("terms")}
             </Link>
-            <Link className="text-xs text-gray-600 hover:text-gray-400 transition-colors" href="/privacy">
+            <Link className="text-xs text-gray-500 hover:text-gray-300 transition-colors" href="/privacy">
               {t("privacy")}
             </Link>
           </nav>

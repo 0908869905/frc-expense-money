@@ -305,3 +305,114 @@ h1 {
   color: hsl(0 72% 55%) !important;
   text-shadow: 0 0 10px hsl(0 72% 55% / 0.3);
 }
+
+/* ===== 豹爪撕裂過渡動畫 ===== */
+
+/* 碎片飄落動畫 */
+@keyframes fragment-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg) scale(0.3);
+  }
+}
+
+.animate-fragment-fall {
+  animation: fragment-fall 1s ease-in forwards;
+}
+
+/* 豹爪進入動畫 */
+@keyframes claw-enter {
+  0% {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 豹爪撕裂動畫 */
+@keyframes claw-tear {
+  0% {
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    transform: translateX(-50%) translateY(40vh);
+  }
+}
+
+/* 撕裂線出現動畫 */
+@keyframes tear-line-appear {
+  0% {
+    height: 0;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    height: 100%;
+    opacity: 1;
+  }
+}
+
+/* View Transitions API 自訂動畫 */
+::view-transition-old(root) {
+  animation: none;
+}
+
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* 過渡期間隱藏預設動畫 */
+::view-transition-group(root) {
+  animation-duration: 0s;
+}
+
+/* 撕裂動畫的 timing function */
+.duration-600 {
+  transition-duration: 600ms;
+}
+
+.ease-tear {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 撕裂粒子飄落動畫 - 更自然的物理效果 */
+@keyframes tear-particle-fall {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  5% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 1;
+    transform: translate(20px, 30px) rotate(90deg) scale(0.95);
+  }
+  60% {
+    opacity: 0.7;
+    transform: translate(60px, 100px) rotate(360deg) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(100px, 180px) rotate(720deg) scale(0.1);
+  }
+}
+
+/* 閃爍粒子效果 */
+@keyframes particle-sparkle {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(168, 85, 247, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(168, 85, 247, 1), 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+}

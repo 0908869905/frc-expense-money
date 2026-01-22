@@ -9,7 +9,16 @@ export async function GET(request: Request) {
     const authHeader = request.headers.get("Authorization");
     const expectedKey = process.env.CRON_SECRET_KEY;
 
-    if (expectedKey && authHeader !== `Bearer ${expectedKey}`) {
+    // 強制要求 CRON_SECRET_KEY
+    if (!expectedKey) {
+        console.error("CRON_SECRET_KEY is not configured");
+        return NextResponse.json(
+            { error: "Service unavailable" },
+            { status: 503 }
+        );
+    }
+
+    if (authHeader !== `Bearer ${expectedKey}`) {
         return NextResponse.json(
             { error: "Unauthorized" },
             { status: 401 }

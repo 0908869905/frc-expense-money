@@ -31,15 +31,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        if (user.password) {
-          if (!password) {
-            return null
-          }
+        // 強制要求密碼驗證
+        if (!user.password) {
+          // 用戶沒有設定密碼，拒絕登入
+          console.warn(`User ${email} has no password set`)
+          return null
+        }
 
-          const isValid = await bcrypt.compare(password, user.password)
-          if (!isValid) {
-            return null
-          }
+        if (!password) {
+          return null
+        }
+
+        const isValid = await bcrypt.compare(password, user.password)
+        if (!isValid) {
+          return null
         }
 
         return {

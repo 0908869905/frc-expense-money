@@ -5,6 +5,14 @@ import { signIn } from '@/auth'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
+    // 僅在開發環境啟用
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+            { error: 'Test endpoint is disabled in production' },
+            { status: 404 }
+        )
+    }
+
     const url = new URL(request.url)
     const email = url.searchParams.get('email') || 'user@demo.com'
 

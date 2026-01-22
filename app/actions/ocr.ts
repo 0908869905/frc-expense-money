@@ -4,6 +4,71 @@ import { auth } from "@/auth";
 import { recognizeInvoice, InvoiceData } from "@/lib/agents/ocr";
 import { revalidatePath } from "next/cache";
 
+/**
+ * SSRF 保護：檢查 URL 是否指向內部網路
+ */
+function isInternalUrl(urlString: string): boolean {
+    try {
+        const url = new URL(urlString);
+        const hostname = url.hostname.toLowerCase();
+
+        // 阻止 localhost 和相關變體
+        if (
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            hostname === "0.0.0.0" ||
+            hostname === "[::1]" ||
+            hostname.endsWith(".localhost")
+        ) {
+            return true;
+        }
+
+        // 阻止私有 IP 範圍
+        // 10.0.0.0 - 10.255.255.255
+        // 172.16.0.0 - 172.31.255.255
+        // 192.168.0.0 - 192.168.255.255
+        // 169.254.0.0 - 169.254.255.255 (link-local)
+        const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+        const match = hostname.match(ipv4Regex);
+        if (match) {
+            const [, a, b] = match.map(Number);
+            if (
+                a === 10 ||
+                a === 127 ||
+                (a === 172 && b >= 16 && b <= 31) ||
+                (a === 192 && b === 168) ||
+                (a === 169 && b === 254) ||
+                a === 0
+            ) {
+                return true;
+            }
+        }
+
+        // 阻止內部網域
+        if (
+            hostname.endsWith(".local") ||
+            hostname.endsWith(".internal") ||
+            hostname.endsWith(".corp") ||
+            hostname.endsWith(".lan")
+        ) {
+            return true;
+        }
+
+        // 阻止 metadata endpoints (雲端服務)
+        if (
+            hostname === "metadata.google.internal" ||
+            hostname === "169.254.169.254" ||
+            hostname.includes("metadata")
+        ) {
+            return true;
+        }
+
+        return false;
+    } catch {
+        return true; // 無效 URL 視為不安全
+    }
+}
+
 export type OCRResult = {
     success: boolean;
     data?: InvoiceData;
@@ -61,8 +126,14 @@ export async function scanInvoiceFromUrl(imageUrl: string): Promise<OCRResult> {
         return { success: false, error: "Unauthorized" };
     }
 
-    if (!imageUrl.startsWith("http")) {
-        return { success: false, error: "無效的圖片 URL" };
+    // 驗證 URL 格式
+    if (!imageUrl.startsWith("https://")) {
+        return { success: false, error: "僅支援 HTTPS URL" };
+    }
+
+    // SSRF 保護：阻止內部網路請求
+    if (isInternalUrl(imageUrl)) {
+        return { success: false, error: "不允許存取內部網路位址" };
     }
 
     try {

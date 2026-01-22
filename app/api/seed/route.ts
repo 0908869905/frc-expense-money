@@ -10,6 +10,13 @@ const DEMO_USERS = [
 ]
 
 export async function GET() {
+    // 僅在開發環境啟用
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+            { error: 'Seed endpoint is disabled in production' },
+            { status: 404 }
+        )
+    }
     try {
         // First, check if we can connect to the database
         await prisma.$connect()

@@ -5,14 +5,28 @@ import { auth } from '@/auth'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+    // 僅在開發環境啟用
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+            { error: 'Not available in production' },
+            { status: 404 }
+        )
+    }
+
+    // 需要 ADMIN 權限
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'ADMIN') {
+        return NextResponse.json(
+            { error: 'Unauthorized' },
+            { status: 401 }
+        )
+    }
+
     try {
         // Test 1: Database connection
         const userCount = await prisma.user.count()
 
-        // Test 2: Auth session
-        const session = await auth()
-
-        // Test 3: Fetch a user
+        // Test 2: Fetch users (僅限開發環境的 ADMIN)
         const users = await prisma.user.findMany({
             take: 5,
             select: { id: true, email: true, role: true, name: true }
@@ -25,19 +39,17 @@ export async function GET() {
                 userCount,
                 users
             },
-            session: session ? {
+            session: {
                 hasSession: true,
                 user: session.user
-            } : {
-                hasSession: false
             }
         })
     } catch (error: any) {
         console.error('Debug error:', error)
+        // 不暴露錯誤堆疊
         return NextResponse.json({
             success: false,
-            error: error.message,
-            stack: error.stack?.split('\n').slice(0, 5)
+            error: 'Internal server error'
         }, { status: 500 })
     }
 }
