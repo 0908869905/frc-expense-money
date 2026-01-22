@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { expenseReportSchema } from "@/lib/schemas";
 import { toStorageUnit } from "@/lib/money";
 import { revalidatePath } from "next/cache";
+import { TeamDepartment } from "@prisma/client";
 
 // --- Types ---
 export type State = {
@@ -104,7 +105,10 @@ export async function createExpense(prevState: State, formData: FormData): Promi
     const submitterName = session.user.name || session.user.email || "Unknown";
     const submitterEmail = session.user.email || "";
     const submitterId = session.user.id || null;
-    const userDepartment = (session.user as { department?: string }).department || null;
+    const userDepartmentStr = (session.user as { department?: string }).department;
+    const userDepartment = userDepartmentStr && Object.values(TeamDepartment).includes(userDepartmentStr as TeamDepartment)
+        ? (userDepartmentStr as TeamDepartment)
+        : undefined;
 
     try {
         await prisma.$transaction(async (tx) => {
