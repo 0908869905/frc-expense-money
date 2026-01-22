@@ -32,10 +32,10 @@ interface FundingContentProps {
 
 const FUNDING_TYPES = [
     { value: "SPONSORSHIP", label: "贊助", labelEn: "Sponsorship" },
-    { value: "DONATION", label: "捐款", labelEn: "Donation" },
-    { value: "GRANT", label: "補助金", labelEn: "Grant" },
-    { value: "FUNDRAISING", label: "募款活動", labelEn: "Fundraising" },
-    { value: "OTHER", label: "其他", labelEn: "Other" },
+    { value: "DONATION", label: "?�款", labelEn: "Donation" },
+    { value: "GRANT", label: "補助??, labelEn: "Grant" },
+    { value: "FUNDRAISING", label: "?�款活�?", labelEn: "Fundraising" },
+    { value: "OTHER", label: "?��?", labelEn: "Other" },
 ]
 
 export function FundingContent({ fundingRecords, financialSummary }: FundingContentProps) {
@@ -103,14 +103,14 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
     })
 
     const handleDelete = (id: string) => {
-        if (!confirm(t("確定要刪除此資金記錄嗎？", "Delete this funding record?"))) return
+        if (!confirm(t("確�?要刪?�此資�?記�??��?", "Delete this funding record?"))) return
         startTransition(async () => {
             const result = await deleteFundingRecord(id)
             if (result.success) {
-                showMessage("success", result.message || t("已刪除", "Deleted"))
+                showMessage("success", result.message || t("已刪??, "Deleted"))
                 window.location.reload()
             } else {
-                showMessage("error", result.message || t("刪除失敗", "Delete failed"))
+                showMessage("error", result.message || t("?�除失�?", "Delete failed"))
             }
         })
     }
@@ -140,11 +140,11 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                 date: new Date(editForm.date),
             })
             if (result.success) {
-                showMessage("success", result.message || t("已更新", "Updated"))
+                showMessage("success", result.message || t("已更??, "Updated"))
                 setEditingRecord(null)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || t("更新失敗", "Update failed"))
+                showMessage("error", result.message || t("?�新失�?", "Update failed"))
             }
         })
     }
@@ -172,15 +172,15 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                         <Wallet className="h-8 w-8" />
-                        {t("資金記錄", "Funding Records")}
+                        {t("資�?記�?", "Funding Records")}
                     </h1>
                     <p className="text-muted-foreground">
-                        {t("管理贊助、捐款及其他收入來源", "Manage sponsorships, donations, and other income sources")}
+                        {t("管�?贊助?��?款�??��??�入來�?", "Manage sponsorships, donations, and other income sources")}
                     </p>
                 </div>
                 <Button onClick={() => setShowAddModal(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    {t("新增資金", "Add Funding")}
+                    {t("?��?資�?", "Add Funding")}
                 </Button>
             </div>
 
@@ -194,7 +194,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
             {/* Summary Cards */}
             <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-xl border bg-gradient-to-br from-primary/10 via-background to-background p-6">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">{t("目前餘額", "Current Balance")}</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-2">{t("?��?餘�?", "Current Balance")}</h3>
                     <p className={`text-3xl font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}>
                         {formatCurrency(financialSummary.currentBalance)}
                     </p>
@@ -202,14 +202,14 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                 <div className="rounded-xl border bg-card p-6">
                     <div className="flex items-center gap-2 mb-2">
                         <TrendingUp className="h-4 w-4 text-green-600" />
-                        <h3 className="text-sm font-medium text-muted-foreground">{t("總收入", "Total Income")}</h3>
+                        <h3 className="text-sm font-medium text-muted-foreground">{t("總收??, "Total Income")}</h3>
                     </div>
                     <p className="text-2xl font-bold text-green-600">{formatCurrency(financialSummary.totalIncome)}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-6">
                     <div className="flex items-center gap-2 mb-2">
                         <TrendingDown className="h-4 w-4 text-red-600" />
-                        <h3 className="text-sm font-medium text-muted-foreground">{t("總支出", "Total Expense")}</h3>
+                        <h3 className="text-sm font-medium text-muted-foreground">{t("總支??, "Total Expense")}</h3>
                     </div>
                     <p className="text-2xl font-bold text-red-600">{formatCurrency(financialSummary.totalExpense)}</p>
                 </div>
@@ -221,7 +221,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
-                        placeholder={t("搜尋標題或來源...", "Search title or source...")}
+                        placeholder={t("?��?標�??��?�?..", "Search title or source...")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
@@ -232,7 +232,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                     onChange={(e) => setTypeFilter(e.target.value)}
                     className="px-4 py-2 border rounded-lg bg-background"
                 >
-                    <option value="all">{t("所有類型", "All Types")}</option>
+                    <option value="all">{t("?�?��???, "All Types")}</option>
                     {FUNDING_TYPES.map((type) => (
                         <option key={type.value} value={type.value}>
                             {language === "zh" ? type.label : type.labelEn}
@@ -246,13 +246,13 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{t("日期", "Date")}</th>
-                            <th className="text-left p-4 font-medium">{t("標題", "Title")}</th>
-                            <th className="text-left p-4 font-medium">{t("類型", "Type")}</th>
-                            <th className="text-left p-4 font-medium">{t("來源", "Source")}</th>
-                            <th className="text-right p-4 font-medium">{t("金額", "Amount")}</th>
-                            <th className="text-left p-4 font-medium">{t("記錄者", "Recorded By")}</th>
-                            <th className="text-left p-4 font-medium">{t("操作", "Actions")}</th>
+                            <th className="text-left p-4 font-medium">{t("?��?", "Date")}</th>
+                            <th className="text-left p-4 font-medium">{t("標�?", "Title")}</th>
+                            <th className="text-left p-4 font-medium">{t("類�?", "Type")}</th>
+                            <th className="text-left p-4 font-medium">{t("來�?", "Source")}</th>
+                            <th className="text-right p-4 font-medium">{t("?��?", "Amount")}</th>
+                            <th className="text-left p-4 font-medium">{t("記�???, "Recorded By")}</th>
+                            <th className="text-left p-4 font-medium">{t("?��?", "Actions")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -260,7 +260,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                             <tr>
                                 <td colSpan={7} className="p-8 text-center text-muted-foreground">
                                     <Wallet className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                    {t("沒有資金記錄", "No funding records")}
+                                    {t("沒�?資�?記�?", "No funding records")}
                                 </td>
                             </tr>
                         ) : (
@@ -298,7 +298,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                                 onClick={() => handleDelete(record.id)}
                                                 disabled={isPending}
                                                 className="p-1.5 rounded hover:bg-red-50 text-red-600"
-                                                title={t("刪除", "Delete")}
+                                                title={t("?�除", "Delete")}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -318,7 +318,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                         <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Plus className="h-5 w-5" />
-                                {t("新增資金記錄", "Add Funding Record")}
+                                {t("?��?資�?記�?", "Add Funding Record")}
                             </h2>
                             <Button variant="ghost" size="icon" onClick={() => setShowAddModal(false)}>
                                 <X className="h-4 w-4" />
@@ -333,17 +333,17 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                             )}
 
                             <div className="space-y-2">
-                                <Label htmlFor="title">{t("標題", "Title")} *</Label>
-                                <Input id="title" name="title" placeholder={t("例如：XX公司贊助", "e.g. XX Corp Sponsorship")} required />
+                                <Label htmlFor="title">{t("標�?", "Title")} *</Label>
+                                <Input id="title" name="title" placeholder={t("例�?：XX?�司贊助", "e.g. XX Corp Sponsorship")} required />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="amount">{t("金額 (TWD)", "Amount (TWD)")} *</Label>
+                                <Label htmlFor="amount">{t("?��? (TWD)", "Amount (TWD)")} *</Label>
                                 <Input id="amount" name="amount" type="number" step="0.01" min="0" placeholder="10000" required />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="type">{t("類型", "Type")} *</Label>
+                                <Label htmlFor="type">{t("類�?", "Type")} *</Label>
                                 <select
                                     id="type"
                                     name="type"
@@ -360,42 +360,42 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                 </select>
                             </div>
 
-                            {/* 自訂類型輸入框 - 選擇其他時顯示 */}
+                            {/* ?��?類�?輸入�?- ?�選?�其他�?顯示 */}
                             {addFormType === "OTHER" && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="customType">{t("自訂類型", "Custom Type")} *</Label>
+                                    <Label htmlFor="customType">{t("?��?類�?", "Custom Type")} *</Label>
                                     <Input
                                         id="customType"
                                         name="customType"
                                         value={addCustomType}
                                         onChange={(e) => setAddCustomType(e.target.value)}
-                                        placeholder={t("輸入類型名稱", "Enter type name")}
+                                        placeholder={t("輸入類�??�稱", "Enter type name")}
                                         required
                                     />
                                 </div>
                             )}
 
                             <div className="space-y-2">
-                                <Label htmlFor="source">{t("來源", "Source")}</Label>
-                                <Input id="source" name="source" placeholder={t("贊助商名稱", "Sponsor name")} />
+                                <Label htmlFor="source">{t("來�?", "Source")}</Label>
+                                <Input id="source" name="source" placeholder={t("贊助?��?�?, "Sponsor name")} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="date">{t("入帳日期", "Date")}</Label>
+                                <Label htmlFor="date">{t("?�帳?��?", "Date")}</Label>
                                 <Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split("T")[0]} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="description">{t("備註", "Notes")}</Label>
-                                <textarea id="description" name="description" className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder={t("補充說明...", "Additional notes...")} />
+                                <Label htmlFor="description">{t("?�註", "Notes")}</Label>
+                                <textarea id="description" name="description" className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder={t("補�?說�?...", "Additional notes...")} />
                             </div>
 
                             <div className="flex gap-2 pt-2">
                                 <Button type="button" variant="outline" className="flex-1" onClick={() => setShowAddModal(false)}>
-                                    {t("取消", "Cancel")}
+                                    {t("?��?", "Cancel")}
                                 </Button>
                                 <Button type="submit" className="flex-1" disabled={isPending}>
-                                    {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("提交中...", "Submitting...")}</> : t("確認新增", "Add")}
+                                    {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("?�交�?..", "Submitting...")}</> : t("確�??��?", "Add")}
                                 </Button>
                             </div>
                         </form>
@@ -410,7 +410,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                         <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Edit2 className="h-5 w-5" />
-                                {t("編輯資金記錄", "Edit Funding Record")}
+                                {t("編輯資�?記�?", "Edit Funding Record")}
                             </h2>
                             <Button variant="ghost" size="icon" onClick={() => setEditingRecord(null)}>
                                 <X className="h-4 w-4" />
@@ -419,17 +419,17 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
                         <div className="p-4 space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="edit-title">{t("標題", "Title")}</Label>
+                                <Label htmlFor="edit-title">{t("標�?", "Title")}</Label>
                                 <Input id="edit-title" value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-amount">{t("金額", "Amount")}</Label>
+                                <Label htmlFor="edit-amount">{t("?��?", "Amount")}</Label>
                                 <Input id="edit-amount" type="number" value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) || 0 })} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-type">{t("類型", "Type")}</Label>
+                                <Label htmlFor="edit-type">{t("類�?", "Type")}</Label>
                                 <select
                                     id="edit-type"
                                     value={editForm.type}
@@ -444,40 +444,40 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                 </select>
                             </div>
 
-                            {/* 自訂類型輸入框 - 選擇其他時顯示 */}
+                            {/* ?��?類�?輸入�?- ?�選?�其他�?顯示 */}
                             {editForm.type === "OTHER" && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="edit-customType">{t("自訂類型", "Custom Type")}</Label>
+                                    <Label htmlFor="edit-customType">{t("?��?類�?", "Custom Type")}</Label>
                                     <Input
                                         id="edit-customType"
                                         value={editForm.customType}
                                         onChange={(e) => setEditForm({ ...editForm, customType: e.target.value })}
-                                        placeholder={t("輸入類型名稱", "Enter type name")}
+                                        placeholder={t("輸入類�??�稱", "Enter type name")}
                                     />
                                 </div>
                             )}
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-source">{t("來源", "Source")}</Label>
+                                <Label htmlFor="edit-source">{t("來�?", "Source")}</Label>
                                 <Input id="edit-source" value={editForm.source} onChange={(e) => setEditForm({ ...editForm, source: e.target.value })} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-date">{t("日期", "Date")}</Label>
+                                <Label htmlFor="edit-date">{t("?��?", "Date")}</Label>
                                 <Input id="edit-date" type="date" value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-description">{t("備註", "Notes")}</Label>
+                                <Label htmlFor="edit-description">{t("?�註", "Notes")}</Label>
                                 <textarea id="edit-description" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
                             </div>
 
                             <div className="flex gap-2 pt-2">
                                 <Button type="button" variant="outline" className="flex-1" onClick={() => setEditingRecord(null)}>
-                                    {t("取消", "Cancel")}
+                                    {t("?��?", "Cancel")}
                                 </Button>
                                 <Button type="button" className="flex-1" onClick={handleUpdate} disabled={isPending}>
-                                    {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("更新中...", "Updating...")}</> : t("確認更新", "Update")}
+                                    {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("?�新�?..", "Updating...")}</> : t("確�??�新", "Update")}
                                 </Button>
                             </div>
                         </div>
@@ -487,3 +487,4 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
         </div>
     )
 }
+

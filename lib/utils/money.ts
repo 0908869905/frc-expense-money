@@ -1,19 +1,19 @@
 /**
- * ?ï¿½ï¿½?ç²¾ç¢ºåº¦å·¥?ï¿½å‡½??
+ * ?‘è?ç²¾ç¢ºåº¦å·¥?·å‡½??
  * 
- * ?ï¿½ï¿½?è¦ï¿½?ï¿½?
- * 1. è³‡ï¿½?åº«ï¿½??ï¿½ï¿½?å¾‹ä½¿?ï¿½ã€Œæ•´?ï¿½ã€ï¿½??ï¿½å°è²¨ï¿½?ï¿½ï¿½ä½ï¿½?å¦‚ï¿½??ï¿½ï¿½?
- * 2. ç¦æ­¢ä½¿ç”¨ JavaScript ?ï¿½ï¿½??ï¿½å­¸?ï¿½ï¿½?ç¬¦ï¿½??ï¿½ï¿½?ï¿½?
- * 3. ?ï¿½?ï¿½ï¿½?é¡ï¿½?ç®—ï¿½??ï¿½é€ï¿½??ï¿½æ¨¡çµ„å‡½??
+ * ?è?è¦ç?ï¼?
+ * 1. è³‡æ?åº«å??²ä?å¾‹ä½¿?¨ã€Œæ•´?¸ã€ï??€å°è²¨å¹?–®ä½ï?å¦‚ï??†ï?
+ * 2. ç¦æ­¢ä½¿ç”¨ JavaScript ?Ÿç??¸å­¸?‹ç?ç¬¦è??†é?é¡?
+ * 3. ?€?‰é?é¡é?ç®—å??ˆé€é??¬æ¨¡çµ„å‡½??
  */
 
 import Dinero from "dinero.js";
 
-// ?ï¿½æ´?ï¿½è²¨ï¿½??ï¿½?
+// ?¯æ´?„è²¨å¹??ç¾?
 export const CURRENCY_CONFIG = {
-    TWD: { code: "TWD", exponent: 0, symbol: "NT$" }, // ?ï¿½å¹£?ï¿½ï¿½??ï¿½ï¿½?
+    TWD: { code: "TWD", exponent: 0, symbol: "NT$" }, // ?°å¹£?¡å??¸é?
     USD: { code: "USD", exponent: 2, symbol: "$" },
-    EUR: { code: "EUR", exponent: 2, symbol: "â‚¬" },
+    EUR: { code: "EUR", exponent: 2, symbol: "?? },
     JPY: { code: "JPY", exponent: 0, symbol: "Â¥" },
     CNY: { code: "CNY", exponent: 2, symbol: "Â¥" },
 } as const;
@@ -21,23 +21,23 @@ export const CURRENCY_CONFIG = {
 export type CurrencyCode = keyof typeof CURRENCY_CONFIG;
 
 /**
- * å°‡ä½¿?ï¿½è€…è¼¸?ï¿½ï¿½??ï¿½ï¿½?è½‰ï¿½??ï¿½ï¿½??ï¿½åº«å­˜å„²?ï¿½ï¿½?ï¼ˆæ•´?ï¿½ï¿½?
- * @param amount ä½¿ç”¨?ï¿½è¼¸?ï¿½ï¿½??ï¿½ï¿½?ï¼ˆï¿½? 123.45ï¿½?
- * @param currency è²¨å¹£ï¿½?ï¿½ï¿½
- * @returns è³‡ï¿½?åº«ï¿½??ï¿½ï¿½??ï¿½æ•¸?ï¿½ï¿½?ï¿½?12345 ?ï¿½ï¿½?
+ * å°‡ä½¿?¨è€…è¼¸?¥ç??‘é?è½‰æ??ºè??™åº«å­˜å„²?®ä?ï¼ˆæ•´?¸ï?
+ * @param amount ä½¿ç”¨?…è¼¸?¥ç??‘é?ï¼ˆå? 123.45ï¼?
+ * @param currency è²¨å¹£ä»?¢¼
+ * @returns è³‡æ?åº«å??²ç??´æ•¸?¼ï?å¦?12345 ?†ï?
  */
 export function toStorageUnit(amount: number, currency: CurrencyCode = "TWD"): number {
     const config = CURRENCY_CONFIG[currency];
     const factor = Math.pow(10, config.exponent);
-    // ä½¿ç”¨ Math.round ?ï¿½ï¿½?æµ®ï¿½??ï¿½ç²¾åº¦ï¿½?ï¿½?
+    // ä½¿ç”¨ Math.round ?¿å?æµ®é??¸ç²¾åº¦å?é¡?
     return Math.round(amount * factor);
 }
 
 /**
- * å°‡ï¿½??ï¿½åº«å­˜å„²?ï¿½æ•´?ï¿½ï¿½??ï¿½ç‚ºé¡¯ç¤º?ï¿½ï¿½?
- * @param cents è³‡ï¿½?åº«ï¿½??ï¿½ï¿½??ï¿½æ•¸??
- * @param currency è²¨å¹£ï¿½?ï¿½ï¿½
- * @returns é¡¯ç¤º?ï¿½ï¿½??ï¿½ï¿½?ï¼ˆï¿½? 123.45ï¿½?
+ * å°‡è??™åº«å­˜å„²?„æ•´?¸è??›ç‚ºé¡¯ç¤º?‘é?
+ * @param cents è³‡æ?åº«å??²ç??´æ•¸??
+ * @param currency è²¨å¹£ä»?¢¼
+ * @returns é¡¯ç¤º?¨ç??‘é?ï¼ˆå? 123.45ï¼?
  */
 export function toDisplayUnit(cents: number, currency: CurrencyCode = "TWD"): number {
     const config = CURRENCY_CONFIG[currency];
@@ -46,9 +46,9 @@ export function toDisplayUnit(cents: number, currency: CurrencyCode = "TWD"): nu
 }
 
 /**
- * å»ºï¿½? Dinero ?ï¿½ï¿½??ï¿½ä»¶ï¼ˆç”¨?ï¿½ç²¾ç¢ºï¿½?ç®—ï¿½?
- * @param cents è³‡ï¿½?åº«ï¿½??ï¿½ï¿½??ï¿½æ•¸??
- * @param currency è²¨å¹£ï¿½?ï¿½ï¿½
+ * å»ºç? Dinero ?‘é??©ä»¶ï¼ˆç”¨?¼ç²¾ç¢ºé?ç®—ï?
+ * @param cents è³‡æ?åº«å??²ç??´æ•¸??
+ * @param currency è²¨å¹£ä»?¢¼
  */
 export function createMoney(cents: number, currency: CurrencyCode = "TWD") {
     const config = CURRENCY_CONFIG[currency];
@@ -60,9 +60,9 @@ export function createMoney(cents: number, currency: CurrencyCode = "TWD") {
 }
 
 /**
- * ?ï¿½ï¿½??ï¿½ï¿½?é¡ç‚º?ï¿½åœ°?ï¿½ï¿½?ï¿½?
- * @param cents è³‡ï¿½?åº«ï¿½??ï¿½ï¿½??ï¿½æ•¸??
- * @param currency è²¨å¹£ï¿½?ï¿½ï¿½
+ * ?¼å??–é?é¡ç‚º?¬åœ°?–å?ä¸?
+ * @param cents è³‡æ?åº«å??²ç??´æ•¸??
+ * @param currency è²¨å¹£ä»?¢¼
  * @param locale èªç³»
  */
 export function formatMoney(
@@ -82,9 +82,9 @@ export function formatMoney(
 }
 
 /**
- * å®‰å…¨?ï¿½ï¿½?ï¼ˆé¿?ï¿½æµ®é»æ•¸?ï¿½ï¿½?ï¿½?
- * @param a ç¬¬ï¿½??ï¿½ï¿½?é¡ï¿½??ï¿½æ•¸ï¿½?
- * @param b ç¬¬ï¿½??ï¿½ï¿½?é¡ï¿½??ï¿½æ•¸ï¿½?
+ * å®‰å…¨? æ?ï¼ˆé¿?æµ®é»æ•¸?é?ï¼?
+ * @param a ç¬¬ä??‹é?é¡ï??´æ•¸ï¼?
+ * @param b ç¬¬ä??‹é?é¡ï??´æ•¸ï¼?
  */
 export function addMoney(a: number, b: number, currency: CurrencyCode = "TWD"): number {
     const moneyA = createMoney(a, currency);
@@ -93,7 +93,7 @@ export function addMoney(a: number, b: number, currency: CurrencyCode = "TWD"): 
 }
 
 /**
- * å®‰å…¨æ¸›ï¿½?
+ * å®‰å…¨æ¸›æ?
  */
 export function subtractMoney(a: number, b: number, currency: CurrencyCode = "TWD"): number {
     const moneyA = createMoney(a, currency);
@@ -102,7 +102,7 @@ export function subtractMoney(a: number, b: number, currency: CurrencyCode = "TW
 }
 
 /**
- * å®‰å…¨ä¹˜ï¿½?ï¼ˆç”¨?ï¿½ï¿½?ç®—ï¿½??ï¿½ï¿½?ï¿½?
+ * å®‰å…¨ä¹˜æ?ï¼ˆç”¨?¼è?ç®—ç??‡ç?ï¼?
  */
 export function multiplyMoney(amount: number, multiplier: number, currency: CurrencyCode = "TWD"): number {
     const money = createMoney(amount, currency);
@@ -110,7 +110,7 @@ export function multiplyMoney(amount: number, multiplier: number, currency: Curr
 }
 
 /**
- * æ¯”ï¿½??ï¿½ï¿½?
+ * æ¯”è??‘é?
  */
 export function compareMoney(a: number, b: number, currency: CurrencyCode = "TWD"): -1 | 0 | 1 {
     const moneyA = createMoney(a, currency);
@@ -122,14 +122,14 @@ export function compareMoney(a: number, b: number, currency: CurrencyCode = "TWD
 }
 
 /**
- * æª¢æŸ¥?ï¿½ï¿½??ï¿½å¦?ï¿½æ­£??
+ * æª¢æŸ¥?‘é??¯å¦?ºæ­£??
  */
 export function isPositive(cents: number, currency: CurrencyCode = "TWD"): boolean {
     return createMoney(cents, currency).isPositive();
 }
 
 /**
- * æª¢æŸ¥?ï¿½ï¿½??ï¿½å¦?ï¿½é›¶
+ * æª¢æŸ¥?‘é??¯å¦?ºé›¶
  */
 export function isZero(cents: number, currency: CurrencyCode = "TWD"): boolean {
     return createMoney(cents, currency).isZero();

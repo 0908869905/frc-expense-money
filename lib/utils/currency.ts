@@ -1,24 +1,24 @@
-// ï¿½?ï¿½ï¿½å·¥å…·?ï¿½æ•¸
+// å¹?ˆ¥å·¥å…·?½æ•¸
 
 export const SUPPORTED_CURRENCIES = [
-    { code: "TWD", name: "æ–°å°å¹£", symbol: "NT$", locale: "zh-TW" },
-    { code: "USD", name: "ç¾å…ƒ", symbol: "$", locale: "en-US" },
-    { code: "EUR", name: "æ­å…ƒ", symbol: "â‚¬", locale: "de-DE" },
-    { code: "JPY", name: "æ—¥åœ“", symbol: "Â¥", locale: "ja-JP" },
-    { code: "CNY", name: "äººæ°‘å¹£", symbol: "Â¥", locale: "zh-CN" },
+    { code: "TWD", name: "?°å°å¹?, symbol: "NT$", locale: "zh-TW" },
+    { code: "USD", name: "ç¾å?", symbol: "$", locale: "en-US" },
+    { code: "EUR", name: "æ­å?", symbol: "??, locale: "de-DE" },
+    { code: "JPY", name: "?¥å?", symbol: "Â¥", locale: "ja-JP" },
+    { code: "CNY", name: "äººæ?å¹?, symbol: "Â¥", locale: "zh-CN" },
     { code: "HKD", name: "æ¸¯å¹£", symbol: "HK$", locale: "zh-HK" },
-    { code: "KRW", name: "éŸ“åœ“", symbol: "â‚©", locale: "ko-KR" },
-    { code: "GBP", name: "è‹±éŠ", symbol: "Â£", locale: "en-GB" },
+    { code: "KRW", name: "?“å?", symbol: "??, locale: "ko-KR" },
+    { code: "GBP", name: "?±é?", symbol: "Â£", locale: "en-GB" },
 ] as const;
 
 export type CurrencyCode = typeof SUPPORTED_CURRENCIES[number]["code"];
 
-// ?ï¿½ï¿½?ï¿½?ï¿½ï¿½è³‡ï¿½?
+// ?–å?å¹?ˆ¥è³‡è?
 export function getCurrencyInfo(code: string) {
     return SUPPORTED_CURRENCIES.find((c) => c.code === code) || SUPPORTED_CURRENCIES[0];
 }
 
-// ?ï¿½ï¿½??ï¿½ï¿½?ï¿½?(å¸¶å¹£?ï¿½ç¬¦??
+// ?¼å??–é?é¡?(å¸¶å¹£?¥ç¬¦??
 export function formatCurrencyAmount(
     amount: number,
     currencyCode: string = "TWD"
@@ -33,7 +33,7 @@ export function formatCurrencyAmount(
     }).format(amount);
 }
 
-// ?ï¿½ï¿½?ï¿½?ï¿½ï¿½
+// ?›ç?å¹?ˆ¥
 export async function convertCurrency(
     amount: number,
     fromCurrency: string,
@@ -45,12 +45,12 @@ export async function convertCurrency(
     const fromRate = rates[fromCurrency] || 1;
     const toRate = rates[toCurrency] || 1;
 
-    // ?ï¿½ï¿½?ç®—ï¿½? USD (?ï¿½ï¿½?)ï¼Œï¿½??ï¿½ï¿½??ï¿½ç›®æ¨™å¹£??
+    // ?ˆæ?ç®—æ? USD (?ºæ?)ï¼Œå??›ç??ç›®æ¨™å¹£??
     const usdAmount = amount / fromRate;
     return usdAmount * toRate;
 }
 
-// ?ï¿½è¨­?ï¿½ï¿½? (ä½œç‚º?ï¿½ç”¨)
+// ?è¨­?¯ç? (ä½œç‚º?™ç”¨)
 export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
     USD: 1,
     TWD: 31.5,
@@ -62,10 +62,10 @@ export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
     GBP: 0.79,
 };
 
-// æ¨¡æ“¬?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½? (å¯¦ï¿½??ï¿½ç”¨ä¸­å¯??API)
+// æ¨¡æ“¬?–å??³æ??¯ç? (å¯¦é??‰ç”¨ä¸­å¯??API)
 export async function fetchExchangeRates(): Promise<Record<string, number>> {
-    // ?ï¿½è£¡?ï¿½ä»¥?ï¿½å…¥ï¿½?Open Exchange Rates, Fixer.io ï¿½?API
-    // ?ï¿½ï¿½?è¿”ï¿½??ï¿½è¨­??
+    // ?™è£¡?¯ä»¥?¥å…¥å¦?Open Exchange Rates, Fixer.io ç­?API
+    // ?®å?è¿”å??è¨­??
     return DEFAULT_EXCHANGE_RATES;
 }
 

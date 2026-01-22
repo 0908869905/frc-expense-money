@@ -34,20 +34,20 @@ const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#0088fe", "#00C49F"
 
 const CATEGORY_LABELS: Record<string, { zh: string; en: string }> = {
     FOOD: { zh: "餐飲", en: "Food" },
-    TRANSPORT: { zh: "交通", en: "Transport" },
+    TRANSPORT: { zh: "交�?, en: "Transport" },
     HOUSING: { zh: "住宿", en: "Housing" },
-    ENTERTAINMENT: { zh: "娛樂", en: "Entertainment" },
+    ENTERTAINMENT: { zh: "娛�?", en: "Entertainment" },
     UTILITIES: { zh: "水電", en: "Utilities" },
-    HEALTH: { zh: "醫療", en: "Health" },
-    OTHER: { zh: "其他", en: "Other" },
+    HEALTH: { zh: "?��?", en: "Health" },
+    OTHER: { zh: "?��?", en: "Other" },
 }
 
 const STATUS_LABELS: Record<string, { zh: string; en: string }> = {
-    DRAFT: { zh: "草稿", en: "Draft" },
-    PENDING_MANAGER: { zh: "待主管審核", en: "Pending Manager" },
-    PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
-    PAID: { zh: "已付款", en: "Paid" },
-    REJECTED: { zh: "已拒絕", en: "Rejected" },
+    DRAFT: { zh: "?�稿", en: "Draft" },
+    PENDING_MANAGER: { zh: "待主管審??, en: "Pending Manager" },
+    PENDING_FINANCE: { zh: "待財?�審??, en: "Pending Finance" },
+    PAID: { zh: "已�?�?, en: "Paid" },
+    REJECTED: { zh: "已�?�?, en: "Rejected" },
 }
 
 export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, overview }: AnalyticsContentProps) {
@@ -87,10 +87,10 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                    {language === "zh" ? "統計分析" : "Analytics"}
+                    {language === "zh" ? "?��??��?" : "Analytics"}
                 </h1>
                 <p className="text-muted-foreground">
-                    {language === "zh" ? "查看支出統計與趨勢" : "View expense statistics and trends"}
+                    {language === "zh" ? "?��??�出統�??�趨?��??? : "View expense statistics and trends"}
                 </p>
             </div>
 
@@ -110,7 +110,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                         <div className="flex items-center gap-2">
                             <Package className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
-                                {language === "zh" ? "總項目數" : "Total Items"}
+                                {language === "zh" ? "總�??�數" : "Total Items"}
                             </span>
                         </div>
                         <p className="text-2xl font-bold mt-1">{overview.totalItems}</p>
@@ -119,7 +119,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                         <div className="flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
-                                {language === "zh" ? "總金額" : "Total Amount"}
+                                {language === "zh" ? "總�?�? : "Total Amount"}
                             </span>
                         </div>
                         <p className="text-2xl font-bold mt-1">{formatCurrency(overview.totalAmount)}</p>
@@ -128,7 +128,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                         <div className="flex items-center gap-2">
                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm text-muted-foreground">
-                                {language === "zh" ? "本月支出" : "This Month"}
+                                {language === "zh" ? "?��??�出" : "This Month"}
                             </span>
                         </div>
                         <p className="text-2xl font-bold mt-1">{formatCurrency(overview.thisMonthAmount)}</p>
@@ -141,7 +141,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                 {/* Monthly Trend Chart */}
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-lg font-semibold mb-4">
-                        {language === "zh" ? "月度支出趨勢" : "Monthly Expense Trend"}
+                        {language === "zh" ? "?�度?�出趨勢" : "Monthly Expense Trend"}
                     </h3>
                     {monthlyStats.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
@@ -164,7 +164,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                         </ResponsiveContainer>
                     ) : (
                         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                            {language === "zh" ? "暫無數據" : "No data available"}
+                            {language === "zh" ? "?�無?��?" : "No data available"}
                         </div>
                     )}
                 </div>
@@ -172,7 +172,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                 {/* Category Pie Chart */}
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-lg font-semibold mb-4">
-                        {language === "zh" ? "類別佔比" : "Expense by Category"}
+                        {language === "zh" ? "類別佔�?" : "Expense by Category"}
                     </h3>
                     {categoryStats.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
@@ -195,7 +195,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                         </ResponsiveContainer>
                     ) : (
                         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                            {language === "zh" ? "暫無數據" : "No data available"}
+                            {language === "zh" ? "?�無?��?" : "No data available"}
                         </div>
                     )}
                 </div>
@@ -203,7 +203,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                 {/* Status Bar Chart */}
                 <div className="rounded-xl border bg-card p-6 lg:col-span-2">
                     <h3 className="text-lg font-semibold mb-4">
-                        {language === "zh" ? "狀態分佈" : "Status Distribution"}
+                        {language === "zh" ? "?�?��?�? : "Status Distribution"}
                     </h3>
                     {statusStats.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
@@ -217,20 +217,20 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                                 <Bar
                                     yAxisId="left"
                                     dataKey="count"
-                                    name={language === "zh" ? "數量" : "Count"}
+                                    name={language === "zh" ? "?��?" : "Count"}
                                     fill="#8884d8"
                                 />
                                 <Bar
                                     yAxisId="right"
                                     dataKey="amount"
-                                    name={language === "zh" ? "金額" : "Amount"}
+                                    name={language === "zh" ? "?��?" : "Amount"}
                                     fill="#82ca9d"
                                 />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : (
                         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                            {language === "zh" ? "暫無數據" : "No data available"}
+                            {language === "zh" ? "?�無?��?" : "No data available"}
                         </div>
                     )}
                 </div>
@@ -238,3 +238,4 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
         </div>
     )
 }
+

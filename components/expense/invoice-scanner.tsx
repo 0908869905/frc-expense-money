@@ -20,19 +20,19 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = useCallback(async (file: File) => {
-        // 驗證檔案類型
+        // 驗�?檔�?類�?
         if (!file.type.startsWith("image/")) {
-            onError?.("請選擇圖片檔案");
+            onError?.("請選?��??��?�?);
             return;
         }
 
-        // 驗證檔案大小 (5MB)
+        // 驗�?檔�?大�? (5MB)
         if (file.size > 5 * 1024 * 1024) {
-            onError?.("檔案大小不能超過 5MB");
+            onError?.("?��?大�?不能超�? 5MB");
             return;
         }
 
-        // 轉換為 Base64
+        // 轉�???Base64
         const reader = new FileReader();
         reader.onload = async (e) => {
             const base64 = e.target?.result as string;
@@ -47,10 +47,10 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
                 if (scanResult.success && scanResult.data) {
                     onScanComplete?.(scanResult.data);
                 } else {
-                    onError?.(scanResult.error || "辨識失敗");
+                    onError?.(scanResult.error || "辨�?失�?");
                 }
             } catch (error) {
-                onError?.("OCR 服務暫時無法使用");
+                onError?.("OCR ?��??��??��?使用");
             } finally {
                 setIsScanning(false);
             }
@@ -78,7 +78,7 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
 
     return (
         <div className={cn("space-y-4", className)}>
-            {/* 上傳區域 */}
+            {/* 上傳?�??*/}
             {!preview ? (
                 <div
                     onDrop={handleDrop}
@@ -88,10 +88,10 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
                 >
                     <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-sm font-medium">
-                        拖放發票圖片或點擊上傳
+                        ?�放?�票?��??��??��???
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                        支援 JPG、PNG、WEBP (最大 5MB)
+                        ?�援 JPG?�PNG?�WEBP (?��?5MB)
                     </p>
                     <input
                         ref={fileInputRef}
@@ -106,7 +106,7 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
                 </div>
             ) : (
                 <div className="relative">
-                    {/* 圖片預覽 */}
+                    {/* ?��??�覽 */}
                     <div className="relative rounded-xl overflow-hidden border">
                         <img
                             src={preview}
@@ -121,15 +121,15 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
                         </button>
                     </div>
 
-                    {/* 掃描中 */}
+                    {/* ?��??�??*/}
                     {isScanning && (
                         <div className="mt-4 flex items-center gap-2 text-primary">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">正在辨識發票...</span>
+                            <span className="text-sm">�?��辨�??�票...</span>
                         </div>
                     )}
 
-                    {/* 掃描結果 */}
+                    {/* ?��?結�? */}
                     {result && (
                         <div className={cn(
                             "mt-4 p-4 rounded-lg",
@@ -145,26 +145,26 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
                                     {result.success && result.data ? (
                                         <div className="space-y-2">
                                             <p className="text-sm font-medium text-green-800">
-                                                辨識成功 (信心度: {Math.round((result.data.confidence || 0) * 100)}%)
+                                                辨�??��? (信�?�? {Math.round((result.data.confidence || 0) * 100)}%)
                                             </p>
                                             <div className="text-sm text-green-700 space-y-1">
                                                 {result.data.invoiceNumber && (
-                                                    <p>發票號碼: <strong>{result.data.invoiceNumber}</strong></p>
+                                                    <p>?�票?�碼: <strong>{result.data.invoiceNumber}</strong></p>
                                                 )}
                                                 {result.data.date && (
-                                                    <p>日期: <strong>{result.data.date}</strong></p>
+                                                    <p>?��?: <strong>{result.data.date}</strong></p>
                                                 )}
                                                 {result.data.totalAmount !== null && (
-                                                    <p>金額: <strong>NT$ {result.data.totalAmount}</strong></p>
+                                                    <p>?��?: <strong>NT$ {result.data.totalAmount}</strong></p>
                                                 )}
                                                 {result.data.vendorName && (
-                                                    <p>商家: <strong>{result.data.vendorName}</strong></p>
+                                                    <p>?�家: <strong>{result.data.vendorName}</strong></p>
                                                 )}
                                             </div>
                                         </div>
                                     ) : (
                                         <p className="text-sm text-red-800">
-                                            {result.error || "無法辨識發票內容"}
+                                            {result.error || "?��?辨�??�票?�容"}
                                         </p>
                                     )}
                                 </div>
@@ -176,3 +176,4 @@ export function InvoiceScanner({ onScanComplete, onError, className }: InvoiceSc
         </div>
     );
 }
+

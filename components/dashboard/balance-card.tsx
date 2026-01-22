@@ -27,10 +27,10 @@ interface BalanceCardProps {
 
 const FUNDING_TYPES = [
     { value: "SPONSORSHIP", label: "贊助" },
-    { value: "DONATION", label: "捐款" },
-    { value: "GRANT", label: "補助金" },
-    { value: "FUNDRAISING", label: "募款活動" },
-    { value: "OTHER", label: "其他" },
+    { value: "DONATION", label: "?�款" },
+    { value: "GRANT", label: "補助?? },
+    { value: "FUNDRAISING", label: "?�款活�?" },
+    { value: "OTHER", label: "?��?" },
 ]
 
 export function BalanceCard({ totalIncome, totalExpense, currentBalance, fundingRecords = [] }: BalanceCardProps) {
@@ -72,14 +72,14 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
     }
 
     const handleDelete = (id: string) => {
-        if (!confirm("確定要刪除此資金記錄嗎？")) return
+        if (!confirm("確�?要刪?�此資�?記�??��?")) return
         startTransition(async () => {
             const result = await deleteFundingRecord(id)
             if (result.success) {
-                showMessage("success", result.message || "已刪除")
+                showMessage("success", result.message || "已刪??)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || "刪除失敗")
+                showMessage("error", result.message || "?�除失�?")
             }
         })
     }
@@ -108,11 +108,11 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                 date: new Date(editForm.date),
             })
             if (result.success) {
-                showMessage("success", result.message || "已更新")
+                showMessage("success", result.message || "已更??)
                 setEditingRecord(null)
                 window.location.reload()
             } else {
-                showMessage("error", result.message || "更新失敗")
+                showMessage("error", result.message || "?�新失�?")
             }
         })
     }
@@ -125,22 +125,22 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                         <Wallet className="h-4 w-4" />
-                        財務總覽
+                        財�??��?
                     </h3>
                     {fundingRecords.length > 0 && (
                         <button
                             onClick={() => setExpanded(!expanded)}
                             className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
                         >
-                            {expanded ? "收起" : "展開記錄"}
+                            {expanded ? "?�起" : "展�?記�?"}
                             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
                     )}
                 </div>
 
-                {/* 目前餘額 - 大字體 */}
+                {/* ?��?餘�? - 大�?�?*/}
                 <div className="mb-6">
-                    <p className="text-sm text-muted-foreground mb-1">目前餘額</p>
+                    <p className="text-sm text-muted-foreground mb-1">?��?餘�?</p>
                     <p
                         className={`text-3xl font-bold ${isPositive ? "text-green-600" : "text-red-600"
                             }`}
@@ -149,14 +149,14 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                     </p>
                 </div>
 
-                {/* 收入/支出 詳細 */}
+                {/* ?�入/?�出 ?�細 */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
                             <TrendingUp className="h-4 w-4 text-green-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">總收入</p>
+                            <p className="text-xs text-muted-foreground">總收??/p>
                             <p className="text-sm font-semibold text-green-600">
                                 {formatCurrency(totalIncome)}
                             </p>
@@ -168,7 +168,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                             <TrendingDown className="h-4 w-4 text-red-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">總支出</p>
+                            <p className="text-xs text-muted-foreground">總支??/p>
                             <p className="text-sm font-semibold text-red-600">
                                 {formatCurrency(totalExpense)}
                             </p>
@@ -176,10 +176,10 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                     </div>
                 </div>
 
-                {/* 資金記錄列表 */}
+                {/* 資�?記�??�表 */}
                 {expanded && fundingRecords.length > 0 && (
                     <div className="mt-6 pt-4 border-t">
-                        <h4 className="text-sm font-medium mb-3">資金記錄</h4>
+                        <h4 className="text-sm font-medium mb-3">資�?記�?</h4>
                         {message && (
                             <div className={`mb-3 p-2 rounded text-sm ${message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
                                 {message.text}
@@ -199,7 +199,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                                             </span>
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            {formatDate(record.date)} · {record.source || "未知來源"} · {record.recordedBy}
+                                            {formatDate(record.date)} ??{record.source || "?�知來�?"} ??{record.recordedBy}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2 ml-2">
@@ -217,7 +217,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                                             onClick={() => handleDelete(record.id)}
                                             disabled={isPending}
                                             className="p-1.5 rounded hover:bg-red-50 text-red-600"
-                                            title="刪除"
+                                            title="?�除"
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </button>
@@ -236,7 +236,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                         <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Edit2 className="h-5 w-5" />
-                                編輯資金記錄
+                                編輯資�?記�?
                             </h2>
                             <Button variant="ghost" size="icon" onClick={() => setEditingRecord(null)}>
                                 <X className="h-4 w-4" />
@@ -245,7 +245,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
 
                         <div className="p-4 space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="edit-title">標題</Label>
+                                <Label htmlFor="edit-title">標�?</Label>
                                 <Input
                                     id="edit-title"
                                     value={editForm.title}
@@ -254,7 +254,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-amount">金額</Label>
+                                <Label htmlFor="edit-amount">?��?</Label>
                                 <Input
                                     id="edit-amount"
                                     type="number"
@@ -264,7 +264,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-type">類別</Label>
+                                <Label htmlFor="edit-type">類�?</Label>
                                 <select
                                     id="edit-type"
                                     value={editForm.type}
@@ -280,7 +280,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-source">來源</Label>
+                                <Label htmlFor="edit-source">來�?</Label>
                                 <Input
                                     id="edit-source"
                                     value={editForm.source}
@@ -289,7 +289,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-date">日期</Label>
+                                <Label htmlFor="edit-date">?��?</Label>
                                 <Input
                                     id="edit-date"
                                     type="date"
@@ -299,7 +299,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="edit-description">備註</Label>
+                                <Label htmlFor="edit-description">?�註</Label>
                                 <textarea
                                     id="edit-description"
                                     value={editForm.description}
@@ -315,7 +315,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                                     className="flex-1"
                                     onClick={() => setEditingRecord(null)}
                                 >
-                                    取消
+                                    ?��?
                                 </Button>
                                 <Button
                                     type="button"
@@ -326,10 +326,10 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                                     {isPending ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            更新中...
+                                            ?�新�?..
                                         </>
                                     ) : (
-                                        "確認更新"
+                                        "確�??�新"
                                     )}
                                 </Button>
                             </div>
@@ -340,3 +340,4 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
         </>
     )
 }
+

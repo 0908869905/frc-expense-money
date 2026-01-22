@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * 收據審核按鈕
- * 放在費用項目旁邊，點擊後執行智慧審核
+ * ?��?審核?��?
+ * ?�放?�費?��??��?，�??��??��??�慧審核
  */
 
 import { useState, useRef } from "react";
@@ -34,13 +34,13 @@ export function ReceiptAuditButton({
     const [dialogOpen, setDialogOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // 處理檔案上傳
+    // ?��?檔�?上傳
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         if (!file.type.startsWith("image/")) {
-            alert("請選擇圖片檔案");
+            alert("請選?��??��?�?);
             return;
         }
 
@@ -53,7 +53,7 @@ export function ReceiptAuditButton({
         e.target.value = "";
     };
 
-    // 執行審核
+    // ?��?審核
     const performAudit = async (imageSource: string) => {
         setIsLoading(true);
         try {
@@ -62,7 +62,7 @@ export function ReceiptAuditButton({
             setDialogOpen(true);
             onAuditComplete?.(auditResult);
         } catch (error) {
-            console.error("審核失敗:", error);
+            console.error("審核失�?:", error);
             setResult({
                 success: false,
                 isValid: false,
@@ -70,9 +70,9 @@ export function ReceiptAuditButton({
                 issues: [{
                     type: "INVALID_FORMAT",
                     severity: "error",
-                    message: "審核過程發生錯誤",
+                    message: "審核?��??��??�誤",
                 }],
-                error: "審核失敗",
+                error: "審核失�?",
             });
             setDialogOpen(true);
         } finally {
@@ -80,7 +80,7 @@ export function ReceiptAuditButton({
         }
     };
 
-    // 點擊處理
+    // 點�??��?
     const handleClick = async () => {
         if (receiptUrl) {
             await performAudit(receiptUrl);
@@ -89,7 +89,7 @@ export function ReceiptAuditButton({
         }
     };
 
-    // 已有審核狀態顯示
+    // ?��?審核?�?�顯�?
     const getStatusIcon = () => {
         if (existingAuditStatus === true) {
             return <CheckCircle2 className="h-3 w-3 text-green-500" />;
@@ -100,7 +100,7 @@ export function ReceiptAuditButton({
         return null;
     };
 
-    // 渲染按鈕
+    // 渲�??��?
     const renderButton = () => {
         if (variant === "icon") {
             return (
@@ -110,7 +110,7 @@ export function ReceiptAuditButton({
                     onClick={handleClick}
                     disabled={isLoading}
                     className="h-8 w-8"
-                    title="智慧審核收據"
+                    title="?�慧審核?��?"
                 >
                     {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -154,7 +154,7 @@ export function ReceiptAuditButton({
                 {isLoading ? (
                     <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        審核中...
+                        審核�?..
                     </>
                 ) : (
                     <>
@@ -163,7 +163,7 @@ export function ReceiptAuditButton({
                         ) : (
                             <Upload className="h-4 w-4" />
                         )}
-                        {receiptUrl ? "智慧審核收據" : "上傳並審查收據"}
+                        {receiptUrl ? "?�慧審核?��?" : "上傳並審?�收??}
                         {getStatusIcon()}
                     </>
                 )}
@@ -190,3 +190,4 @@ export function ReceiptAuditButton({
         </>
     );
 }
+
