@@ -71,14 +71,14 @@ export async function recognizeInvoice(
                 ],
             };
         } else {
-            return { success: false, error: "?��??��??��?�? };
+            return { success: false, error: "無效的圖片來源" };
         }
 
         const [result] = await client.annotateImage(request);
         const fullText = result.fullTextAnnotation?.text || "";
 
         if (!fullText) {
-            return { success: false, error: "?��?從�??�中?��??��?" };
+            return { success: false, error: "無法從圖片中辨識文字" };
         }
 
         // �???�票?�容

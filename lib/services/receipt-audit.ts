@@ -257,7 +257,7 @@ export async function batchAuditReport(reportId: string): Promise<BatchAuditResu
                         issues: [{
                             type: "MISSING_RECEIPT",
                             severity: "error",
-                            message: "此�??�缺少收?��???,
+                            message: "此項目缺少收據",
                         }],
                     },
                 });
