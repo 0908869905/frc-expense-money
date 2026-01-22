@@ -127,3 +127,68 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON  # For OCR
 - All Server Actions require `auth()` check
 - OCR URL endpoint has SSRF protection (blocks internal IPs)
 - Cron endpoint requires `CRON_SECRET_KEY` header
+
+---
+
+## 專案特定注意事項
+
+### 已知的重複檔案
+
+以下檔案有重複，修改時需同步更新或考慮合併：
+
+| 檔案 1 | 檔案 2 | 說明 |
+|--------|--------|------|
+| `lib/agents/receipt-audit.ts` | `lib/services/receipt-audit.ts` | 收據審核邏輯 |
+| `lib/agents/ocr.ts` | `lib/services/ocr.ts` | OCR 辨識邏輯 |
+
+**建議**：未來重構時合併這些重複檔案。
+
+### Prisma JSON 欄位處理
+
+本專案使用 Prisma 的 `Json` 類型欄位（如 `ReceiptAudit.issues`）。
+儲存資料時必須使用正確的類型轉換：
+
+```typescript
+import { Prisma } from "@prisma/client";
+
+// 正確做法
+const issuesJson = result.issues.length > 0
+    ? (result.issues as unknown as Prisma.InputJsonValue)
+    : Prisma.JsonNull;
+```
+
+### 類型聲明檔案
+
+本專案需要的自定義類型聲明：
+- `types/dinero.d.ts` - dinero.js 金額計算庫
+- `types/next-auth.d.ts` - NextAuth 擴展
+
+### 部署前必做
+
+```bash
+# 推送前務必執行
+npm run build
+```
+
+---
+
+## 問題紀錄
+
+### 2026-01-22：Vercel 部署失敗
+
+**問題**：連續多次部署失敗
+
+**錯誤**：
+1. `Type 'Record<string, unknown>[]' is not assignable to type 'NullableJsonNullValueInput'`
+2. `Cannot find module 'dinero.js' type declarations`
+3. `Cannot find module '@/lib/ocr'`
+
+**原因**：
+1. 程式碼重構時沒有同步更新所有引用
+2. 存在重複檔案但沒有同步維護
+3. 缺少第三方模組類型聲明
+
+**修復**：
+- 修正 Prisma JSON 類型轉換（2 個檔案）
+- 添加 dinero.js 類型聲明
+- 修正 types/audit.ts 的導入路徑
