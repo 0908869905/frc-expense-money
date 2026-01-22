@@ -6,6 +6,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { recognizeInvoice } from "@/lib/agents/ocr";
 import { toDisplayUnit } from "@/lib/money";
 import type {
@@ -181,8 +182,10 @@ export async function saveAuditResult(
     result: AuditResult
 ): Promise<void> {
     const data = result.extractedData;
-    // 將 issues 轉換為 JSON 相容格式
-    const issuesJson = result.issues as unknown as Record<string, unknown>[];
+    // 將 issues 轉換為 Prisma JSON 相容格式
+    const issuesJson = result.issues.length > 0
+        ? (result.issues as unknown as Prisma.InputJsonValue)
+        : Prisma.JsonNull;
 
     await prisma.receiptAudit.upsert({
         where: { expenseItemId },
