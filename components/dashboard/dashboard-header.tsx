@@ -29,7 +29,7 @@ export function DashboardHeader({ userName, children }: DashboardHeaderProps) {
                 <button
                     onClick={toggleTheme}
                     className="p-2 rounded-lg hover:bg-muted transition-colors"
-                    title={theme === "dark" ? "?��??�淺?�模�? : "?��??�深?�模�?}
+                    title={theme === "dark" ? "切換到淺色模式" : "切換到深色模式"}
                 >
                     {theme === "dark" ? (
                         <Sun className="h-5 w-5 text-yellow-500" />

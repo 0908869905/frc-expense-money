@@ -63,16 +63,16 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Upload failed", error);
-      alert("上傳失�?");
+      alert("上傳失敗");
     } finally {
       setUploading(false);
     }
   };
 
-  // ?��???OCR ?��??�能
+  // 獨立 OCR 掃描功能
   const handleScan = async () => {
     if (!imageBase64) {
-      alert("請�?上傳?��??��?");
+      alert("請先上傳收據圖片");
       return;
     }
     if (!onOCRComplete) return;
@@ -89,11 +89,11 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
           invoiceNumber: result.data.invoiceNumber || undefined,
         });
       } else {
-        alert(result.error || "OCR 辨�?失�?");
+        alert(result.error || "OCR 辨識失敗");
       }
     } catch (err) {
       console.error("OCR failed:", err);
-      alert("OCR 辨�?失�?");
+      alert("OCR 辨識失敗");
     } finally {
       setScanning(false);
     }
@@ -108,7 +108,7 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
         className="hidden"
         accept="image/*,.pdf"
       />
-      {/* 上傳?��? */}
+      {/* 上傳按鈕 */}
       <Button
         type="button"
         variant="outline"
@@ -122,10 +122,10 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        {uploading ? "上傳�? : preview ? "?��?" : "上傳"}
+        {uploading ? "上傳中" : preview ? "更換" : "上傳"}
       </Button>
 
-      {/* ?��???OCR ?�慧?��??��? */}
+      {/* 獨立 OCR 智慧掃描按鈕 */}
       {onOCRComplete && (
         <Button
           type="button"
@@ -134,20 +134,20 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
           onClick={handleScan}
           disabled={!preview || scanning}
           className="gap-1 px-2"
-          title="?�慧?��??��?資�?"
+          title="智慧掃描收據資料"
         >
           {scanning ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Sparkles className="h-4 w-4 text-yellow-500" />
           )}
-          {scanning ? "辨�?�? : "?��?"}
+          {scanning ? "辨識中" : "掃描"}
         </Button>
       )}
 
       {preview && (
         <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline">
-          檢�?
+          檢視
         </a>
       )}
     </div>
@@ -191,20 +191,22 @@ export function ExpenseForm() {
     name: "items",
   });
 
-  // ?��? OCR 結�?，自?�填?�表?��?�?  const handleOCRResult = (index: number, data: OCRResult) => {
+  // 處理 OCR 結果，自動填入表單欄位
+  const handleOCRResult = (index: number, data: OCRResult) => {
     if (data.date) {
-      // 轉�??��??��???input date ?��? (YYYY-MM-DD)
+      // 轉換成 input date 格式 (YYYY-MM-DD)
       try {
         const dateStr = data.date;
-        // ?�試�??常�??�日?�格�?        let dateObj: Date | null = null;
+        // 嘗試解析常見日期格式
+        let dateObj: Date | null = null;
         if (dateStr.includes('/')) {
           const parts = dateStr.split('/');
           if (parts.length === 3) {
-            // ?�能??YYYY/MM/DD ??MM/DD/YYYY ??DD/MM/YYYY
+            // 可能是 YYYY/MM/DD 或 MM/DD/YYYY 或 DD/MM/YYYY
             if (parts[0].length === 4) {
               dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             } else {
-              // ?�設 MM/DD/YYYY
+              // 假設 MM/DD/YYYY
               dateObj = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
             }
           }
@@ -228,7 +230,7 @@ export function ExpenseForm() {
       // @ts-ignore
       control._formValues.items[index].description = data.vendor;
     }
-    // 觸發?�新渲�?
+    // 觸發重新渲染
     reset(control._formValues);
   };
 
@@ -256,8 +258,8 @@ export function ExpenseForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto py-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">?��??�帳??/h2>
-          <p className="text-muted-foreground">?�交?��?費用?�銷?��???/p>
+          <h2 className="text-3xl font-bold tracking-tight">新增報帳單</h2>
+          <p className="text-muted-foreground">提交您的費用報銷申請</p>
         </div>
       </div>
 
@@ -270,26 +272,26 @@ export function ExpenseForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle>?�帳?��?�?/CardTitle>
-          <CardDescription>此次?�銷?�基?��?訊�?/CardDescription>
+          <CardTitle>報帳單資訊</CardTitle>
+          <CardDescription>此次報銷的基本資訊</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
           <FormItem>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">?�帳?��?�?/label>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">報帳單標題</label>
             <input
               {...register("title")}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="例�?：�??�客?��?�?
+              placeholder="例如：團隊聚餐費用"
             />
             {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
           </FormItem>
 
           <FormItem>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">?��?說�?</label>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">詳細說明</label>
             <textarea
               {...register("description")}
               className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="詳細說�?費用?�容..."
+              placeholder="詳細說明費用內容..."
             />
           </FormItem>
 
@@ -299,14 +301,14 @@ export function ExpenseForm() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">費用?�細?�目</h3>
+          <h3 className="text-lg font-medium">費用明細項目</h3>
           <Button
             type="button"
             variant="secondary"
             size="sm"
             onClick={() => append({ date: new Date(), category: "Food", customCategory: "", description: "", amount: 0, receiptUrl: null })}
           >
-            <Plus className="mr-2 h-4 w-4" />?��??�目
+            <Plus className="mr-2 h-4 w-4" />新增項目
           </Button>
         </div>
 
@@ -315,7 +317,7 @@ export function ExpenseForm() {
             <CardContent className="p-6">
               <div className="grid gap-6 md:grid-cols-12">
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">?��?</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">日期</label>
                   <input
                     type="date"
                     {...register(`items.${index}.date` as const)}
@@ -335,23 +337,23 @@ export function ExpenseForm() {
                   </select>
                 </div>
 
-                {/* ?��?義�??�輸?��? - ?�選??Other ?�顯�?*/}
+                {/* 自定義類別輸入框 - 當選擇 Other 時顯示 */}
                 {watch(`items.${index}.category`) === 'Other' && (
                   <div className="md:col-span-1 space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase">?��?類別</label>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">自訂類別</label>
                     <input
                       {...register(`items.${index}.customCategory` as const)}
-                      placeholder="輸入類別?�稱"
+                      placeholder="輸入類別名稱"
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                 )}
 
                 <div className="md:col-span-4 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">說�?</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">說明</label>
                   <input
                     {...register(`items.${index}.description` as const)}
-                    placeholder="?�客?��?�?
+                    placeholder="聚餐費用"
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   />
                   {errors.items?.[index]?.description && (
@@ -360,7 +362,7 @@ export function ExpenseForm() {
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">?��?</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">金額</label>
                   <div className="relative">
                     <span className="absolute left-2 top-2.5 text-xs text-muted-foreground">$</span>
                     <input
@@ -407,15 +409,15 @@ export function ExpenseForm() {
       </div>
 
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={() => reset()}>?��?</Button>
+        <Button type="button" variant="outline" onClick={() => reset()}>重置</Button>
         <Button type="submit" disabled={isPending} className="min-w-[150px]">
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ?�交�?..
+              提交中...
             </>
           ) : (
-            "?�交?�帳??
+            "提交報帳單"
           )}
         </Button>
       </div>

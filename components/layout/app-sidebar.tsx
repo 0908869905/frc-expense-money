@@ -47,7 +47,8 @@ export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarPro
       await signOut({ callbackUrl: "/login" })
     } catch (error) {
       console.error("Logout error:", error)
-      // Fallback: ?��??��???      window.location.href = "/login"
+      // Fallback: 直接導向
+      window.location.href = "/login"
     }
   }
 
@@ -76,37 +77,37 @@ export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarPro
         <SidebarMenu className="mt-4 px-2">
           {/* Common Items */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("?�表板", "Dashboard")}>
+            <SidebarMenuButton asChild tooltip={t("儀表板", "Dashboard")}>
               <a href="/dashboard">
                 <LayoutDashboard />
-                <span>{t("?�表板", "Dashboard")}</span>
+                <span>{t("儀表板", "Dashboard")}</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {/* ?��??�費 - USER 以�??��??�可�?*/}
+          {/* 我的費用 - USER 以上角色可見 */}
           {role !== "USER" && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("?��??�費", "My Expenses")}>
+              <SidebarMenuButton asChild tooltip={t("我的費用", "My Expenses")}>
                 <a href="/dashboard/expenses">
                   <CreditCard />
-                  <span>{t("?��??�費", "My Expenses")}</span>
+                  <span>{t("我的費用", "My Expenses")}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          {/* 庫�?管�? - 機�?組用??/ 財�? / 管�??�可�?*/}
+          {/* 庫存管理 - 機械組用戶 / 財務 / 管理員可見 */}
           {(department === "MECHANICAL" || role === "FINANCE" || role === "ADMIN") && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("庫�?管�?", "Inventory")}>
+              <SidebarMenuButton asChild tooltip={t("庫存管理", "Inventory")}>
                 <a href="/dashboard/inventory">
                   <Package />
-                  <span>{t("庫�?管�?", "Inventory")}</span>
+                  <span>{t("庫存管理", "Inventory")}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
 
-          {/* 組長 / 財�? / 管�????�審??*/}
+          {/* 組長 / 財務 / 管理員可審核 */}
           {(role === "LEADER" || role === "FINANCE" || role === "ADMIN") && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip={t("審核", "Approvals")}>
@@ -118,34 +119,34 @@ export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarPro
             </SidebarMenuItem>
           )}
 
-          {/* ?��???/ 組長 / 財�? / 管�????�查?��???*/}
+          {/* 副組 / 組長 / 財務 / 管理員可查資金 */}
           {(role === "VICE_LEADER" || role === "LEADER" || role === "FINANCE" || role === "ADMIN") && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("資�?記�?", "Funding")}>
+              <SidebarMenuButton asChild tooltip={t("資金記錄", "Funding")}>
                 <a href="/dashboard/funding">
                   <Wallet />
-                  <span>{t("資�?記�?", "Funding")}</span>
+                  <span>{t("資金記錄", "Funding")}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
 
-          {/* 財�? / 管�????��? */}
+          {/* 財務 / 管理員功能 */}
           {(role === "FINANCE" || role === "ADMIN") && (
             <>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={t("?�?�報�?, "All Reports")}>
+                <SidebarMenuButton asChild tooltip={t("所有報表", "All Reports")}>
                   <a href="/dashboard/reports">
                     <FileText />
-                    <span>{t("?�?�報�?, "All Reports")}</span>
+                    <span>{t("所有報表", "All Reports")}</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={t("?��??��?", "Analytics")}>
+                <SidebarMenuButton asChild tooltip={t("統計分析", "Analytics")}>
                   <a href="/dashboard/analytics">
                     <BarChart3 />
-                    <span>{t("?��??��?", "Analytics")}</span>
+                    <span>{t("統計分析", "Analytics")}</span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -155,29 +156,29 @@ export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarPro
           {/* Admin Only Items */}
           {role === "ADMIN" && (
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("?�戶管�?", "User Management")}>
+              <SidebarMenuButton asChild tooltip={t("用戶管理", "User Management")}>
                 <a href="/dashboard/users">
                   <Users />
-                  <span>{t("?�戶管�?", "Users")}</span>
+                  <span>{t("用戶管理", "Users")}</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
 
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("?�人資�?", "Profile")}>
+            <SidebarMenuButton asChild tooltip={t("個人資料", "Profile")}>
               <a href="/dashboard/profile">
                 <User />
-                <span>{t("?�人資�?", "Profile")}</span>
+                <span>{t("個人資料", "Profile")}</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("設�?", "Settings")}>
+            <SidebarMenuButton asChild tooltip={t("設定", "Settings")}>
               <a href="/dashboard/settings">
                 <Settings />
-                <span>{t("設�?", "Settings")}</span>
+                <span>{t("設定", "Settings")}</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -187,12 +188,12 @@ export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarPro
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={t("?�出", "Sign Out")}
+              tooltip={t("登出", "Sign Out")}
               onClick={handleLogout}
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
               <LogOut />
-              <span>{t("?�出", "Sign Out")}</span>
+              <span>{t("登出", "Sign Out")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -200,4 +201,3 @@ export function AppSidebar({ userRole, userDepartment, ...props }: AppSidebarPro
     </Sidebar>
   )
 }
-

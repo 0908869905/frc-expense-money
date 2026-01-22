@@ -11,10 +11,10 @@ import { useLanguage } from "@/lib/context/language-context"
 
 const FUNDING_TYPES = [
     { value: "SPONSORSHIP", label: "贊助" },
-    { value: "DONATION", label: "?�款" },
-    { value: "GRANT", label: "補助?? },
-    { value: "FUNDRAISING", label: "?�款活�?" },
-    { value: "OTHER", label: "?��?" },
+    { value: "DONATION", label: "捐款" },
+    { value: "GRANT", label: "補助金" },
+    { value: "FUNDRAISING", label: "募款活動" },
+    { value: "OTHER", label: "其他" },
 ]
 
 export function FundingDialog() {
@@ -33,7 +33,7 @@ export function FundingDialog() {
         })
     }
 
-    // ?��?後�??��?話�?
+    // 成功後關閉對話框
     if (state.success && open) {
         setTimeout(() => {
             setOpen(false)
@@ -45,7 +45,7 @@ export function FundingDialog() {
         return (
             <Button onClick={() => setOpen(true)} variant="outline" className="gap-2">
                 <Plus className="h-4 w-4" />
-                ?��?資�?
+                新增資金
             </Button>
         )
     }
@@ -56,7 +56,7 @@ export function FundingDialog() {
                 <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="text-lg font-semibold flex items-center gap-2">
                         <DollarSign className="h-5 w-5" />
-                        ?��?資�?記�?
+                        新增資金記錄
                     </h2>
                     <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
                         <X className="h-4 w-4" />
@@ -76,11 +76,11 @@ export function FundingDialog() {
                     )}
 
                     <div className="space-y-2">
-                        <Label htmlFor="title">標�? *</Label>
+                        <Label htmlFor="title">標題 *</Label>
                         <Input
                             id="title"
                             name="title"
-                            placeholder="例�?：XX?�司贊助"
+                            placeholder="例如：XX公司贊助"
                             required
                         />
                         {state.errors?.title && (
@@ -89,7 +89,7 @@ export function FundingDialog() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="amount">?��? (TWD) *</Label>
+                        <Label htmlFor="amount">金額 (TWD) *</Label>
                         <Input
                             id="amount"
                             name="amount"
@@ -105,7 +105,7 @@ export function FundingDialog() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="type">類�? *</Label>
+                        <Label htmlFor="type">類別 *</Label>
                         <select
                             id="type"
                             name="type"
@@ -121,12 +121,12 @@ export function FundingDialog() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="source">來�? (?�司/?�人)</Label>
-                        <Input id="source" name="source" placeholder="贊助?��?�? />
+                        <Label htmlFor="source">來源 (公司/個人)</Label>
+                        <Input id="source" name="source" placeholder="贊助者名稱" />
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="date">?�帳?��?</Label>
+                        <Label htmlFor="date">入帳日期</Label>
                         <Input
                             id="date"
                             name="date"
@@ -136,12 +136,12 @@ export function FundingDialog() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description">?�註</Label>
+                        <Label htmlFor="description">備註</Label>
                         <textarea
                             id="description"
                             name="description"
                             className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            placeholder="補�?說�?..."
+                            placeholder="補充說明..."
                         />
                     </div>
 
@@ -152,16 +152,16 @@ export function FundingDialog() {
                             className="flex-1"
                             onClick={() => setOpen(false)}
                         >
-                            ?��?
+                            取消
                         </Button>
                         <Button type="submit" className="flex-1" disabled={isPending}>
                             {isPending ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    ?�交�?..
+                                    提交中...
                                 </>
                             ) : (
-                                "確�??��?"
+                                "確認新增"
                             )}
                         </Button>
                     </div>
@@ -170,4 +170,3 @@ export function FundingDialog() {
         </div>
     )
 }
-

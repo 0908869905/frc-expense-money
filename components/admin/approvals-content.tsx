@@ -35,7 +35,7 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
     }
 
     const handleReject = async (reportId: string) => {
-        const reason = prompt(language === "zh" ? "請輸?��?絕�??��?" : "Please enter rejection reason:")
+        const reason = prompt(language === "zh" ? "請輸入拒絕原因：" : "Please enter rejection reason:")
         if (!reason) return
 
         setProcessingId(reportId)
@@ -55,11 +55,11 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
         <div className="flex flex-col gap-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                    {language === "zh" ? "審核?�帳?? : "Approvals"}
+                    {language === "zh" ? "審核報帳" : "Approvals"}
                 </h1>
                 <p className="text-muted-foreground">
                     {language === "zh"
-                        ? `你�? ${localReports.length} ?��?審核?�報帳單`
+                        ? `你有 ${localReports.length} 筆待審核的報帳單`
                         : `You have ${localReports.length} pending expense report(s)`}
                 </p>
             </div>
@@ -70,7 +70,7 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                     <div className="rounded-xl border bg-card p-8 text-center">
                         <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-muted-foreground">
-                            {language === "zh" ? "沒�?待審?��??�帳?? : "No pending expense reports"}
+                            {language === "zh" ? "沒有待審核的報帳單" : "No pending expense reports"}
                         </p>
                     </div>
                 ) : (
@@ -80,10 +80,10 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                                 <div>
                                     <h3 className="font-semibold text-lg">{report.title}</h3>
                                     <p className="text-sm text-muted-foreground">
-                                        {language === "zh" ? "?�交?? : "Submitted by"}: {report.submitter?.name || report.submitter?.email}
+                                        {language === "zh" ? "提交者" : "Submitted by"}: {report.submitter?.name || report.submitter?.email}
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        {formatDate(report.createdAt)} ??{report.items.length} {language === "zh" ? "筆�??? : "items"}
+                                        {formatDate(report.createdAt)} · {report.items.length} {language === "zh" ? "筆項目" : "items"}
                                     </p>
                                 </div>
                                 <div className="text-right">
@@ -97,7 +97,7 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                             {/* Items Preview */}
                             <div className="p-4 border-b">
                                 <p className="text-sm font-medium mb-2">
-                                    {language === "zh" ? "費用?�細" : "Expense Items"}:
+                                    {language === "zh" ? "費用明細" : "Expense Items"}:
                                 </p>
                                 <div className="space-y-1">
                                     {report.items.slice(0, 3).map((item: any) => (
@@ -108,7 +108,7 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                                     ))}
                                     {report.items.length > 3 && (
                                         <p className="text-xs text-muted-foreground">
-                                            +{report.items.length - 3} {language === "zh" ? "?��??�目" : "more items"}
+                                            +{report.items.length - 3} {language === "zh" ? "更多項目" : "more items"}
                                         </p>
                                     )}
                                 </div>
@@ -122,7 +122,7 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-destructive text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium disabled:opacity-50"
                                 >
                                     <X className="h-4 w-4" />
-                                    {language === "zh" ? "?��?" : "Reject"}
+                                    {language === "zh" ? "拒絕" : "Reject"}
                                 </button>
                                 <button
                                     onClick={() => handleApprove(report.id)}
@@ -130,7 +130,7 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
                                 >
                                     <Check className="h-4 w-4" />
-                                    {language === "zh" ? "?��?" : "Approve"}
+                                    {language === "zh" ? "批准" : "Approve"}
                                 </button>
                             </div>
                         </div>
@@ -140,4 +140,3 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
         </div>
     )
 }
-

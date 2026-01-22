@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * 審核結�? Dialog
- * 顯示?��?審核?�詳細�???
+ * 審核結果 Dialog
+ * 顯示智慧審核的詳細結果
  */
 
 import { Modal } from "@/components/ui/modal";
@@ -85,7 +85,7 @@ export function AuditResultDialog({
                     ) : (
                         <XCircle className="h-5 w-5 text-red-500" />
                     )}
-                    ?��?審核結�?
+                    智慧審核結果
                 </span>
             }
         >
@@ -94,10 +94,10 @@ export function AuditResultDialog({
                     <p className="text-sm text-muted-foreground">{itemDescription}</p>
                 )}
 
-                {/* ?��??�數 */}
+                {/* 匹配分數 */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">?��??�數</span>
+                        <span className="text-sm font-medium">匹配分數</span>
                         <span className={`text-2xl font-bold ${getScoreColor(result.matchScore)}`}>
                             {result.matchScore}%
                         </span>
@@ -110,30 +110,30 @@ export function AuditResultDialog({
                     </div>
                 </div>
 
-                {/* 審核?�??Badge */}
+                {/* 審核狀態 Badge */}
                 <div className="flex items-center gap-2">
                     <Badge variant={result.isValid ? "default" : "destructive"}>
-                        {result.isValid ? "??審核?��?" : "??審核?�通�?"}
+                        {result.isValid ? "審核通過" : "審核未通過"}
                     </Badge>
                     {result.extractedData && (
                         <Badge variant="secondary">
-                            信�?�?{Math.round(result.extractedData.confidence * 100)}%
+                            信心度 {Math.round(result.extractedData.confidence * 100)}%
                         </Badge>
                     )}
                 </div>
 
-                {/* OCR ?��?資�? */}
+                {/* OCR 擷取資料 */}
                 {result.extractedData && (
                     <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
                         <h4 className="font-medium text-sm flex items-center gap-1">
                             <FileText className="h-4 w-4" />
-                            OCR ?��?結�?
+                            OCR 擷取結果
                         </h4>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                             {result.extractedData.totalAmount !== null && (
                                 <div className="flex items-center gap-1">
                                     <DollarSign className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-muted-foreground">?��?�?/span>
+                                    <span className="text-muted-foreground">金額：</span>
                                     <span className="font-medium">
                                         ${result.extractedData.totalAmount / 100}
                                     </span>
@@ -142,21 +142,21 @@ export function AuditResultDialog({
                             {result.extractedData.date && (
                                 <div className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-muted-foreground">?��?�?/span>
+                                    <span className="text-muted-foreground">日期：</span>
                                     <span className="font-medium">{result.extractedData.date}</span>
                                 </div>
                             )}
                             {result.extractedData.vendorName && (
                                 <div className="flex items-center gap-1 col-span-2">
                                     <Store className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-muted-foreground">?�家�?/span>
+                                    <span className="text-muted-foreground">商家：</span>
                                     <span className="font-medium">{result.extractedData.vendorName}</span>
                                 </div>
                             )}
                             {result.extractedData.invoiceNumber && (
                                 <div className="flex items-center gap-1 col-span-2">
                                     <Hash className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-muted-foreground">?�票�?/span>
+                                    <span className="text-muted-foreground">發票：</span>
                                     <span className="font-mono font-medium">
                                         {result.extractedData.invoiceNumber}
                                     </span>
@@ -166,10 +166,10 @@ export function AuditResultDialog({
                     </div>
                 )}
 
-                {/* ?��?清單 */}
+                {/* 問題清單 */}
                 {result.issues.length > 0 && (
                     <div className="space-y-2">
-                        <h4 className="font-medium text-sm">?�現?��?�?/h4>
+                        <h4 className="font-medium text-sm">發現問題：</h4>
                         <div className="max-h-48 overflow-y-auto space-y-2">
                             {result.issues.map((issue, index) => {
                                 const config = getSeverityConfig(issue.severity);
@@ -185,9 +185,9 @@ export function AuditResultDialog({
                                                 <p className="text-sm font-medium">{issue.message}</p>
                                                 {(issue.expected || issue.actual) && (
                                                     <div className="text-xs opacity-80">
-                                                        {issue.expected && <span>?��?：{issue.expected}</span>}
-                                                        {issue.expected && issue.actual && <span> ??</span>}
-                                                        {issue.actual && <span>實�?：{issue.actual}</span>}
+                                                        {issue.expected && <span>預期：{issue.expected}</span>}
+                                                        {issue.expected && issue.actual && <span> → </span>}
+                                                        {issue.actual && <span>實際：{issue.actual}</span>}
                                                     </div>
                                                 )}
                                             </div>
@@ -199,12 +199,12 @@ export function AuditResultDialog({
                     </div>
                 )}
 
-                {/* ?��?題�?顯示 */}
+                {/* 無問題時顯示 */}
                 {result.issues.length === 0 && result.isValid && (
                     <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4 text-center">
                         <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
                         <p className="text-sm text-green-700 dark:text-green-400">
-                            ?��?資�??�報帳�??��??�匹?��?
+                            收據資料與報帳資料完全匹配！
                         </p>
                     </div>
                 )}
@@ -212,4 +212,3 @@ export function AuditResultDialog({
         </Modal>
     );
 }
-
