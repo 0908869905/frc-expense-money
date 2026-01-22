@@ -104,3 +104,90 @@ Vercel 部署連續失敗，Build 無法通過。
 - 重構時使用 IDE 重構功能自動更新引用
 - 定期清理重複程式碼
 - 已創建全局規範 `~/.claude/CLAUDE.md`
+
+---
+
+## Session: 2026-01-22 (續) - 完整安全掃描 + 程式碼簡化
+
+### 安全掃描最終報告
+
+#### 掃描範圍
+- 6 個批次完成掃描
+- 涵蓋：components、app/actions、app/api、app/dashboard、lib、types
+
+#### 修復的安全問題（共 8 項）
+
+| # | 嚴重程度 | 問題 | 修復方案 |
+|---|----------|------|----------|
+| 1 | Critical | /api/debug 暴露敏感資訊 | 添加 ADMIN 認證 + 環境檢查 |
+| 2 | Critical | /api/seed 可被任意調用 | 添加環境檢查 |
+| 3 | Critical | /api/test-user 可查詢用戶 | 添加環境檢查 |
+| 4 | High | auth.ts 允許空密碼登入 | 強制密碼驗證 |
+| 5 | High | next.config.mjs 停用類型檢查 | 啟用 TypeScript/ESLint |
+| 6 | Medium | expenses.ts JSON.parse 無錯誤處理 | 添加 try-catch |
+| 7 | Medium | cron 端點授權可選 | 強制 CRON_SECRET_KEY |
+| 8 | Medium | OCR SSRF 風險 | 添加 URL 驗證（禁止內部 IP） |
+
+#### OWASP Top 10 合規狀態
+| 類別 | 狀態 | 說明 |
+|------|------|------|
+| A01 存取控制失效 | ✅ 通過 | 所有端點有認證檢查 |
+| A02 加密失敗 | ✅ 通過 | bcryptjs 密碼雜湊 |
+| A03 注入攻擊 | ✅ 通過 | Prisma ORM 防護 |
+| A04 不安全設計 | ✅ 通過 | 認證流程安全 |
+| A05 安全配置錯誤 | ✅ 通過 | 安全標頭已配置 |
+| A06 易受攻擊組件 | ✅ 通過 | npm audit 無漏洞 |
+| A07 身份驗證失敗 | ✅ 通過 | NextAuth v5 |
+| A08 資料完整性失敗 | ✅ 通過 | 無不安全反序列化 |
+| A09 日誌監控失敗 | ⚠️ 建議 | 可增加安全日誌 |
+| A10 SSRF | ✅ 通過 | OCR 已添加保護 |
+
+#### 待手動執行
+- 替換 `.env` 中的 `AUTH_SECRET`（使用 `openssl rand -base64 32`）
+- 替換 `.env` 中的 `CRON_SECRET_KEY`（使用 `openssl rand -hex 32`）
+
+---
+
+### 程式碼簡化報告
+
+#### 統計
+- **修改檔案**：53 個
+- **刪除檔案**：7 個重複檔案
+- **淨減少程式碼**：907 行 (+943/-1850)
+
+#### 刪除的重複檔案
+| 刪除的檔案 | 保留的版本 |
+|------------|------------|
+| lib/db/draft-storage.ts | lib/draft-storage.ts |
+| lib/db/prisma.ts | lib/prisma.ts |
+| lib/utils/currency.ts | lib/currency.ts |
+| lib/utils/export-utils.ts | lib/export-utils.ts |
+| lib/utils/money.ts | lib/money.ts |
+| lib/utils/pagination.ts | lib/pagination.ts |
+| lib/utils/utils.ts | lib/utils.ts |
+
+#### 主要改進類型
+| 改進 | 說明 |
+|------|------|
+| 移除未使用 imports | 減少打包大小 |
+| 提取輔助函式 | 減少重複的認證檢查 |
+| 添加明確回傳類型 | 提升類型安全 |
+| 巢狀三元改 switch | 提升可讀性 |
+| Promise.all 並行查詢 | 提升效能 |
+| any → unknown | 更安全的類型 |
+| 提取常數 | 消除魔術數字 |
+
+#### Build 過程修復的類型錯誤
+| 錯誤 | 檔案 | 修復 |
+|------|------|------|
+| DataRow 類型不相容 | lib/export-utils.ts | 改回 `Record<string, any>` |
+| vision namespace 不存在 | lib/agents/ocr.ts | 移除回傳類型標註 |
+| discriminated union narrowing | lib/agents/receipt-audit.ts | 調整條件判斷 |
+| Dinero.Dinero 不存在 | lib/money.ts | 移除回傳類型標註 |
+
+---
+
+### 經驗教訓
+1. **簡化時要小心類型**：過度添加類型標註可能引入新錯誤
+2. **重複檔案要徹底清理**：不只刪除檔案，還要更新所有導入路徑
+3. **Build 驗證是必要的**：每次簡化後都要跑 build 確認

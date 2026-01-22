@@ -170,7 +170,69 @@
 
 ---
 
+## Session: 2026-01-22 (續) - 安全掃描完成 + 程式碼簡化
+
+### Phase 1: 完成安全掃描 Batch 6
+- **Status:** complete
+- Actions taken:
+  - 掃描 15 個 dashboard 頁面檔案
+  - 確認所有頁面都有正確的 `auth()` 檢查
+  - 生成最終安全報告
+- Results:
+  - 無新安全問題發現
+  - OWASP Top 10 合規檢查通過
+  - 8 個安全問題已在之前批次修復
+
+### Phase 2: 程式碼簡化 - 批次執行
+- **Status:** complete
+- Actions taken:
+  - 批次 1：簡化 components 目錄（移除未使用 imports）
+  - 批次 2：簡化 app/actions 目錄（提取輔助函式）
+  - 批次 3：簡化 app/api 目錄（Promise.all 優化）
+  - 批次 4：簡化 app/dashboard 目錄（添加回傳類型）
+  - 批次 5：簡化 lib 目錄（刪除重複檔案）
+- Files modified: 53 個
+- Files deleted: 7 個重複檔案
+- Net change: -907 行程式碼
+
+### Phase 3: 驗證與提交
+- **Status:** complete
+- Actions taken:
+  - 執行 `npm run build` 驗證（3 次修復類型錯誤）
+  - 提交變更至 Git
+- Build result: 成功（7 warnings, 0 errors）
+- Commit: `1d49231` refactor: simplify codebase and remove duplicates
+
+## 刪除的重複檔案
+| 檔案 | 替代方案 |
+|------|----------|
+| lib/db/draft-storage.ts | lib/draft-storage.ts |
+| lib/db/prisma.ts | lib/prisma.ts |
+| lib/utils/currency.ts | lib/currency.ts |
+| lib/utils/export-utils.ts | lib/export-utils.ts |
+| lib/utils/money.ts | lib/money.ts |
+| lib/utils/pagination.ts | lib/pagination.ts |
+| lib/utils/utils.ts | lib/utils.ts |
+
+## Git Commits (2026-01-22 續)
+| Commit | Message |
+|--------|---------|
+| `893743e` | fix: security scan fixes (8 issues) |
+| `1d49231` | refactor: simplify codebase and remove duplicates |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | 安全掃描和程式碼簡化完成 |
+| Where am I going? | 任務完成，待推送至遠端 |
+| What's the goal? | 安全掃描 + 程式碼簡化 |
+| What have I learned? | 見 findings.md |
+| What have I done? | 修復 8 安全問題，刪除 907 行冗餘程式碼 |
+
+---
+
 ## 下一步建議
-1. 考慮合併 `lib/agents/` 和 `lib/services/` 的重複檔案
-2. 推送前永遠執行 `npm run build`
-3. 重構時使用 IDE 的重構功能確保引用同步更新
+1. 推送簡化變更至遠端：`git push origin main`
+2. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
+3. 考慮合併 `lib/agents/` 和 `lib/services/` 中仍存在的重複邏輯
+4. 推送前永遠執行 `npm run build`

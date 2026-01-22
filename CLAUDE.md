@@ -133,17 +133,6 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON  # For OCR
 
 ## 專案特定注意事項
 
-### 已知的重複檔案
-
-以下檔案有重複，修改時需同步更新或考慮合併：
-
-| 檔案 1 | 檔案 2 | 說明 |
-|--------|--------|------|
-| `lib/agents/receipt-audit.ts` | `lib/services/receipt-audit.ts` | 收據審核邏輯 |
-| `lib/agents/ocr.ts` | `lib/services/ocr.ts` | OCR 辨識邏輯 |
-
-**建議**：未來重構時合併這些重複檔案。
-
 ### Prisma JSON 欄位處理
 
 本專案使用 Prisma 的 `Json` 類型欄位（如 `ReceiptAudit.issues`）。
@@ -193,3 +182,30 @@ npm run build
 - 修正 Prisma JSON 類型轉換（2 個檔案）
 - 添加 dinero.js 類型聲明
 - 修正 types/audit.ts 的導入路徑
+
+### 2026-01-22：完整安全掃描與程式碼簡化
+
+**安全掃描**（6 批次完成）：
+- 掃描範圍：components、app/actions、app/api、app/dashboard、lib、types
+- 發現並修復 8 個安全問題
+- 所有 dashboard 頁面已有正確的 `auth()` 檢查
+- OWASP Top 10 合規檢查通過
+
+**程式碼簡化**：
+- 刪除 7 個重複檔案（lib/db/、lib/utils/ 目錄）
+- 淨減少 907 行程式碼
+- 提取輔助函式減少重複
+- 添加明確回傳類型
+- 使用 Promise.all 優化並行查詢
+
+**已刪除的重複檔案**：
+- `lib/db/draft-storage.ts` → 使用 `lib/draft-storage.ts`
+- `lib/db/prisma.ts` → 使用 `lib/prisma.ts`
+- `lib/utils/currency.ts` → 使用 `lib/currency.ts`
+- `lib/utils/export-utils.ts` → 使用 `lib/export-utils.ts`
+- `lib/utils/money.ts` → 使用 `lib/money.ts`
+- `lib/utils/pagination.ts` → 使用 `lib/pagination.ts`
+- `lib/utils/utils.ts` → 使用 `lib/utils.ts`
+
+**待手動執行**：
+- 替換 `.env` 中的 `AUTH_SECRET` 和 `CRON_SECRET_KEY` 為強密碼
