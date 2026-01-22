@@ -1,6 +1,6 @@
 import React from 'react';
 import { Transaction, TransactionType } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ArrowUpRight, ArrowDownLeft, Coffee, Home, Zap, ShoppingBag, Briefcase, Activity } from 'lucide-react';
 import { ExpenseCategory } from '@/types';

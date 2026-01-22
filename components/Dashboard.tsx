@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { Transaction } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, Wallet } from 'lucide-react';
 
