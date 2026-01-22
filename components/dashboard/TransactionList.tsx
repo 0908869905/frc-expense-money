@@ -1,9 +1,9 @@
 import React from 'react';
-import { Transaction, TransactionType } from '../types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/Card';
-import { formatCurrency, formatDate, cn } from '../lib/utils';
+import { Transaction, TransactionType } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ArrowUpRight, ArrowDownLeft, Coffee, Home, Zap, ShoppingBag, Briefcase, Activity } from 'lucide-react';
-import { ExpenseCategory } from '../types';
+import { ExpenseCategory } from '@/types';
 
 interface TransactionListProps {
   transactions: Transaction[];

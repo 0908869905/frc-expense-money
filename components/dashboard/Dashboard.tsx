@@ -5,9 +5,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { Transaction } from '../types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/Card';
-import { formatCurrency } from '../lib/utils';
+import { Transaction } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, Wallet } from 'lucide-react';
 
 interface DashboardProps {
