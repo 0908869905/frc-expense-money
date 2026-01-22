@@ -145,7 +145,7 @@ export default function AboutPage() {
                             {t("核心哲學", "Philosophy")}
                         </p>
                         <h3 className="font-serif text-6xl md:text-8xl font-bold leading-tight mb-8">
-                            "Beyond <br/> the <span className="italic text-gray-400">Metal</span>."
+                            &ldquo;Beyond <br/> the <span className="italic text-gray-400">Metal</span>.&rdquo;
                         </h3>
                         <p className="text-xl md:text-2xl text-gray-800 leading-relaxed max-w-2xl ml-auto font-light">
                             {t(
