@@ -98,7 +98,79 @@
 
 ---
 
+## Session: 2026-01-22 - Vercel 部署失敗修復
+
+### Phase 1: 診斷部署錯誤
+- **Status:** complete
+- **Started:** 2026-01-22
+- Actions taken:
+  - 使用瀏覽器自動化連接 Vercel Dashboard
+  - 查看 project-money 部署記錄
+  - 分析 Build Logs 找出錯誤
+- Errors found:
+  - Prisma JSON 類型錯誤 (2 個檔案)
+  - dinero.js 缺少類型聲明
+  - types/audit.ts 導入路徑錯誤
+
+### Phase 2: 修復 TypeScript 錯誤
+- **Status:** complete
+- Actions taken:
+  - 修復 `lib/agents/receipt-audit.ts` - Prisma JSON 類型
+  - 修復 `lib/services/receipt-audit.ts` - 同上（發現重複檔案）
+  - 創建 `types/dinero.d.ts` - dinero.js 類型聲明
+  - 修復 `types/audit.ts` - 修正導入路徑
+- Files modified:
+  - lib/agents/receipt-audit.ts
+  - lib/services/receipt-audit.ts
+  - types/audit.ts
+- Files created:
+  - types/dinero.d.ts
+
+### Phase 3: 驗證部署
+- **Status:** complete
+- Actions taken:
+  - 提交並推送 4 次修復
+  - 在 Vercel 監控部署狀態
+  - 確認最終部署成功 (D7zwYzBqA - Ready)
+- Commits:
+  - `47f6c9e` fix: 修正 Prisma JSON 類型錯誤
+  - `03db61c` fix: 添加 dinero.js 類型聲明檔案
+  - `6c759e7` fix: 修正 lib/services/receipt-audit.ts 的 Prisma JSON 類型錯誤
+  - `8c6f794` fix: 修正 types/audit.ts 的 OCR 模組導入路徑
+
+### Phase 4: 建立規範文件
+- **Status:** complete
+- Actions taken:
+  - 創建全局規範 `~/.claude/CLAUDE.md`
+  - 更新專案 `CLAUDE.md` 添加問題紀錄
+- Files created:
+  - ~/.claude/CLAUDE.md (全局規範)
+- Files modified:
+  - CLAUDE.md (專案特定注意事項)
+  - findings.md (此次問題紀錄)
+  - progress.md (此檔案)
+
+## Git Commits (2026-01-22)
+| Commit | Message |
+|--------|---------|
+| `47f6c9e` | fix: 修正 Prisma JSON 類型錯誤 |
+| `03db61c` | fix: 添加 dinero.js 類型聲明檔案 |
+| `6c759e7` | fix: 修正 lib/services/receipt-audit.ts 的 Prisma JSON 類型錯誤 |
+| `8c6f794` | fix: 修正 types/audit.ts 的 OCR 模組導入路徑 |
+| `6c27dba` | docs: 更新 CLAUDE.md 添加專案注意事項和問題紀錄 |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | 已完成部署修復和規範建立 |
+| Where am I going? | 任務完成，網站已成功部署 |
+| What's the goal? | 修復 Vercel 部署錯誤 |
+| What have I learned? | 見 findings.md 2026-01-22 section |
+| What have I done? | 修復 4 個 TypeScript 錯誤，創建規範文件 |
+
+---
+
 ## 下一步建議
-1. 執行 `npm run build` 測試是否有型別錯誤
-2. 確認所有環境變數已正確設定
-3. 部署前進行完整功能測試
+1. 考慮合併 `lib/agents/` 和 `lib/services/` 的重複檔案
+2. 推送前永遠執行 `npm run build`
+3. 重構時使用 IDE 的重構功能確保引用同步更新
