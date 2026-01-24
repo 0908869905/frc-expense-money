@@ -185,7 +185,7 @@ const translations: Record<Language, Record<string, string>> = {
         "passwords_not_match": "密碼不一致",
         "department": "組別",
         "select_department": "選擇你的組別",
-        "department_electrical": "電控組",
+        "department_electrical": "電資組",
         "department_mechanical": "機構組",
         "department_documentation": "文書組",
         "department_pr": "公關組",
