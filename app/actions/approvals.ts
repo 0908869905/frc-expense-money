@@ -83,15 +83,17 @@ export async function rejectReport(reportId: string, comment: string): Promise<v
 
   const role = session.user.role;
 
-  if (role === "USER") {
-    throw new Error("Insufficient permissions to reject");
-  }
-
-  if (report.status === "PENDING_MANAGER" && role !== "LEADER" && role !== "ADMIN") {
-    throw new Error("Only Leaders can reject at this stage");
-  }
-  if (report.status === "PENDING_FINANCE" && role !== "FINANCE" && role !== "ADMIN") {
-    throw new Error("Only Finance can reject at this stage");
+  // 驗證報帳單狀態與角色權限
+  if (report.status === "PENDING_MANAGER") {
+    if (role !== "LEADER" && role !== "ADMIN") {
+      throw new Error("Only Leaders can reject at this stage");
+    }
+  } else if (report.status === "PENDING_FINANCE") {
+    if (role !== "FINANCE" && role !== "ADMIN") {
+      throw new Error("Only Finance can reject at this stage");
+    }
+  } else {
+    throw new Error("Report cannot be rejected in its current state");
   }
 
   const actorId = session.user.id;

@@ -159,7 +159,7 @@ const translations: Record<Language, Record<string, string>> = {
         "confirm_delete": "確定要刪除嗎？",
         "operation_failed": "操作失敗",
         "please_enter_valid_email": "請輸入有效的 Email",
-        "password_min_6": "密碼至少 6 個字元",
+        "password_min_6": "8 字元以上，含英文和數字",
         "rejection_reason": "請輸入拒絕原因：",
 
         // Login Page
@@ -183,6 +183,14 @@ const translations: Record<Language, Record<string, string>> = {
         "have_account": "已經有帳號？",
         "login_now": "立即登入",
         "passwords_not_match": "密碼不一致",
+        "department": "組別",
+        "select_department": "選擇你的組別",
+        "department_electrical": "電控組",
+        "department_mechanical": "機構組",
+        "department_documentation": "文書組",
+        "department_pr": "公關組",
+        "department_finance": "財管組",
+        "department_design": "意象組",
 
         // About Page
         "why_choose_us": "為什麼選擇 Ultimate Expense？",
@@ -385,7 +393,7 @@ const translations: Record<Language, Record<string, string>> = {
         "confirm_delete": "Are you sure you want to delete?",
         "operation_failed": "Operation failed",
         "please_enter_valid_email": "Please enter a valid email",
-        "password_min_6": "Password must be at least 6 characters",
+        "password_min_6": "8+ chars with letters and numbers",
         "rejection_reason": "Please enter rejection reason:",
 
         // Login Page
@@ -409,6 +417,14 @@ const translations: Record<Language, Record<string, string>> = {
         "have_account": "Already have an account?",
         "login_now": "Sign In",
         "passwords_not_match": "Passwords do not match",
+        "department": "Department",
+        "select_department": "Select your department",
+        "department_electrical": "Electrical",
+        "department_mechanical": "Mechanical",
+        "department_documentation": "Documentation",
+        "department_pr": "PR",
+        "department_finance": "Finance",
+        "department_design": "Design",
 
         // About Page
         "why_choose_us": "Why Choose Ultimate Expense?",

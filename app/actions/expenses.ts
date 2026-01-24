@@ -80,6 +80,12 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         return { success: false, message: "Invalid form data submission" };
     }
 
+    // 驗證 JSON 大小（防止大型 payload 攻擊）
+    const MAX_JSON_SIZE = 1024 * 1024; // 1MB
+    if (rawData.length > MAX_JSON_SIZE) {
+        return { success: false, message: "資料過大，請減少項目數量" };
+    }
+
     let parsedData: unknown;
     try {
         parsedData = JSON.parse(rawData);

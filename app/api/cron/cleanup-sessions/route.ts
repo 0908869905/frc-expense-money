@@ -1,18 +1,28 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import crypto from "crypto"
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
-function validateCronAuth(request: Request): NextResponse | null {
-    const authHeader = request.headers.get("Authorization")
-    const expectedKey = process.env.CRON_SECRET_KEY
+function isValidCronKey(providedKey: string, expectedKey: string): boolean {
+    const expectedBuffer = Buffer.from(expectedKey, "utf8")
+    const providedBuffer = Buffer.from(providedKey, "utf8")
 
+    return expectedBuffer.length === providedBuffer.length &&
+        crypto.timingSafeEqual(expectedBuffer, providedBuffer)
+}
+
+function validateCronAuth(request: Request): NextResponse | null {
+    const expectedKey = process.env.CRON_SECRET_KEY
     if (!expectedKey) {
         console.error("CRON_SECRET_KEY is not configured")
         return NextResponse.json({ error: "Service unavailable" }, { status: 503 })
     }
 
-    if (authHeader !== `Bearer ${expectedKey}`) {
+    const authHeader = request.headers.get("Authorization")
+    const providedKey = authHeader?.replace(/^Bearer\s+/, "") ?? ""
+
+    if (!isValidCronKey(providedKey, expectedKey)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
