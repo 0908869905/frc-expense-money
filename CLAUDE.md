@@ -209,3 +209,71 @@ npm run build
 
 **待手動執行**：
 - 替換 `.env` 中的 `AUTH_SECRET` 和 `CRON_SECRET_KEY` 為強密碼
+
+### 2026-01-24：註冊功能增強 + 安全性修復
+
+**功能新增**：
+- 註冊介面新增組別下拉選單（**必填**）
+- 支援六個組別：電資、機構、文書、公關、財管、意象
+- 組別資料儲存至 User 模型的 `department` 欄位
+
+**安全修復**：
+| 嚴重度 | 問題 | 修復 |
+|--------|------|------|
+| HIGH | 缺少 CSP 標頭 | 新增 Content-Security-Policy |
+| HIGH | CRON 時序攻擊 | 使用 `crypto.timingSafeEqual()` |
+| HIGH | 報帳單拒絕缺少狀態驗證 | 新增可拒絕狀態檢查 |
+| MEDIUM | 弱密碼要求 | 加強至 8 字元，含英文和數字 |
+| MEDIUM | JSON 大小未限制 | 新增 1MB 大小限制 |
+
+**修改的檔案**：
+- `app/actions/register.ts` - 組別必填 + 密碼強度
+- `app/actions/approvals.ts` - 狀態驗證
+- `app/actions/expenses.ts` - JSON 大小限制
+- `app/api/cron/cleanup-sessions/route.ts` - Timing-safe 比較
+- `components/register-form.tsx` - 組別下拉選單
+- `lib/language-context.tsx` - 組別翻譯
+- `next.config.mjs` - CSP 標頭
+
+**Git Commits**：
+- `6a96b63` feat: 註冊時新增組別選擇 + 安全性修復
+- `1b69e39` fix: 電控組改為電資組
+
+### 2026-01-24（續）：註冊頁面藝術風格設計 + 程式碼簡化
+
+**註冊頁面全面改造**：
+- 與登入頁風格一致：黑色背景 + 紫藍漸層光暈
+- 左側視覺區塊（FRC 6998 UNIPARDS 大標題）
+- 玻璃質感輸入框 + 聚焦時圖示變色效果
+- 自訂組別選擇器（向上展開避免遮擋問題）
+- 浮動幾何圖形動畫
+- 完整響應式設計（桌面/手機）
+
+**安全性修復**：
+| 問題 | 修復 |
+|------|------|
+| Google Cloud 憑證外洩（已提交到 Git） | 已從追蹤移除，更新 .gitignore |
+| 密碼政策不一致 | 統一至 8 字元 + 英文 + 數字 |
+
+**程式碼簡化**：
+- 新增共用 `passwordSchema` 和 `validatePassword()` 於 `lib/schemas.ts`
+- `validatePassword` 改用 `passwordSchema.safeParse()` 消除重複邏輯
+- 提取 `FormField` 組件減少註冊頁面約 50 行重複程式碼
+- 新增 `INPUT_CLASS` 常數和 `getIconColor` 輔助函式
+- 刪除舊的 `components/register-form.tsx` 和 `components/shared/register-form.tsx`
+
+**修改的檔案**：
+- `app/register/page.tsx` - 新藝術風格設計（與登入頁一致）
+- `lib/schemas.ts` - 新增 passwordSchema + 簡化 validatePassword
+- `app/actions/password.ts` - 使用共用密碼 schema
+- `app/actions/users.ts` - 使用共用密碼驗證
+- `.gitignore` - 增加憑證檔案排除規則
+
+**Git Commits**：
+- `579d84e` chore: remove exposed credentials
+- `f977e0c` feat: 註冊頁面藝術風格設計 + 安全性修復
+
+**待辦事項**：
+- [ ] **重要**：到 Google Cloud Console 撤銷並更換外洩的服務帳戶金鑰
+- [ ] 實作登入速率限制（防暴力破解）
+- [ ] 考慮改善 CSP 設定（目前使用 unsafe-inline/unsafe-eval）
