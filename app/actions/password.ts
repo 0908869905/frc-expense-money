@@ -4,10 +4,11 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { compare, hash } from "bcryptjs";
 import { z } from "zod";
+import { passwordSchema } from "@/lib/schemas";
 
 const changePasswordSchema = z.object({
     currentPassword: z.string().min(1, "請輸入目前密碼"),
-    newPassword: z.string().min(6, "新密碼至少需要 6 個字元"),
+    newPassword: passwordSchema,
     confirmPassword: z.string().min(1, "請確認新密碼"),
 }).refine((data) => data.newPassword === data.confirmPassword, {
     message: "新密碼與確認密碼不一致",

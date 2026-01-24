@@ -1,5 +1,22 @@
 import { z } from "zod";
 
+// ============================================
+// 共用密碼 Schema（統一密碼強度要求）
+// ============================================
+export const passwordSchema = z.string()
+    .min(8, "密碼至少需要 8 個字元")
+    .regex(/[a-zA-Z]/, "密碼必須包含至少一個英文字母")
+    .regex(/[0-9]/, "密碼必須包含至少一個數字");
+
+// 密碼強度驗證函式（供非 Zod 場景使用，基於 passwordSchema）
+export function validatePassword(password: string): { valid: boolean; message?: string } {
+    const result = passwordSchema.safeParse(password);
+    if (result.success) {
+        return { valid: true };
+    }
+    return { valid: false, message: result.error.errors[0]?.message };
+}
+
 // 費用類別
 export const ExpenseCategoryEnum = z.enum([
   'Food',
@@ -89,7 +106,7 @@ export type StockAdjustmentFormValues = z.infer<typeof stockAdjustmentSchema>;
 export const userSchema = z.object({
   name: z.string().min(2, "姓名至少需要 2 個字元"),
   email: z.string().email("請輸入有效的 Email"),
-  password: z.string().min(6, "密碼至少需要 6 個字元").optional(),
+  password: passwordSchema.optional(),
 });
 
 // 登入 Schema
@@ -102,7 +119,7 @@ export const loginSchema = z.object({
 export const registerSchema = z.object({
   name: z.string().min(2, "姓名至少需要 2 個字元"),
   email: z.string().email("請輸入有效的 Email"),
-  password: z.string().min(6, "密碼至少需要 6 個字元"),
+  password: passwordSchema,
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "密碼不一致",

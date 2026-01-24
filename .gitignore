@@ -16,9 +16,16 @@ dist-ssr
 # Environment
 .env
 .env.local
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Google Cloud credentials (sensitive)
+# Google Cloud credentials (sensitive - NEVER commit these!)
 rugged-sentry-*.json
+*-credentials*.json
+*.pem
+*.key
 
 # Editor directories and files
 .vscode/*

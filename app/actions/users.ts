@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import bcrypt from "bcryptjs"
 import { revalidatePath } from "next/cache"
 import { TeamDepartment } from "@prisma/client"
+import { validatePassword } from "@/lib/schemas"
 
 type UserRole = "USER" | "VICE_LEADER" | "LEADER" | "FINANCE" | "ADMIN";
 
@@ -90,8 +91,9 @@ export async function updateUserEmail(userId: string, email: string): Promise<{ 
 export async function updateUserPassword(userId: string, password: string): Promise<{ success: boolean }> {
     await requireAdmin()
 
-    if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters")
+    const validation = validatePassword(password)
+    if (!validation.valid) {
+        throw new Error(validation.message)
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
