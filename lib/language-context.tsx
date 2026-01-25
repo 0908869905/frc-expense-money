@@ -191,6 +191,7 @@ const translations: Record<Language, Record<string, string>> = {
         "department_pr": "公關組",
         "department_finance": "財管組",
         "department_design": "意象組",
+        "department_mentor": "老師",
 
         // About Page
         "why_choose_us": "為什麼選擇 Ultimate Expense？",
@@ -425,6 +426,7 @@ const translations: Record<Language, Record<string, string>> = {
         "department_pr": "PR",
         "department_finance": "Finance",
         "department_design": "Design",
+        "department_mentor": "Mentor",
 
         // About Page
         "why_choose_us": "Why Choose Ultimate Expense?",

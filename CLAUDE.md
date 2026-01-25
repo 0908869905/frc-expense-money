@@ -113,6 +113,15 @@ Key Prisma models (see `prisma/schema.prisma`):
 - `FundingRecord` - Sponsorship and funding tracking
 - `DepartmentBudget` - Team budget allocation
 
+### Team Departments (TeamDepartment enum)
+- `ELECTRICAL` - 電資組
+- `MECHANICAL` - 機構組
+- `DOCUMENTATION` - 文書組
+- `PR` - 公關組
+- `FINANCE` - 財管組
+- `DESIGN` - 意象組
+- `MENTOR` - 老師/導師
+
 ### Money Handling
 
 Uses integer cents (`amountCents`) for precision. Convert with `lib/money.ts`:

@@ -209,6 +209,33 @@ interface MyRow {
 
 **注意**：索引簽名的值類型必須涵蓋所有屬性的類型
 
+### 問題：Type 'Session' is not assignable to type '...'
+
+**症狀**：Build 時出現類似以下錯誤：
+```
+Type 'Session' is not assignable to type '{ user?: { name?: string; ... } }'.
+Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+Type 'null' is not assignable to type 'string | undefined'.
+```
+
+**原因**：
+NextAuth v5 的 `Session` 類型中，`user.name/email/image` 是 `string | null | undefined`，但你的 props 類型只接受 `string | undefined`。
+
+**解決方案**：
+在定義 props 類型時，允許 `null` 值：
+
+```typescript
+// 錯誤做法
+interface MyProps {
+    session: { user?: { name?: string; email?: string } }
+}
+
+// 正確做法
+interface MyProps {
+    session: { user?: { name?: string | null; email?: string | null } }
+}
+```
+
 ### 問題：Vercel 部署成功但網站無法運作
 
 **檢查清單**：
@@ -331,4 +358,4 @@ npx tsx scripts/clear-login-lock.ts admin@example.com
 ---
 
 *最後更新：2026-01-25*
-*新增：Server actions must be async functions、TypeScript 索引簽名錯誤解決方案*
+*新增：NextAuth Session 類型不匹配解決方案*

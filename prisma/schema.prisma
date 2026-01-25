@@ -99,6 +99,7 @@ enum TeamDepartment {
   PR              // 公關組
   FINANCE         // 財管組
   DESIGN          // 意象組
+  MENTOR          // 老師/導師
 }
 
 enum ReportStatus {

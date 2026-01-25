@@ -26,6 +26,7 @@ const DEPARTMENTS = [
     { value: "PR", labelKey: "department_pr" },
     { value: "FINANCE", labelKey: "department_finance" },
     { value: "DESIGN", labelKey: "department_design" },
+    { value: "MENTOR", labelKey: "department_mentor" },
 ] as const
 
 function SubmitButton() {

@@ -15,7 +15,6 @@ import {
   User,
   Users,
   Wallet,
-  Sparkles,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useLanguage } from "@/lib/language-context"
@@ -168,9 +167,8 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
                   <Image src={org.logo} alt={org.name} width={24} height={24} className="size-6 object-contain" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold flex items-center gap-1.5">
+                  <span className="truncate font-semibold">
                     {t(org.title, org.titleEn)}
-                    <Sparkles className="h-3 w-3 text-primary animate-pulse" />
                   </span>
                   <span className="truncate text-xs text-muted-foreground">{org.subtitle}</span>
                 </div>

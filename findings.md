@@ -467,3 +467,46 @@ async function checkLoginRateLimit(email: string) {
 2. **Next.js Image 組件** - 優先使用，提供自動優化
 3. **React Hooks 依賴** - 必須完整，避免 stale closure 問題
 4. **TypeScript 索引簽名** - 用於泛型類型兼容性時需要添加
+
+---
+
+## Session: 2026-01-25 (續) - Vercel 部署修復 + 功能新增
+
+### Vercel 部署錯誤：Session 類型不匹配
+
+**問題**
+```
+Type 'Session' is not assignable to type '{ user?: { name?: string; ... } }'.
+Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+Type 'null' is not assignable to type 'string | undefined'.
+```
+
+**原因**
+NextAuth v5 的 `Session` 類型中，`user.name/email/image` 是 `string | null | undefined`，但 `SettingsContentProps` 只接受 `string | undefined`。
+
+**解決方案**
+```typescript
+// 修復前
+interface SettingsContentProps {
+    session: { user?: { name?: string; email?: string; image?: string } }
+}
+
+// 修復後
+interface SettingsContentProps {
+    session: { user?: { name?: string | null; email?: string | null; image?: string | null } }
+}
+```
+
+### 新增 Prisma Enum 值
+
+**步驟**
+1. 修改 `prisma/schema.prisma` 新增 enum 值
+2. 執行 `npx prisma generate` 更新 client
+3. 執行 `npx prisma db push` 更新資料庫（線上環境）
+
+**注意**：新增 enum 值是安全的（不會破壞現有資料），但刪除或重命名 enum 值需要資料遷移。
+
+### 經驗教訓（續）
+
+5. **NextAuth Session 類型** - `user` 屬性可能包含 `null`，定義 props 類型時要考慮
+6. **Prisma enum 變更** - 新增值後需要 `prisma generate` + `prisma db push`

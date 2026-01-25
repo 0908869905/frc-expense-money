@@ -4,7 +4,7 @@ import { ReactNode } from "react"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useLanguage } from "@/lib/language-context"
 import { useTheme } from "@/lib/theme-context"
-import { Sun, Moon, Sparkles } from "lucide-react"
+import { Sun, Moon } from "lucide-react"
 
 interface DashboardHeaderProps {
     userName: string
@@ -20,9 +20,8 @@ export function DashboardHeader({ userName, children }: DashboardHeaderProps) {
             <div className="flex items-center gap-2 px-4">
                 {children}
                 <div className="h-4 w-[1px] bg-border mx-2 hidden sm:block" />
-                <span className="text-sm font-medium text-muted-foreground hidden sm:inline flex items-center gap-1.5">
+                <span className="text-sm font-medium text-muted-foreground hidden sm:inline">
                     {t("welcome_back")}, <span className="text-foreground">{userName}</span>
-                    <Sparkles className="h-3 w-3 text-primary/60" />
                 </span>
             </div>
             <div className="flex items-center gap-2 px-4">

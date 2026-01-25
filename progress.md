@@ -526,9 +526,67 @@
 
 ---
 
+## Session: 2026-01-25 (續) - Vercel 部署修復 + UI 調整 + 功能新增
+
+### Phase 1: Vercel 部署錯誤修復
+- **Status:** complete
+- **Started:** 2026-01-25
+- **Error:** `Type 'Session' is not assignable to type '...'`
+- Actions taken:
+  - 修復 `SettingsContentProps` 類型定義
+  - NextAuth Session 的 `user.name/email/image` 可能是 `null`
+  - 將類型從 `string | undefined` 改為 `string | null | undefined`
+- Files modified:
+  - `components/settings-content.tsx`
+- Commit: `3e86c74` fix: 修正 SettingsContentProps 類型以接受 null 值
+
+### Phase 2: UI 調整 - 移除星星圖標
+- **Status:** complete
+- Actions taken:
+  - 移除「FRC 6998 報帳系統」旁邊的 Sparkles 圖標
+  - 移除「歡迎回來, Rick」旁邊的 Sparkles 圖標
+  - 清理未使用的 Sparkles import
+- Files modified:
+  - `components/app-sidebar.tsx`
+  - `components/dashboard-header.tsx`
+
+### Phase 3: 新增 Mentor 註冊選項
+- **Status:** complete
+- Actions taken:
+  - 在 Prisma schema 新增 `MENTOR` 到 `TeamDepartment` enum
+  - 在註冊頁面新增 Mentor 選項
+  - 新增中英文翻譯（老師 / Mentor）
+- Files modified:
+  - `prisma/schema.prisma`
+  - `app/register/page.tsx`
+  - `lib/language-context.tsx`
+
+### Redis 連接警告（已知問題）
+- **Status:** 用戶選擇忽略
+- **原因:** Upstash Redis 實例無法訪問（DNS 解析失敗）
+- **影響:** 無 - 登入功能正常運作，速率限制自動降級
+- **解決方案:** 可到 Upstash Console 創建新實例或忽略警告
+
+## Git Commits (2026-01-25 續)
+| Commit | Message |
+|--------|---------|
+| `3e86c74` | fix: 修正 SettingsContentProps 類型以接受 null 值 |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | 2026-01-25 UI 調整和功能新增完成 |
+| Where am I going? | 提交並推送所有變更 |
+| What's the goal? | Vercel 部署修復 + UI 調整 + Mentor 選項 |
+| What have I learned? | NextAuth Session 類型可能包含 null |
+| What have I done? | 修復類型錯誤，移除星星圖標，新增 Mentor 選項 |
+
+---
+
 ## 下一步建議
 1. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
 2. 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）
 3. 考慮使用外部儲存服務存放 Avatar（S3/Vercel Blob）
 4. 推送前永遠執行 `npm run build`
-5. 檢查 Upstash Redis 配置是否正確
+5. 檢查 Upstash Redis 配置是否正確（或創建新實例）
+6. 執行 `npx prisma db push` 更新線上資料庫 schema（新增 MENTOR）
