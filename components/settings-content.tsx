@@ -27,7 +27,7 @@ function SubmitButton({ children }: { children: React.ReactNode }): React.ReactE
 }
 
 interface SettingsContentProps {
-    session: { user?: { name?: string; email?: string; image?: string } }
+    session: { user?: { name?: string | null; email?: string | null; image?: string | null } }
 }
 
 export function SettingsContent({ session }: SettingsContentProps): React.ReactElement {
