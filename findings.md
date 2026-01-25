@@ -413,3 +413,57 @@ async function checkLoginRateLimit(email: string) {
 |------|------|
 | `scripts/check-user.ts` | 檢查用戶是否存在、密碼是否正確 |
 | `scripts/clear-login-lock.ts` | 清除速率限制鎖定 |
+
+---
+
+## Session: 2026-01-25 (續) - Build 錯誤修復 + 程式碼簡化
+
+### Build 錯誤分析
+
+| 錯誤 | 原因 | 修復 |
+|------|------|------|
+| `Server actions must be async functions` | `lib/actions/helpers.ts` 有 `"use server"` 但含同步函式 | 移除 `"use server"` 指令 |
+| `Cannot find name 'useLanguage'` | `funding-dialog.tsx` 使用未導入的 hook | 移除未使用的行 |
+| `Using <img> could result in slower LCP` | 使用原生 `<img>` 而非 `next/image` | 改用 `<Image>` 組件 |
+| `React Hook has missing dependency` | `useEffect` 依賴陣列不完整 | 加入 `value` 到依賴陣列 |
+| `Type 'X' is not assignable to type 'DataRow'` | 介面缺少索引簽名 | 添加 `[key: string]: T` |
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| `"use server"` 僅用於 Server Actions | 輔助函式庫不需要此指令，避免同步函式被誤判 |
+| 使用 `next/image` 的 `<Image>` | 提供自動優化、更好的 LCP、響應式圖片 |
+| useEffect 依賴必須完整 | 遵守 ESLint `exhaustive-deps` 規則，避免 stale closure |
+| 介面添加索引簽名 | 與 `Record<string, T>` 類型兼容 |
+
+### 程式碼簡化改進
+
+| 檔案 | 改進 |
+|------|------|
+| `lib/actions/helpers.ts` | 新增 `FINANCE_ROLES` 常數消除重複 |
+| `components/settings-content.tsx` | 提取 `PasswordField` 組件減少 ~60 行重複 |
+| `components/settings-content.tsx` | 新增 `getText(zh, en)` 輔助函式 |
+| `app/actions/export.ts` | 合併 `getStatusLabel`/`getCategoryLabel` 為通用 `getLabel` |
+| `lib/export-utils.ts` | 重命名 `hasNoData` → `validateData`（語義更清晰）|
+
+### 安全掃描最終結果
+
+| 類別 | 狀態 |
+|------|------|
+| npm audit | 0 個 CVE |
+| CSP 標頭 | ✅ 已配置 |
+| 登入速率限制 | ✅ 5 次/15 分鐘 |
+| 全局速率限制 | ✅ 100 req/min per IP |
+| SSRF 防護 | ✅ 阻擋內部 IP |
+| Server Actions 權限 | ✅ 全部檢查 |
+| XSS 漏洞 | ✅ 未發現 |
+| SQL Injection | ✅ Prisma ORM 防護 |
+| 硬編碼密鑰 | ✅ 未發現 |
+
+### 經驗教訓
+
+1. **`"use server"` 指令範圍** - 只用於實際的 Server Actions 檔案，輔助函式庫不需要
+2. **Next.js Image 組件** - 優先使用，提供自動優化
+3. **React Hooks 依賴** - 必須完整，避免 stale closure 問題
+4. **TypeScript 索引簽名** - 用於泛型類型兼容性時需要添加

@@ -463,9 +463,72 @@
 
 ---
 
+---
+
+## Session: 2026-01-25 (續) - Build 錯誤修復 + 程式碼簡化 + 安全掃描
+
+### Phase 1: Build 錯誤修復
+- **Status:** complete
+- **Started:** 2026-01-25
+- Actions taken:
+  - 修復 `lib/actions/helpers.ts` - 移除 `"use server"` 指令
+  - 修復 `components/funding-dialog.tsx` - 移除未使用的 `useLanguage`
+  - 修復 `components/app-sidebar.tsx` - 改用 `next/image` 的 `Image` 組件
+  - 修復 `components/settings-content.tsx` - 改用 `next/image` 的 `Image` 組件
+  - 修復 `components/ui/currency-input.tsx` - 修正 `useEffect` 依賴陣列
+  - 修復 `app/actions/export.ts` - 添加索引簽名到匯出介面
+  - 修復 `lib/export-utils.ts` - 調整 `DataRow` 類型
+
+### Phase 2: 程式碼簡化
+- **Status:** complete
+- Actions taken:
+  - 使用 code-simplifier agent 簡化 7 個檔案
+  - `lib/actions/helpers.ts` - 新增 `FINANCE_ROLES` 常數
+  - `components/funding-dialog.tsx` - useEffect cleanup、常數提取
+  - `components/app-sidebar.tsx` - 簡化函式邏輯
+  - `components/settings-content.tsx` - 提取 `PasswordField` 組件
+  - `components/ui/currency-input.tsx` - 純函式提取
+  - `app/actions/export.ts` - 通用 `getLabel` 函式
+  - `lib/export-utils.ts` - 類型別名優化
+
+### Phase 3: 安全掃描
+- **Status:** complete
+- Actions taken:
+  - 執行 npm audit - 0 個 CVE 漏洞
+  - 全面安全掃描 - OWASP Top 10 檢查通過
+- Results:
+  - CSP 標頭：已配置
+  - 速率限制：登入 5 次/15 分鐘，全局 100 req/min
+  - SSRF 防護：已實施
+  - 認證檢查：全部通過
+  - XSS/Injection：未發現
+
+### Phase 4: 提交與推送
+- **Status:** complete
+- Actions taken:
+  - 提交 57 個檔案 (+3151/-1430 行)
+  - 推送至 GitHub
+- Commit: `02fded2` refactor: 程式碼簡化 + 安全掃描確認
+
+## Git Commits (2026-01-25 最終)
+| Commit | Message |
+|--------|---------|
+| `02fded2` | refactor: 程式碼簡化 + 安全掃描確認 |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | 2026-01-25 所有工作完成 |
+| Where am I going? | 已推送，Vercel 自動部署 |
+| What's the goal? | Build 修復 + 簡化 + 安全確認 |
+| What have I learned? | 見 findings.md |
+| What have I done? | 修復 5 個 build 錯誤，簡化 7 個檔案，安全掃描通過 |
+
+---
+
 ## 下一步建議
 1. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
 2. 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）
 3. 考慮使用外部儲存服務存放 Avatar（S3/Vercel Blob）
 4. 推送前永遠執行 `npm run build`
-5. **檢查 Upstash Redis 配置是否正確** - 目前 DNS 無法解析
+5. 檢查 Upstash Redis 配置是否正確
