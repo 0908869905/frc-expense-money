@@ -300,3 +300,60 @@ export async function deleteItem(itemId: string): Promise<InventoryState> {
     return errorState("資料庫錯誤");
   }
 }
+
+// ========== QR Code 掃描相關 ==========
+
+/**
+ * 根據 SKU 取得零件資料
+ * 用於 QR Code 掃描後查詢
+ */
+export async function getItemBySku(sku: string): Promise<{
+  success: boolean;
+  item?: {
+    id: string;
+    name: string;
+    sku: string;
+    category: string;
+    storageLocation: string;
+    currentQuantity: number;
+    safetyStockLevel: number;
+    vendorLink: string | null;
+  };
+  message?: string;
+}> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
+    return { success: false, message: "未授權" };
+  }
+
+  if (!sku || sku.trim() === "") {
+    return { success: false, message: "請提供料號" };
+  }
+
+  try {
+    const item = await prisma.inventoryItem.findUnique({
+      where: { sku: sku.trim() },
+    });
+
+    if (!item) {
+      return { success: false, message: `找不到料號: ${sku}` };
+    }
+
+    return {
+      success: true,
+      item: {
+        id: item.id,
+        name: item.name,
+        sku: item.sku,
+        category: item.category,
+        storageLocation: item.storageLocation,
+        currentQuantity: item.currentQuantity,
+        safetyStockLevel: item.safetyStockLevel,
+        vendorLink: item.vendorLink,
+      },
+    };
+  } catch (error) {
+    console.error("查詢零件失敗:", error);
+    return { success: false, message: "資料庫錯誤" };
+  }
+}

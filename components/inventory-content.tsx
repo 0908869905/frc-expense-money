@@ -2,9 +2,11 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { useState, useTransition } from "react"
-import { Package, AlertTriangle, Plus, Edit2, Trash2, ArrowUpDown, ExternalLink, Search, ArrowDownToLine, ArrowUpFromLine } from "lucide-react"
+import { Package, AlertTriangle, Plus, Edit2, Trash2, ArrowUpDown, ExternalLink, Search, ArrowDownToLine, ArrowUpFromLine, QrCode, ScanLine } from "lucide-react"
 import { adjustStock, createItem, updateItem, deleteItem } from "@/app/actions/inventory"
 import { ItemCategory, TransactionType } from "@prisma/client"
+import { InventoryQRModal } from "./inventory-qr-modal"
+import Link from "next/link"
 
 interface InventoryItem {
     id: string
@@ -48,6 +50,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
     const [localItems, setLocalItems] = useState(items)
     const [searchTerm, setSearchTerm] = useState("")
     const [categoryFilter, setCategoryFilter] = useState<string>("all")
+    const [locationFilter, setLocationFilter] = useState<string>("all")
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
     // Modal states
@@ -56,7 +59,11 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
     const [showAdjustModal, setShowAdjustModal] = useState(false)
     const [showStockInModal, setShowStockInModal] = useState(false)
     const [showStockOutModal, setShowStockOutModal] = useState(false)
+    const [showQRModal, setShowQRModal] = useState(false)
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
+
+    // 提取唯一的儲存位置
+    const uniqueLocations = [...new Set(localItems.map(item => item.storageLocation).filter(Boolean))].sort()
 
     // Form states
     const [formData, setFormData] = useState({
@@ -91,14 +98,21 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         return t ? (language === "zh" ? t.labelZh : t.labelEn) : type
     }
 
-    // Filter items
+    // Filter items - 搜尋支援名稱、料號、位置
     const filteredItems = localItems.filter((item) => {
         const matchesSearch =
             item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.sku.toLowerCase().includes(searchTerm.toLowerCase())
+            item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.storageLocation?.toLowerCase().includes(searchTerm.toLowerCase())
         const matchesCategory = categoryFilter === "all" || item.category === categoryFilter
-        return matchesSearch && matchesCategory
+        const matchesLocation = locationFilter === "all" || item.storageLocation === locationFilter
+        return matchesSearch && matchesCategory && matchesLocation
     })
+
+    const openQRModal = (item: InventoryItem) => {
+        setSelectedItem(item)
+        setShowQRModal(true)
+    }
 
     // Handlers
     const handleAddItem = async () => {
@@ -255,13 +269,22 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         {language === "zh" ? "管理 FRC 零件庫存" : "Manage FRC parts inventory"}
                     </p>
                 </div>
-                <button
-                    onClick={openAddModal}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                >
-                    <Plus className="h-4 w-4" />
-                    {language === "zh" ? "新增零件" : "Add Item"}
-                </button>
+                <div className="flex gap-2">
+                    <Link
+                        href="/dashboard/inventory/scan"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border hover:bg-muted transition-colors"
+                    >
+                        <ScanLine className="h-4 w-4" />
+                        {language === "zh" ? "掃描" : "Scan"}
+                    </Link>
+                    <button
+                        onClick={openAddModal}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                        <Plus className="h-4 w-4" />
+                        {language === "zh" ? "新增零件" : "Add Item"}
+                    </button>
+                </div>
             </div>
 
             {/* Message */}
@@ -304,7 +327,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                         type="text"
-                        placeholder={language === "zh" ? "搜尋品名或料號..." : "Search name or SKU..."}
+                        placeholder={language === "zh" ? "搜尋品名、料號或位置..." : "Search name, SKU or location..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
@@ -319,6 +342,18 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     {CATEGORIES.map((cat) => (
                         <option key={cat.value} value={cat.value}>
                             {language === "zh" ? cat.labelZh : cat.labelEn}
+                        </option>
+                    ))}
+                </select>
+                <select
+                    value={locationFilter}
+                    onChange={(e) => setLocationFilter(e.target.value)}
+                    className="px-4 py-2 border rounded-lg bg-background"
+                >
+                    <option value="all">{language === "zh" ? "所有位置" : "All Locations"}</option>
+                    {uniqueLocations.map((loc) => (
+                        <option key={loc} value={loc}>
+                            {loc}
                         </option>
                     ))}
                 </select>
@@ -370,6 +405,13 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     <td className="p-4 text-muted-foreground">{item.safetyStockLevel}</td>
                                     <td className="p-4">
                                         <div className="flex gap-1">
+                                            <button
+                                                onClick={() => openQRModal(item)}
+                                                className="p-1.5 rounded hover:bg-blue-100 text-blue-600"
+                                                title={language === "zh" ? "QR Code" : "QR Code"}
+                                            >
+                                                <QrCode className="h-4 w-4" />
+                                            </button>
                                             <button
                                                 onClick={() => openStockInModal(item)}
                                                 className="p-1.5 rounded hover:bg-green-100 text-green-600"
@@ -761,6 +803,14 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* QR Code Modal */}
+            {showQRModal && selectedItem && (
+                <InventoryQRModal
+                    item={selectedItem}
+                    onClose={() => setShowQRModal(false)}
+                />
             )}
         </div>
     )
