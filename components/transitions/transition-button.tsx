@@ -11,6 +11,12 @@ interface TransitionButtonProps {
   language: string
 }
 
+// Animation timing constants
+const CLAW_ENTER_DURATION = 300
+const TEAR_DURATION = 2000
+const NAVIGATION_DELAY = 2500
+const TEAR_PROGRESS_SCALE = 220 // Scale factor for clip-path offset
+
 // 簡單的偽隨機數生成器（基於種子）
 function seededRandom(seed: number) {
   const x = Math.sin(seed) * 10000
@@ -70,12 +76,9 @@ function generateJaggedDiagonalPath(
     return "polygon(-10% -10%, 110% -10%, 110% 110%, -10% 110%)"
   }
 
-  // 撕裂線是反斜線方向（＼），從 (offset, 0) 到 (0, offset)
-  // offset 從 0 增加到 200+
-  // 當 offset = 0：線在左上角點，覆蓋整個畫面
-  // 當 offset = 100：線是反對角線，覆蓋右下半部
-  // 當 offset = 200：線離開畫面，完全露出
-  const offset = progress * 220 // 稍微超過 200 確保完全離開
+  // Diagonal tear line: from (offset, 0) to (0, offset)
+  // offset=0: covers entire screen, offset=200+: fully revealed
+  const offset = progress * TEAR_PROGRESS_SCALE
 
   const points: string[] = []
 
@@ -201,20 +204,17 @@ export function TransitionButton({ language }: TransitionButtonProps) {
     const pullingTimeout = setTimeout(() => {
       if (!isAnimatingRef.current) return
 
-      // 階段 2: 豹爪往右下拉開畫面 (2s)
       setPhase("pulling")
 
-      // 開始撕裂動畫
       const startTime = Date.now()
-      const duration = 2000
 
       const animate = () => {
         if (!isAnimatingRef.current) return
 
         const elapsed = Date.now() - startTime
-        const progress = Math.min(elapsed / duration, 1)
+        const progress = Math.min(elapsed / TEAR_DURATION, 1)
 
-        // 使用 easeInOutCubic 緩動函數
+        // easeInOutCubic easing function
         const eased = progress < 0.5
           ? 4 * progress * progress * progress
           : 1 - Math.pow(-2 * progress + 2, 3) / 2
@@ -227,17 +227,16 @@ export function TransitionButton({ language }: TransitionButtonProps) {
       }
 
       animationFrameRef.current = requestAnimationFrame(animate)
-    }, 300)
+    }, CLAW_ENTER_DURATION)
     timeoutsRef.current.push(pullingTimeout)
 
     const navigationTimeout = setTimeout(() => {
       if (!isAnimatingRef.current) return
 
-      // 階段 3: 動畫完成，導航到登入頁面
       setPhase("done")
       cleanup()
       window.location.href = "/login"
-    }, 2500)
+    }, NAVIGATION_DELAY)
     timeoutsRef.current.push(navigationTimeout)
   }
 
@@ -255,7 +254,8 @@ export function TransitionButton({ language }: TransitionButtonProps) {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
   }, [phase, cleanup])
 
-  const isAnimating = phase !== "idle" && phase !== "done"
+  // Keep animation overlay visible until browser navigates to /login
+  const isAnimating = phase !== "idle"
 
   // 計算不規則鋸齒狀的 clip-path - 使用更多段數和更大的鋸齒深度
   const jaggedClipPath = useMemo(() => {
@@ -394,31 +394,8 @@ export function TransitionButton({ language }: TransitionButtonProps) {
               </div>
             </div>
           </div>
-          {/* 豹爪 - 跟隨撕裂線中點移動 */}
-          {/* 撕裂線是反斜線：從 (offset, 0) 到 (0, offset)，中點在 (offset/2, offset/2) */}
-          <div
-            className="absolute w-36 h-48"
-            style={{
-              zIndex: 50,
-              filter: "drop-shadow(0 0 25px rgba(168, 85, 247, 0.8))",
-              // 撕裂線中點位置：offset = tearProgress * 220
-              // 中點 = (offset/2, offset/2) = (tearProgress * 110, tearProgress * 110)
-              top: phase === "claw-enter"
-                ? "-80px"
-                : `calc(${tearProgress * 110}% - 100px)`,
-              left: phase === "claw-enter"
-                ? "-80px"
-                : `calc(${tearProgress * 110}% - 80px)`,
-              opacity: 1,
-              // 爪子旋轉使其指向撕裂方向（右下）
-              transform: "rotate(135deg)",
-              transition: phase === "claw-enter"
-                ? "top 300ms ease-out, left 300ms ease-out, opacity 300ms"
-                : "opacity 300ms",
-            }}
-          >
-            <ClawSvg className="w-full h-full" />
-          </div>
+          {/* Claw follows the tear line midpoint */}
+          <ClawOverlay phase={phase} tearProgress={tearProgress} />
 
           {/* 被拉開的頁面覆蓋層 - 完整首頁樣式 */}
           <div
@@ -658,15 +635,6 @@ export function TransitionButton({ language }: TransitionButtonProps) {
         </div>
       )}
 
-      {/* 動畫完成後的登入頁面 iframe - 可接收點擊 */}
-      {phase === "done" && (
-        <iframe
-          src="/login"
-          className="fixed inset-0 w-full h-full z-[100] border-0"
-          style={{ pointerEvents: "auto" }}
-          title="Login Page"
-        />
-      )}
     </>
   )
 }
@@ -689,39 +657,34 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
   }, [])
 
   const pathData = useMemo(() => {
-    const segments = 80 // 增加段數以獲得更細膩的鋸齒
-    const jaggedDepth = 25 // 增加鋸齒深度
+    const segments = 80
+    const jaggedDepth = 25
 
     const points: string[] = []
-    const offset = progress * 220 // 與 clip-path 一致
+    const offset = progress * TEAR_PROGRESS_SCALE
 
     for (let i = 0; i <= segments; i++) {
       const t = i / segments
 
-      // 反斜線方向：從 (offset, 0) 到 (0, offset)
-      // 參數化：x = offset * (1-t), y = offset * t
+      // Diagonal line: x = offset * (1-t), y = offset * t
       const baseXPercent = offset * (1 - t)
       const baseYPercent = offset * t
 
-      // 轉換為像素座標
       const baseX = (baseXPercent / 100) * dimensions.width
       const baseY = (baseYPercent / 100) * dimensions.height
 
-      // 增強的鋸齒效果 - 多層波形疊加
+      // Multi-layer wave for jagged effect
       const wave1 = Math.sin(i * 0.5 + seed) * jaggedDepth * 0.4
       const wave2 = Math.sin(i * 1.3 + seed * 1.7) * jaggedDepth * 0.3
       const wave3 = Math.sin(i * 2.7 + seed * 3.1) * jaggedDepth * 0.2
-      const wave4 = Math.sin(i * 5.3 + seed * 7.1) * jaggedDepth * 0.1 // 高頻細節
+      const wave4 = Math.sin(i * 5.3 + seed * 7.1) * jaggedDepth * 0.1
 
-      // 隨機尖刺
       const spikeChance = seededRandom(i * 5 + seed * 13)
       const spike = spikeChance > 0.88 ? (seededRandom(i + seed * 17) - 0.5) * jaggedDepth * 0.5 : 0
-
-      // 基礎隨機擾動
       const randomJag = (seededRandom(i + seed) - 0.5) * jaggedDepth * 0.25
 
+      // Perpendicular offset direction: (1, 1) / sqrt(2) = 0.707
       const perpOffset = wave1 + wave2 + wave3 + wave4 + spike + randomJag
-      // 垂直於反斜線的偏移方向：(1, 1) / sqrt(2)
       const x = baseX + perpOffset * 0.707
       const y = baseY + perpOffset * 0.707
 
@@ -777,7 +740,7 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* 最亮的中心 */}
+      {/* Brightest center line */}
       <path
         d={pathData}
         fill="none"
@@ -787,5 +750,31 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
         strokeLinejoin="round"
       />
     </g>
+  )
+}
+
+// Claw overlay component - follows the tear line midpoint
+function ClawOverlay({ phase, tearProgress }: { phase: TransitionPhase; tearProgress: number }) {
+  const isEntering = phase === "claw-enter"
+  // Tear line midpoint: offset/2 = tearProgress * 110
+  const midpoint = tearProgress * (TEAR_PROGRESS_SCALE / 2)
+
+  return (
+    <div
+      className="absolute w-36 h-48"
+      style={{
+        zIndex: 50,
+        filter: "drop-shadow(0 0 25px rgba(168, 85, 247, 0.8))",
+        top: isEntering ? "-80px" : `calc(${midpoint}% - 100px)`,
+        left: isEntering ? "-80px" : `calc(${midpoint}% - 80px)`,
+        opacity: 1,
+        transform: "rotate(135deg)",
+        transition: isEntering
+          ? "top 300ms ease-out, left 300ms ease-out, opacity 300ms"
+          : "opacity 300ms",
+      }}
+    >
+      <ClawSvg className="w-full h-full" />
+    </div>
   )
 }
