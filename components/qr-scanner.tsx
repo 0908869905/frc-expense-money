@@ -17,7 +17,7 @@ interface Html5QrCodeInstance {
         config: { fps: number; qrbox: { width: number; height: number } },
         onSuccess: (text: string) => void,
         onError: () => void
-    ) => Promise<void>
+    ) => Promise<null>
     stop: () => Promise<void>
 }
 
