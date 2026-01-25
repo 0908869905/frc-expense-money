@@ -4,7 +4,9 @@ import { ReactNode } from "react"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useLanguage } from "@/lib/language-context"
 import { useTheme } from "@/lib/theme-context"
-import { Sun, Moon } from "lucide-react"
+import { useNavigationProgress } from "@/lib/navigation-progress-context"
+import { cn } from "@/lib/utils"
+import { Moon, Sun } from "lucide-react"
 
 interface DashboardHeaderProps {
     userName: string
@@ -43,7 +45,16 @@ export function DashboardHeader({ userName, children }: DashboardHeaderProps) {
     )
 }
 
-// DashboardWrapper no longer needs LanguageProvider since it's in root layout
+// DashboardWrapper with navigation transition effect
 export function DashboardWrapper({ children }: { children: ReactNode }) {
-    return <>{children}</>
+    const { isNavigating } = useNavigationProgress()
+
+    return (
+        <div className={cn(
+            "transition-opacity duration-200",
+            isNavigating ? "opacity-50 pointer-events-none" : "opacity-100"
+        )}>
+            {children}
+        </div>
+    )
 }

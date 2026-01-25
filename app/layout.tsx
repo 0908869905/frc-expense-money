@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/lib/language-context"
 import { OrganizationProvider } from "@/lib/organization-context"
 import { ThemeProvider } from "@/lib/theme-context"
+import { NavigationProgressProvider } from "@/lib/navigation-progress-context"
+import { NavigationProgressBar } from "@/components/navigation"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -29,7 +31,10 @@ export default function RootLayout({
         <ThemeProvider>
           <OrganizationProvider>
             <LanguageProvider>
-              {children}
+              <NavigationProgressProvider>
+                <NavigationProgressBar />
+                {children}
+              </NavigationProgressProvider>
             </LanguageProvider>
           </OrganizationProvider>
         </ThemeProvider>

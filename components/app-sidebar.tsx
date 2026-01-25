@@ -19,6 +19,7 @@ import {
 import { signOut } from "next-auth/react"
 import { useLanguage } from "@/lib/language-context"
 import { useOrganization } from "@/lib/organization-context"
+import { NavigationLink } from "@/components/navigation"
 
 import {
   Sidebar,
@@ -162,7 +163,7 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/dashboard" className="group">
+              <NavigationLink href="/dashboard" className="group">
                 <div className={`flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ${org.bgColor} ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all`}>
                   <Image src={org.logo} alt={org.name} width={24} height={24} className="size-6 object-contain" />
                 </div>
@@ -172,7 +173,7 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
                   </span>
                   <span className="truncate text-xs text-muted-foreground">{org.subtitle}</span>
                 </div>
-              </a>
+              </NavigationLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -191,7 +192,7 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
                   tooltip={t(item.labelZh, item.labelEn)}
                   className={active ? "sidebar-item-active" : "sidebar-item"}
                 >
-                  <a href={item.href} className="relative">
+                  <NavigationLink href={item.href} className="relative">
                     {active && (
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
                     )}
@@ -199,7 +200,7 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
                     <span className={active ? "font-medium text-primary" : ""}>
                       {t(item.labelZh, item.labelEn)}
                     </span>
-                  </a>
+                  </NavigationLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )
@@ -212,7 +213,7 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
           {/* 用戶資訊 */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={userName || userEmail || t("用戶", "User")}>
-              <a href="/dashboard/profile" className="group flex items-center gap-3">
+              <NavigationLink href="/dashboard/profile" className="group flex items-center gap-3">
                 {userImage ? (
                   <div className="relative">
                     <Image
@@ -236,7 +237,7 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
                   <span className="truncate font-medium block">{userName || t("未設定名稱", "No name")}</span>
                   <span className="truncate text-muted-foreground block">{userEmail}</span>
                 </div>
-              </a>
+              </NavigationLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
