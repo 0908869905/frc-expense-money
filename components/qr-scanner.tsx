@@ -62,14 +62,23 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
             console.error("QR Scanner error:", error)
             setState("error")
 
-            const message = error.message || ""
-            if (message.includes("Permission")) {
+            const message = error.message || String(err)
+
+            // 更詳細的錯誤判斷
+            if (message.includes("Permission") || message.includes("NotAllowedError")) {
                 setHasPermission(false)
                 setErrorMessage(language === "zh" ? "相機權限被拒絕" : "Camera permission denied")
-            } else if (message.includes("NotFoundError")) {
-                setErrorMessage(language === "zh" ? "找不到相機" : "No camera found")
+            } else if (message.includes("NotFoundError") || message.includes("no camera") || message.includes("Requested device not found")) {
+                setErrorMessage(language === "zh" ? "找不到相機裝置" : "No camera found")
+            } else if (message.includes("NotReadableError") || message.includes("in use")) {
+                setErrorMessage(language === "zh" ? "相機被其他程式佔用" : "Camera is in use by another app")
+            } else if (message.includes("OverconstrainedError")) {
+                setErrorMessage(language === "zh" ? "相機不支援此設定" : "Camera doesn't support this configuration")
             } else {
-                setErrorMessage(language === "zh" ? "無法啟動相機" : "Failed to start camera")
+                // 顯示實際錯誤訊息以便除錯
+                setErrorMessage(language === "zh"
+                    ? `無法啟動相機: ${message.substring(0, 100)}`
+                    : `Failed to start camera: ${message.substring(0, 100)}`)
             }
 
             onError?.(message || "Scanner error")
