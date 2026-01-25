@@ -648,6 +648,89 @@
 
 ---
 
+## Session: 2026-01-25 (續) - 庫存 QR Code 掃描功能
+
+### Phase 1: QR Code 功能實作
+- **Status:** complete
+- **Started:** 2026-01-25
+- Actions taken:
+  - 安裝 `qrcode.react` 和 `html5-qrcode`
+  - 建立 `components/qr-scanner.tsx` 網頁版相機掃描
+  - 建立 `components/inventory-qr-modal.tsx` QR Code 顯示/列印
+  - 建立 `app/dashboard/inventory/scan/page.tsx` 掃描頁面
+  - 新增 `getItemBySku` Server Action
+  - 修改 `inventory-content.tsx` 新增位置過濾和 QR 按鈕
+- Files created:
+  - `components/qr-scanner.tsx`
+  - `components/inventory-qr-modal.tsx`
+  - `app/dashboard/inventory/scan/page.tsx`
+  - `types/inventory.ts`
+- Files modified:
+  - `app/actions/inventory.ts`
+  - `components/inventory-content.tsx`
+  - `package.json`
+
+### Phase 2: 安全性強化
+- **Status:** complete
+- Actions taken:
+  - 新增 `ENABLE_DEBUG_ENDPOINTS` 環境變數控制
+  - 修復 `/api/debug`、`/api/seed`、`/api/test-user` 安全檢查
+  - 新增 SKU 輸入驗證（長度限制 + 字元白名單）
+- Files modified:
+  - `app/api/debug/route.ts`
+  - `app/api/seed/route.ts`
+  - `app/api/test-user/route.ts`
+  - `app/actions/inventory.ts`
+  - `.env.example`
+
+### Phase 3: 程式碼簡化
+- **Status:** complete
+- Actions taken:
+  - 建立共用類型檔案 `types/inventory.ts`
+  - 簡化 modal 狀態管理
+  - 移除未使用的 Capacitor 檔案
+- Files deleted:
+  - `capacitor.config.ts`
+  - `lib/capacitor-scanner.ts`
+  - `types/capacitor-barcode-scanner.d.ts`
+
+### Phase 4: Vercel 部署修復
+- **Status:** complete
+- **Error:** `Type 'Set<string>' can only be iterated through when using '--downlevelIteration'`
+- Actions taken:
+  - 將 `[...new Set()]` 改為 `Array.from(new Set())`
+  - 記錄到 TROUBLESHOOTING.md
+- Files modified:
+  - `components/inventory-content.tsx`
+  - `TROUBLESHOOTING.md`
+
+## Git Commits (2026-01-25 QR Code)
+| Commit | Message |
+|--------|---------|
+| `2ccf6de` | feat: 庫存 QR Code 掃描功能 + 安全性強化 |
+| `edc6d6b` | fix: 改善相機錯誤訊息顯示 |
+| `408a929` | fix: 修正 Set 迭代相容性問題 |
+| `15283e0` | docs: 新增 Set 迭代錯誤解決方案 |
+
+## 新增功能摘要
+| 功能 | 說明 |
+|------|------|
+| QR Code 掃描 | 網頁版相機掃描（html5-qrcode） |
+| QR Code 標籤 | 列印/下載 QR Code 標籤 |
+| 位置過濾 | 庫存頁面新增位置下拉選單 |
+| SKU 查詢 | 掃描後顯示零件資訊 + 快速入出庫 |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | QR Code 功能完成，已合併到 main |
+| Where am I going? | 功能上線，Vercel 自動部署 |
+| What's the goal? | 庫存 QR Code 掃描 + 入出庫 |
+| What have I learned? | Array.from(new Set()) 比展開運算子更兼容 |
+| What have I done? | 實作 QR 掃描、安全加固、修復 Vercel 錯誤 |
+
+---
+
 ## 下一步建議
 1. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
 2. 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）

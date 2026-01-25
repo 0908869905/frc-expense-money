@@ -510,3 +510,75 @@ interface SettingsContentProps {
 
 5. **NextAuth Session 類型** - `user` 屬性可能包含 `null`，定義 props 類型時要考慮
 6. **Prisma enum 變更** - 新增值後需要 `prisma generate` + `prisma db push`
+
+---
+
+## Session: 2026-01-25 (續) - 庫存 QR Code 掃描功能
+
+### 功能需求
+- 文字查詢庫存位置
+- QR Code 掃描查看庫存數量（網頁版 + 未來 iOS App）
+- 出入庫登記數量
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| 使用 `html5-qrcode` | 純網頁版相機掃描，不需要 Capacitor 原生套件 |
+| QR Code 內容只存 SKU | 簡單易讀，相容性最好 |
+| 共用類型放 `types/inventory.ts` | 避免重複定義，統一管理 |
+| `ENABLE_DEBUG_ENDPOINTS` 環境變數 | 額外安全層，即使非生產環境也需明確啟用 |
+| SKU 驗證使用正則 | 防止注入攻擊，限制字元集和長度 |
+
+### 安全加固
+
+#### Debug 端點三層檢查
+```typescript
+// 1. 生產環境禁用
+if (process.env.NODE_ENV === "production") return 404
+
+// 2. 必須明確啟用
+if (process.env.ENABLE_DEBUG_ENDPOINTS !== "true") return 403
+
+// 3. ADMIN 認證
+if (session.user.role !== "ADMIN") return 401
+```
+
+#### SKU 輸入驗證
+```typescript
+const SKU_PATTERN = /^[A-Za-z0-9\-_]{1,50}$/;
+
+function validateSku(sku: string) {
+  if (!sku?.trim()) return { valid: false, error: "請提供料號" };
+  if (sku.length > 50) return { valid: false, error: "料號過長" };
+  if (!SKU_PATTERN.test(sku)) return { valid: false, error: "料號格式錯誤" };
+  return { valid: true };
+}
+```
+
+### Vercel 部署錯誤
+
+#### 問題
+```
+Type error: Type 'Set<string>' can only be iterated through when using
+the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+```
+
+#### 原因
+TypeScript 預設配置不支援對 `Set` 使用展開運算子 `[...set]`。
+
+#### 解決方案
+```typescript
+// ❌ 錯誤
+const uniqueLocations = [...new Set(items.map(i => i.location))]
+
+// ✅ 正確
+const uniqueLocations = Array.from(new Set(items.map(i => i.location)))
+```
+
+### 經驗教訓
+
+1. **Set 迭代兼容性** - 永遠使用 `Array.from(new Set())` 而非 `[...new Set()]`
+2. **Web 相機 API 限制** - 需要 HTTPS 或 localhost，桌機可能沒有攝像頭
+3. **分層安全** - Debug 端點應有多層檢查（環境 + 明確啟用 + 認證）
+4. **輸入驗證** - 所有用戶輸入都應驗證格式，防止注入攻擊

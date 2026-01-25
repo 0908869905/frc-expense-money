@@ -141,6 +141,11 @@ UPSTASH_REDIS_REST_TOKEN
 GOOGLE_APPLICATION_CREDENTIALS_JSON  # For OCR
 ```
 
+Optional:
+```
+ENABLE_DEBUG_ENDPOINTS=true  # 啟用 /api/debug, /api/seed, /api/test-user（僅開發環境）
+```
+
 **Local development:** Comment out `AUTH_URL` to let NextAuth auto-detect.
 
 ## Security Notes
@@ -187,6 +192,17 @@ try {
   console.warn("Redis failed:", error)
   return fallbackValue  // Graceful degradation
 }
+```
+
+### Set 去重（避免 downlevelIteration 錯誤）
+
+使用 `Array.from()` 而非展開運算子：
+```typescript
+// ❌ 錯誤 - Vercel 編譯會失敗
+const unique = [...new Set(array)]
+
+// ✅ 正確
+const unique = Array.from(new Set(array))
 ```
 
 ## Pre-deployment Checklist
