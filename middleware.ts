@@ -47,11 +47,11 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
 // 定期清理過期的 IP 記錄（防止內存洩漏）
 setInterval(() => {
     const now = Date.now()
-    for (const [ip, record] of ipRequestCounts.entries()) {
+    ipRequestCounts.forEach((record, ip) => {
         if (now > record.resetTime) {
             ipRequestCounts.delete(ip)
         }
-    }
+    })
 }, 60 * 1000) // 每分鐘清理一次
 
 export function middleware(request: NextRequest) {
