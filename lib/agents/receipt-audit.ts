@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { recognizeInvoice } from "@/lib/agents/ocr";
 import { toDisplayUnit } from "@/lib/money";
+import { formatDate } from "@/lib/utils";
 import type { AuditIssue, AuditResult, BatchAuditResult } from "@/types/audit";
 
 export type {
@@ -288,12 +289,4 @@ function parseExtractedDate(dateStr: string): Date | null {
 
     const date = new Date(dateStr);
     return isNaN(date.getTime()) ? null : date;
-}
-
-function formatDate(date: Date): string {
-    return date.toLocaleDateString("zh-TW", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    });
 }

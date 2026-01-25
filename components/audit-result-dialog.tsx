@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * 審核結果 Dialog
- * 顯示收據審核的詳細結果
+ * 審核結果 Dialog - 顯示收據審核的詳細結果
  */
 
 import { Modal } from "@/components/ui/modal";
@@ -17,8 +16,49 @@ import {
     DollarSign,
     Store,
     Hash,
+    type LucideIcon,
 } from "lucide-react";
-import type { AuditResult, AuditIssue, AuditIssueSeverity } from "@/types/audit";
+import type { AuditResult, AuditIssueSeverity } from "@/types/audit";
+
+interface SeverityConfig {
+    icon: LucideIcon;
+    bgColor: string;
+    textColor: string;
+    borderColor: string;
+}
+
+const SEVERITY_CONFIG: Record<AuditIssueSeverity, SeverityConfig> = {
+    error: {
+        icon: XCircle,
+        bgColor: "bg-red-100 dark:bg-red-900/30",
+        textColor: "text-red-700 dark:text-red-400",
+        borderColor: "border-red-200 dark:border-red-800",
+    },
+    warning: {
+        icon: AlertTriangle,
+        bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
+        textColor: "text-yellow-700 dark:text-yellow-400",
+        borderColor: "border-yellow-200 dark:border-yellow-800",
+    },
+    info: {
+        icon: Info,
+        bgColor: "bg-blue-100 dark:bg-blue-900/30",
+        textColor: "text-blue-700 dark:text-blue-400",
+        borderColor: "border-blue-200 dark:border-blue-800",
+    },
+};
+
+function getScoreColor(score: number): string {
+    if (score >= 80) return "text-green-600 dark:text-green-400";
+    if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
+    return "text-red-600 dark:text-red-400";
+}
+
+function getProgressColor(score: number): string {
+    if (score >= 80) return "bg-green-500";
+    if (score >= 60) return "bg-yellow-500";
+    return "bg-red-500";
+}
 
 interface AuditResultDialogProps {
     open: boolean;
@@ -32,47 +72,8 @@ export function AuditResultDialog({
     onOpenChange,
     result,
     itemDescription,
-}: AuditResultDialogProps) {
+}: AuditResultDialogProps): React.ReactElement | null {
     if (!result) return null;
-
-    const getSeverityConfig = (severity: AuditIssueSeverity) => {
-        switch (severity) {
-            case "error":
-                return {
-                    icon: XCircle,
-                    bgColor: "bg-red-100 dark:bg-red-900/30",
-                    textColor: "text-red-700 dark:text-red-400",
-                    borderColor: "border-red-200 dark:border-red-800",
-                };
-            case "warning":
-                return {
-                    icon: AlertTriangle,
-                    bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
-                    textColor: "text-yellow-700 dark:text-yellow-400",
-                    borderColor: "border-yellow-200 dark:border-yellow-800",
-                };
-            case "info":
-            default:
-                return {
-                    icon: Info,
-                    bgColor: "bg-blue-100 dark:bg-blue-900/30",
-                    textColor: "text-blue-700 dark:text-blue-400",
-                    borderColor: "border-blue-200 dark:border-blue-800",
-                };
-        }
-    };
-
-    const getScoreColor = (score: number) => {
-        if (score >= 80) return "text-green-600 dark:text-green-400";
-        if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
-        return "text-red-600 dark:text-red-400";
-    };
-
-    const getProgressColor = (score: number) => {
-        if (score >= 80) return "bg-green-500";
-        if (score >= 60) return "bg-yellow-500";
-        return "bg-red-500";
-    };
 
     return (
         <Modal
@@ -172,7 +173,7 @@ export function AuditResultDialog({
                         <h4 className="font-medium text-sm">發現的問題</h4>
                         <div className="max-h-48 overflow-y-auto space-y-2">
                             {result.issues.map((issue, index) => {
-                                const config = getSeverityConfig(issue.severity);
+                                const config = SEVERITY_CONFIG[issue.severity] || SEVERITY_CONFIG.info;
                                 const Icon = config.icon;
                                 return (
                                     <div

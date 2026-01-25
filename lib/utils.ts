@@ -1,22 +1,19 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-}
+export { formatCurrency } from "@/lib/currency";
 
-export function formatDate(date: Date | string) {
-  const d = new Date(date);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(d);
+const LOCALE_MAP = { zh: "zh-TW", en: "en-US" } as const;
+
+/** 格式化日期 */
+export function formatDate(date: Date | string, language: "zh" | "en" = "zh"): string {
+  return new Date(date).toLocaleDateString(LOCALE_MAP[language], {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }

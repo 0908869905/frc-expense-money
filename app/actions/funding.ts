@@ -2,9 +2,16 @@
 
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { FundingType } from "@prisma/client"
+import {
+  getAuthenticatedUserId,
+  revalidateFunding,
+  unauthorizedState,
+  successState,
+  errorState,
+  type ActionState
+} from "@/lib/actions/helpers"
 
 const fundingRecordSchema = z.object({
   title: z.string().min(1, "標題為必填"),
@@ -15,11 +22,7 @@ const fundingRecordSchema = z.object({
   date: z.date().optional(),
 })
 
-export type FundingState = {
-  success: boolean
-  message: string | null
-  errors?: Record<string, string[]>
-}
+export type FundingState = ActionState
 
 const FINANCE_ROLES = ["FINANCE", "ADMIN"] as const;
 
@@ -37,18 +40,13 @@ async function requireFinanceAccess(): Promise<{ userId: string; userName: strin
   }
 }
 
-function revalidateFundingPaths(): void {
-  revalidatePath("/dashboard")
-  revalidatePath("/dashboard/reports")
-}
-
 export async function createFundingRecord(
   prevState: FundingState,
   formData: FormData
 ): Promise<FundingState> {
   const access = await requireFinanceAccess()
   if (!access) {
-    return { success: false, message: "未授權或權限不足" }
+    return unauthorizedState("未授權或權限不足")
   }
 
   const rawData = {
@@ -63,11 +61,7 @@ export async function createFundingRecord(
   const validatedFields = fundingRecordSchema.safeParse(rawData)
 
   if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "驗證失敗",
-      errors: validatedFields.error.flatten().fieldErrors as Record<string, string[]>,
-    }
+    return errorState("驗證失敗", validatedFields.error.flatten().fieldErrors as Record<string, string[]>)
   }
 
   const { title, amount, type, source, description, date } = validatedFields.data
@@ -85,17 +79,17 @@ export async function createFundingRecord(
       },
     })
 
-    revalidateFundingPaths()
-    return { success: true, message: "資金記錄已新增" }
+    revalidateFunding()
+    return successState("資金記錄已新增")
   } catch (error) {
     console.error("Failed to create funding record:", error)
-    return { success: false, message: "新增失敗，請稍後再試" }
+    return errorState("新增失敗，請稍後再試")
   }
 }
 
 export async function getFundingRecords() {
-  const session = await auth()
-  if (!session?.user?.id) return []
+  const userId = await getAuthenticatedUserId()
+  if (!userId) return []
 
   try {
     return await prisma.fundingRecord.findMany({
@@ -121,8 +115,8 @@ const EMPTY_SUMMARY: FinancialSummary = {
 }
 
 export async function getFinancialSummary(): Promise<FinancialSummary> {
-  const session = await auth()
-  if (!session?.user?.id) return EMPTY_SUMMARY
+  const userId = await getAuthenticatedUserId()
+  if (!userId) return EMPTY_SUMMARY
 
   try {
     const [fundingResult, expenseResult] = await Promise.all([
@@ -150,16 +144,16 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
 export async function deleteFundingRecord(id: string): Promise<FundingState> {
   const access = await requireFinanceAccess()
   if (!access) {
-    return { success: false, message: "未授權或權限不足" }
+    return unauthorizedState("未授權或權限不足")
   }
 
   try {
     await prisma.fundingRecord.delete({ where: { id } })
-    revalidateFundingPaths()
-    return { success: true, message: "記錄已刪除" }
+    revalidateFunding()
+    return successState("記錄已刪除")
   } catch (error) {
     console.error("Failed to delete funding record:", error)
-    return { success: false, message: "刪除失敗" }
+    return errorState("刪除失敗")
   }
 }
 
@@ -176,17 +170,13 @@ export async function updateFundingRecord(
 ): Promise<FundingState> {
   const access = await requireFinanceAccess()
   if (!access) {
-    return { success: false, message: "未授權或權限不足" }
+    return unauthorizedState("未授權或權限不足")
   }
 
   const validatedFields = fundingRecordSchema.safeParse(data)
 
   if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "驗證失敗",
-      errors: validatedFields.error.flatten().fieldErrors as Record<string, string[]>,
-    }
+    return errorState("驗證失敗", validatedFields.error.flatten().fieldErrors as Record<string, string[]>)
   }
 
   const { title, amount, type, source, description, date } = validatedFields.data
@@ -204,10 +194,10 @@ export async function updateFundingRecord(
       },
     })
 
-    revalidateFundingPaths()
-    return { success: true, message: "資金記錄已更新" }
+    revalidateFunding()
+    return successState("資金記錄已更新")
   } catch (error) {
     console.error("Failed to update funding record:", error)
-    return { success: false, message: "更新失敗，請稍後再試" }
+    return errorState("更新失敗，請稍後再試")
   }
 }

@@ -12,13 +12,16 @@ interface ReportStats {
 }
 
 function calculateStats(reports: { status: string; totalAmount: unknown }[]): ReportStats {
-    return {
-        total: reports.length,
-        pending: reports.filter(r => r.status.includes("PENDING")).length,
-        approved: reports.filter(r => r.status === "PAID").length,
-        rejected: reports.filter(r => r.status === "REJECTED").length,
-        totalAmount: reports.reduce((sum, r) => sum + Number(r.totalAmount), 0)
+    const stats = { pending: 0, approved: 0, rejected: 0, totalAmount: 0 }
+
+    for (const report of reports) {
+        if (report.status.includes("PENDING")) stats.pending++
+        else if (report.status === "PAID") stats.approved++
+        else if (report.status === "REJECTED") stats.rejected++
+        stats.totalAmount += Number(report.totalAmount)
     }
+
+    return { total: reports.length, ...stats }
 }
 
 export default async function ReportsPage(): Promise<React.JSX.Element> {

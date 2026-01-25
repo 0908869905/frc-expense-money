@@ -1,22 +1,18 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { DollarSign, TrendingUp, TrendingDown, Wallet, ChevronDown, ChevronUp, Edit2, Trash2, Loader2, X } from "lucide-react"
+import { TrendingUp, TrendingDown, Wallet, ChevronDown, ChevronUp, Edit2, Trash2, Loader2, X } from "lucide-react"
 import { deleteFundingRecord, updateFundingRecord } from "@/app/actions/funding"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-interface FundingRecord {
-    id: string
-    title: string
-    amount: number
-    type: string
-    source: string | null
-    description: string | null
-    date: Date | string
-    recordedBy: string
-}
+import {
+    FUNDING_TYPES,
+    getTypeLabel,
+    formatCurrency,
+    formatDate,
+    type FundingRecord,
+} from "@/lib/constants/funding"
 
 interface BalanceCardProps {
     totalIncome: number
@@ -24,14 +20,6 @@ interface BalanceCardProps {
     currentBalance: number
     fundingRecords?: FundingRecord[]
 }
-
-const FUNDING_TYPES = [
-    { value: "SPONSORSHIP", label: "贊助" },
-    { value: "DONATION", label: "捐款" },
-    { value: "GRANT", label: "補助金" },
-    { value: "FUNDRAISING", label: "募款活動" },
-    { value: "OTHER", label: "其他" },
-]
 
 export function BalanceCard({ totalIncome, totalExpense, currentBalance, fundingRecords = [] }: BalanceCardProps) {
     const [expanded, setExpanded] = useState(false)
@@ -48,23 +36,6 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
         description: "",
         date: "",
     })
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("zh-TW", {
-            style: "currency",
-            currency: "TWD",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount)
-    }
-
-    const formatDate = (date: Date | string) => {
-        return new Date(date).toLocaleDateString("zh-TW")
-    }
-
-    const getTypeLabel = (type: string) => {
-        return FUNDING_TYPES.find(t => t.value === type)?.label || type
-    }
 
     const showMessage = (type: "success" | "error", text: string) => {
         setMessage({ type, text })

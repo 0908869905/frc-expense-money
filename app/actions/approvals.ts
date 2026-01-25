@@ -1,20 +1,11 @@
 "use server";
 
-import { auth } from "@/auth";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { ReportStatus } from "@prisma/client";
-
-function revalidateApprovalPaths(): void {
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/approvals");
-}
+import { requireAuth, revalidateApprovals, revalidateExpenses } from "@/lib/actions/helpers";
 
 export async function approveReport(reportId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
+  const ctx = await requireAuth();
 
   const report = await prisma.expenseReport.findUnique({
     where: { id: reportId },
@@ -24,7 +15,7 @@ export async function approveReport(reportId: string): Promise<void> {
     throw new Error("Report not found");
   }
 
-  const role = session.user.role;
+  const role = ctx.userRole;
   let nextStatus: ReportStatus;
 
   if (report.status === "PENDING_MANAGER") {
@@ -41,8 +32,6 @@ export async function approveReport(reportId: string): Promise<void> {
     throw new Error("Report is not in a pending state");
   }
 
-  const actorId = session.user.id;
-
   await prisma.$transaction(async (tx) => {
     await tx.expenseReport.update({
       where: { id: reportId },
@@ -50,7 +39,7 @@ export async function approveReport(reportId: string): Promise<void> {
     });
 
     await tx.approvalAction.create({
-      data: { reportId, actorId, action: "APPROVE" },
+      data: { reportId, actorId: ctx.userId, action: "APPROVE" },
     });
 
     await tx.auditLog.create({
@@ -58,20 +47,17 @@ export async function approveReport(reportId: string): Promise<void> {
         entityType: "ExpenseReport",
         entityId: reportId,
         action: "APPROVE",
-        actorId,
+        actorId: ctx.userId,
         newData: { status: nextStatus },
       },
     });
   });
 
-  revalidateApprovalPaths();
+  revalidateApprovals();
 }
 
 export async function rejectReport(reportId: string, comment: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
+  const ctx = await requireAuth();
 
   const report = await prisma.expenseReport.findUnique({
     where: { id: reportId },
@@ -81,22 +67,18 @@ export async function rejectReport(reportId: string, comment: string): Promise<v
     throw new Error("Report not found");
   }
 
-  const role = session.user.role;
-
   // 驗證報帳單狀態與角色權限
   if (report.status === "PENDING_MANAGER") {
-    if (role !== "LEADER" && role !== "ADMIN") {
+    if (ctx.userRole !== "LEADER" && ctx.userRole !== "ADMIN") {
       throw new Error("Only Leaders can reject at this stage");
     }
   } else if (report.status === "PENDING_FINANCE") {
-    if (role !== "FINANCE" && role !== "ADMIN") {
+    if (ctx.userRole !== "FINANCE" && ctx.userRole !== "ADMIN") {
       throw new Error("Only Finance can reject at this stage");
     }
   } else {
     throw new Error("Report cannot be rejected in its current state");
   }
-
-  const actorId = session.user.id;
 
   await prisma.$transaction(async (tx) => {
     await tx.expenseReport.update({
@@ -105,7 +87,7 @@ export async function rejectReport(reportId: string, comment: string): Promise<v
     });
 
     await tx.approvalAction.create({
-      data: { reportId, actorId, action: "REJECT", comment },
+      data: { reportId, actorId: ctx.userId, action: "REJECT", comment },
     });
 
     await tx.auditLog.create({
@@ -113,20 +95,17 @@ export async function rejectReport(reportId: string, comment: string): Promise<v
         entityType: "ExpenseReport",
         entityId: reportId,
         action: "REJECT",
-        actorId,
+        actorId: ctx.userId,
         newData: { status: "REJECTED", rejectionReason: comment },
       },
     });
   });
 
-  revalidateApprovalPaths();
+  revalidateApprovals();
 }
 
 export async function returnForRevision(reportId: string, comment: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
+  const ctx = await requireAuth();
 
   const report = await prisma.expenseReport.findUnique({
     where: { id: reportId },
@@ -136,17 +115,13 @@ export async function returnForRevision(reportId: string, comment: string): Prom
     throw new Error("Report not found");
   }
 
-  const role = session.user.role;
-
-  if (role !== "LEADER" && role !== "FINANCE" && role !== "ADMIN") {
+  if (ctx.userRole !== "LEADER" && ctx.userRole !== "FINANCE" && ctx.userRole !== "ADMIN") {
     throw new Error("Insufficient permissions to return for revision");
   }
 
   if (!report.status.includes("PENDING")) {
     throw new Error("Only pending reports can be returned for revision");
   }
-
-  const actorId = session.user.id;
 
   await prisma.$transaction(async (tx) => {
     await tx.expenseReport.update({
@@ -155,7 +130,7 @@ export async function returnForRevision(reportId: string, comment: string): Prom
     });
 
     await tx.approvalAction.create({
-      data: { reportId, actorId, action: "RETURN", comment },
+      data: { reportId, actorId: ctx.userId, action: "RETURN", comment },
     });
 
     await tx.auditLog.create({
@@ -163,12 +138,12 @@ export async function returnForRevision(reportId: string, comment: string): Prom
         entityType: "ExpenseReport",
         entityId: reportId,
         action: "RETURN_FOR_REVISION",
-        actorId,
+        actorId: ctx.userId,
         newData: { status: "RETURNED", returnReason: comment },
       },
     });
   });
 
-  revalidateApprovalPaths();
-  revalidatePath("/dashboard/expenses");
+  revalidateApprovals();
+  revalidateExpenses();
 }

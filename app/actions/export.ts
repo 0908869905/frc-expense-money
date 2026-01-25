@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { hasFinanceAccess, getAuthenticatedUserId } from "@/lib/actions/helpers";
 
 // --- Type Definitions ---
 interface ExportFilters {
@@ -10,7 +10,10 @@ interface ExportFilters {
     status?: string;
 }
 
+type ExportValue = string | number;
+
 interface ReportExportRow {
+    [key: string]: ExportValue;
     報帳單編號: string;
     標題: string;
     提交者: string;
@@ -23,6 +26,7 @@ interface ReportExportRow {
 }
 
 interface ItemExportRow {
+    [key: string]: ExportValue;
     報帳單: string;
     提交者: string;
     日期: string;
@@ -33,6 +37,7 @@ interface ItemExportRow {
 }
 
 interface InventoryExportRow {
+    [key: string]: ExportValue;
     品名: string;
     料號: string;
     類別: string;
@@ -62,26 +67,8 @@ const CATEGORY_LABELS: Record<string, string> = {
     TOOL: "工具",
 };
 
-function getStatusLabel(status: string): string {
-    return STATUS_LABELS[status] || status;
-}
-
-function getCategoryLabel(category: string): string {
-    return CATEGORY_LABELS[category] || category;
-}
-
-// --- Helper Functions ---
-async function hasFinanceAccess(): Promise<boolean> {
-    const session = await auth();
-    if (!session?.user?.id) return false;
-
-    const role = session.user.role;
-    return role === "FINANCE" || role === "ADMIN";
-}
-
-async function isAuthenticated(): Promise<boolean> {
-    const session = await auth();
-    return !!session?.user?.id;
+function getLabel(labels: Record<string, string>, key: string): string {
+    return labels[key] || key;
 }
 
 function formatDate(date: Date): string {
@@ -125,7 +112,7 @@ export async function getReportsForExport(filters?: ExportFilters): Promise<Repo
             標題: report.title,
             提交者: report.submitter?.name || report.submitter?.email || "Unknown",
             提交者Email: report.submitter?.email || "",
-            狀態: getStatusLabel(report.status),
+            狀態: getLabel(STATUS_LABELS, report.status),
             總金額: report.totalAmount,
             建立日期: formatDate(report.createdAt),
             項目數: report.items.length,
@@ -177,7 +164,7 @@ export async function getItemsForExport(reportId?: string): Promise<ItemExportRo
  * 需要登入權限
  */
 export async function getInventoryForExport(): Promise<InventoryExportRow[]> {
-    if (!(await isAuthenticated())) return [];
+    if (!(await getAuthenticatedUserId())) return [];
 
     try {
         const items = await prisma.inventoryItem.findMany({
@@ -187,7 +174,7 @@ export async function getInventoryForExport(): Promise<InventoryExportRow[]> {
         return items.map((item) => ({
             品名: item.name,
             料號: item.sku,
-            類別: getCategoryLabel(item.category),
+            類別: getLabel(CATEGORY_LABELS, item.category),
             儲存位置: item.storageLocation,
             當前數量: item.currentQuantity,
             安全庫存: item.safetyStockLevel,

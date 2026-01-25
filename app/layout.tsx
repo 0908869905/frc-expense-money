@@ -25,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-TW" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased theme-frc dark", inter.variable)}>
+      <body className={cn("min-h-screen font-sans antialiased", inter.variable)}>
         <ThemeProvider>
           <OrganizationProvider>
             <LanguageProvider>

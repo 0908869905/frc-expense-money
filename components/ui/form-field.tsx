@@ -3,6 +3,22 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+// Shared base styles for form controls
+const CONTROL_BASE = "w-full px-3 py-2 border rounded-lg bg-background transition-colors"
+const CONTROL_FOCUS = "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+const CONTROL_DISABLED = "disabled:opacity-50 disabled:cursor-not-allowed"
+const CONTROL_ERROR = "border-red-500 focus:ring-red-200 focus:border-red-500"
+
+function getControlClasses(error?: boolean, extra?: string): string {
+    return cn(
+        CONTROL_BASE,
+        CONTROL_FOCUS,
+        CONTROL_DISABLED,
+        error && CONTROL_ERROR,
+        extra
+    )
+}
+
 interface FormFieldProps {
     label: string
     error?: string
@@ -19,7 +35,7 @@ export function FormField({
     description,
     children,
     className,
-}: FormFieldProps) {
+}: FormFieldProps): React.ReactElement {
     return (
         <div className={cn("space-y-1.5", className)}>
             <label className="block text-sm font-medium text-foreground">
@@ -47,23 +63,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, error, ...props }, ref) => {
-        return (
-            <input
-                ref={ref}
-                className={cn(
-                    "w-full px-3 py-2 border rounded-lg bg-background",
-                    "placeholder:text-muted-foreground",
-                    "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-                    "disabled:opacity-50 disabled:cursor-not-allowed",
-                    "transition-colors",
-                    error && "border-red-500 focus:ring-red-200 focus:border-red-500",
-                    className
-                )}
-                {...props}
-            />
-        )
-    }
+    ({ className, error, ...props }, ref) => (
+        <input
+            ref={ref}
+            className={cn(getControlClasses(error, "placeholder:text-muted-foreground"), className)}
+            {...props}
+        />
+    )
 )
 Input.displayName = "Input"
 
@@ -72,23 +78,13 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-    ({ className, error, ...props }, ref) => {
-        return (
-            <textarea
-                ref={ref}
-                className={cn(
-                    "w-full px-3 py-2 border rounded-lg bg-background min-h-[80px]",
-                    "placeholder:text-muted-foreground",
-                    "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-                    "disabled:opacity-50 disabled:cursor-not-allowed",
-                    "transition-colors resize-y",
-                    error && "border-red-500 focus:ring-red-200 focus:border-red-500",
-                    className
-                )}
-                {...props}
-            />
-        )
-    }
+    ({ className, error, ...props }, ref) => (
+        <textarea
+            ref={ref}
+            className={cn(getControlClasses(error, "min-h-[80px] placeholder:text-muted-foreground resize-y"), className)}
+            {...props}
+        />
+    )
 )
 Textarea.displayName = "Textarea"
 
@@ -99,32 +95,23 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-    ({ className, error, options, placeholder, ...props }, ref) => {
-        return (
-            <select
-                ref={ref}
-                className={cn(
-                    "w-full px-3 py-2 border rounded-lg bg-background",
-                    "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-                    "disabled:opacity-50 disabled:cursor-not-allowed",
-                    "transition-colors",
-                    error && "border-red-500 focus:ring-red-200 focus:border-red-500",
-                    className
-                )}
-                {...props}
-            >
-                {placeholder && (
-                    <option value="" disabled>
-                        {placeholder}
-                    </option>
-                )}
-                {options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                    </option>
-                ))}
-            </select>
-        )
-    }
+    ({ className, error, options, placeholder, ...props }, ref) => (
+        <select
+            ref={ref}
+            className={cn(getControlClasses(error), className)}
+            {...props}
+        >
+            {placeholder && (
+                <option value="" disabled>
+                    {placeholder}
+                </option>
+            )}
+            {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                </option>
+            ))}
+        </select>
+    )
 )
 Select.displayName = "Select"

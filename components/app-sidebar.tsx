@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
+import Image from "next/image"
 import {
   BarChart3,
   CheckSquare,
@@ -10,10 +12,10 @@ import {
   LogOut,
   Package,
   Settings,
-  Shield,
   User,
   Users,
   Wallet,
+  Sparkles,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useLanguage } from "@/lib/language-context"
@@ -37,28 +39,122 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userEmail?: string | null
 }
 
-export function AppSidebar({ userRole, userDepartment, userImage, userName, userEmail, ...props }: AppSidebarProps) {
+// 菜單項目配置
+interface MenuItem {
+  href: string
+  icon: React.ElementType
+  labelZh: string
+  labelEn: string
+  roles?: string[]
+  departments?: string[]
+}
+
+const MENU_ITEMS: MenuItem[] = [
+  {
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    labelZh: "儀表板",
+    labelEn: "Dashboard",
+  },
+  {
+    href: "/dashboard/expenses",
+    icon: CreditCard,
+    labelZh: "我的花費",
+    labelEn: "My Expenses",
+    roles: ["VICE_LEADER", "LEADER", "FINANCE", "ADMIN"],
+  },
+  {
+    href: "/dashboard/inventory",
+    icon: Package,
+    labelZh: "庫存管理",
+    labelEn: "Inventory",
+    roles: ["FINANCE", "ADMIN"],
+    departments: ["MECHANICAL"],
+  },
+  {
+    href: "/dashboard/approvals",
+    icon: CheckSquare,
+    labelZh: "審核",
+    labelEn: "Approvals",
+    roles: ["LEADER", "FINANCE", "ADMIN"],
+  },
+  {
+    href: "/dashboard/funding",
+    icon: Wallet,
+    labelZh: "資金記錄",
+    labelEn: "Funding",
+    roles: ["VICE_LEADER", "LEADER", "FINANCE", "ADMIN"],
+  },
+  {
+    href: "/dashboard/reports",
+    icon: FileText,
+    labelZh: "所有報表",
+    labelEn: "All Reports",
+    roles: ["FINANCE", "ADMIN"],
+  },
+  {
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+    labelZh: "數據分析",
+    labelEn: "Analytics",
+    roles: ["FINANCE", "ADMIN"],
+  },
+  {
+    href: "/dashboard/users",
+    icon: Users,
+    labelZh: "用戶管理",
+    labelEn: "Users",
+    roles: ["ADMIN"],
+  },
+  {
+    href: "/dashboard/profile",
+    icon: User,
+    labelZh: "個人資料",
+    labelEn: "Profile",
+  },
+  {
+    href: "/dashboard/settings",
+    icon: Settings,
+    labelZh: "設定",
+    labelEn: "Settings",
+  },
+]
+
+export function AppSidebar({ userRole, userDepartment, userImage, userName, userEmail, ...props }: AppSidebarProps): React.ReactElement {
   const role = userRole || "USER"
   const department = userDepartment || null
   const { language } = useLanguage()
   const { org } = useOrganization()
+  const pathname = usePathname()
 
-  const t = (zh: string, en: string) => language === "zh" ? zh : en
+  function t(zh: string, en: string): string {
+    return language === "zh" ? zh : en
+  }
 
-  // 取得用戶姓名首字母
-  const getInitials = () => {
+  function getInitials(): string {
     const name = userName || userEmail || "U"
     return name.charAt(0).toUpperCase()
   }
 
-  const handleLogout = async () => {
+  async function handleLogout(): Promise<void> {
     try {
       await signOut({ callbackUrl: "/login" })
     } catch (error) {
       console.error("Logout error:", error)
-      // Fallback: 手動重定向
       window.location.href = "/login"
     }
+  }
+
+  function isMenuItemVisible(item: MenuItem): boolean {
+    if (!item.roles && !item.departments) return true
+    if (item.roles?.includes(role)) return true
+    if (item.departments && department && item.departments.includes(department)) return true
+    if (item.href === "/dashboard/expenses" && role !== "USER") return true
+    return false
+  }
+
+  function isActive(href: string): boolean {
+    return href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href)
   }
 
   return (
@@ -67,159 +163,93 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/dashboard">
-                <div className={`flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ${org.bgColor}`}>
-                  <img src={org.logo} alt={org.name} className="size-6 object-contain" />
+              <a href="/dashboard" className="group">
+                <div className={`flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ${org.bgColor} ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all`}>
+                  <Image src={org.logo} alt={org.name} width={24} height={24} className="size-6 object-contain" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">
+                  <span className="truncate font-semibold flex items-center gap-1.5">
                     {t(org.title, org.titleEn)}
+                    <Sparkles className="h-3 w-3 text-primary animate-pulse" />
                   </span>
-                  <span className="truncate text-xs">{org.subtitle}</span>
+                  <span className="truncate text-xs text-muted-foreground">{org.subtitle}</span>
                 </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <SidebarMenu className="mt-4 px-2">
-          {/* Common Items */}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("儀表板", "Dashboard")}>
-              <a href="/dashboard">
-                <LayoutDashboard />
-                <span>{t("儀表板", "Dashboard")}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          {/* 我的花費 - USER 以外的角色可見 */}
-          {role !== "USER" && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("我的花費", "My Expenses")}>
-                <a href="/dashboard/expenses">
-                  <CreditCard />
-                  <span>{t("我的花費", "My Expenses")}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-          {/* 庫存管理 - 機構組用戶 / 財務 / 管理員可見 */}
-          {(department === "MECHANICAL" || role === "FINANCE" || role === "ADMIN") && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("庫存管理", "Inventory")}>
-                <a href="/dashboard/inventory">
-                  <Package />
-                  <span>{t("庫存管理", "Inventory")}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
+        <SidebarMenu className="mt-4 px-2 space-y-1">
+          {MENU_ITEMS.filter(isMenuItemVisible).map((item) => {
+            const Icon = item.icon
+            const active = isActive(item.href)
 
-          {/* 組長 / 財務 / 管理員 可審核 */}
-          {(role === "LEADER" || role === "FINANCE" || role === "ADMIN") && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("審核", "Approvals")}>
-                <a href="/dashboard/approvals">
-                  <CheckSquare />
-                  <span>{t("審核", "Approvals")}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-
-          {/* 副組長 / 組長 / 財務 / 管理員 可查看資金 */}
-          {(role === "VICE_LEADER" || role === "LEADER" || role === "FINANCE" || role === "ADMIN") && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("資金記錄", "Funding")}>
-                <a href="/dashboard/funding">
-                  <Wallet />
-                  <span>{t("資金記錄", "Funding")}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-
-          {/* 財務 / 管理員 限定 */}
-          {(role === "FINANCE" || role === "ADMIN") && (
-            <>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={t("所有報表", "All Reports")}>
-                  <a href="/dashboard/reports">
-                    <FileText />
-                    <span>{t("所有報表", "All Reports")}</span>
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={t(item.labelZh, item.labelEn)}
+                  className={active ? "sidebar-item-active" : "sidebar-item"}
+                >
+                  <a href={item.href} className="relative">
+                    {active && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+                    )}
+                    <Icon className={active ? "text-primary" : ""} />
+                    <span className={active ? "font-medium text-primary" : ""}>
+                      {t(item.labelZh, item.labelEn)}
+                    </span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={t("數據分析", "Analytics")}>
-                  <a href="/dashboard/analytics">
-                    <BarChart3 />
-                    <span>{t("數據分析", "Analytics")}</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </>
-          )}
-
-          {/* Admin Only Items */}
-          {role === "ADMIN" && (
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={t("用戶管理", "User Management")}>
-                <a href="/dashboard/users">
-                  <Users />
-                  <span>{t("用戶管理", "Users")}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
-
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("個人資料", "Profile")}>
-              <a href="/dashboard/profile">
-                <User />
-                <span>{t("個人資料", "Profile")}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={t("設定", "Settings")}>
-              <a href="/dashboard/settings">
-                <Settings />
-                <span>{t("設定", "Settings")}</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarContent>
+
       <SidebarFooter>
         <SidebarMenu>
-          {/* User Info with Avatar */}
+          {/* 用戶資訊 */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={userName || userEmail || t("用戶", "User")}>
-              <a href="/dashboard/profile" className="flex items-center gap-3">
+              <a href="/dashboard/profile" className="group flex items-center gap-3">
                 {userImage ? (
-                  <img src={userImage} alt="Avatar" className="w-8 h-8 rounded-full object-cover" />
+                  <div className="relative">
+                    <Image
+                      src={userImage}
+                      alt="Avatar"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all"
+                    />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-background" />
+                  </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold">
-                    {getInitials()}
+                  <div className="relative">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-sm font-bold ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                      {getInitials()}
+                    </div>
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-background" />
                   </div>
                 )}
-                <div className="flex-1 text-left text-xs leading-tight">
+                <div className="flex-1 text-left text-xs leading-tight min-w-0">
                   <span className="truncate font-medium block">{userName || t("未設定名稱", "No name")}</span>
                   <span className="truncate text-muted-foreground block">{userEmail}</span>
                 </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
+
+          {/* 登出按鈕 */}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={t("登出", "Sign Out")}
               onClick={handleLogout}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
             >
-              <LogOut />
+              <LogOut className="h-4 w-4" />
               <span>{t("登出", "Sign Out")}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>

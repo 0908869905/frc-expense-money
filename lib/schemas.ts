@@ -8,13 +8,12 @@ export const passwordSchema = z.string()
     .regex(/[a-zA-Z]/, "密碼必須包含至少一個英文字母")
     .regex(/[0-9]/, "密碼必須包含至少一個數字");
 
-// 密碼強度驗證函式（供非 Zod 場景使用，基於 passwordSchema）
+/** 密碼強度驗證（供非 Zod 場景使用） */
 export function validatePassword(password: string): { valid: boolean; message?: string } {
     const result = passwordSchema.safeParse(password);
-    if (result.success) {
-        return { valid: true };
-    }
-    return { valid: false, message: result.error.errors[0]?.message };
+    return result.success
+        ? { valid: true }
+        : { valid: false, message: result.error.errors[0]?.message };
 }
 
 // 費用類別

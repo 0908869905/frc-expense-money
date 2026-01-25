@@ -4,9 +4,11 @@
 
 @layer base {
 
-  /* FRC 科技主題 - 深色科技風格 */
+  /* ===== FRC 6998 科技主題 ===== */
+
+  /* 深色主題 - 預設 */
   :root,
-  .theme-frc {
+  .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
     --card: 222 47% 14%;
@@ -33,6 +35,46 @@
     --glow-accent: rgba(20, 184, 166, 0.4);
     --gradient-start: hsl(199, 89%, 48%);
     --gradient-end: hsl(173, 80%, 40%);
+
+    /* Bento 卡片變數 */
+    --card-glass: hsl(222 47% 16% / 0.7);
+    --card-glass-border: hsl(199 89% 48% / 0.2);
+    --card-glass-hover: hsl(199 89% 48% / 0.4);
+  }
+
+  /* 淺色主題 - 柔和科技風格 */
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 199 89% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 173 80% 35%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 42%;
+    --radius: 0.75rem;
+
+    /* 科技特效變數 - 淺色版本 */
+    --glow-primary: rgba(14, 165, 233, 0.25);
+    --glow-accent: rgba(20, 184, 166, 0.25);
+    --gradient-start: hsl(199, 89%, 42%);
+    --gradient-end: hsl(173, 80%, 35%);
+
+    /* Bento 卡片變數 - 淺色版本 */
+    --card-glass: hsl(0 0% 100% / 0.8);
+    --card-glass-border: hsl(199 89% 42% / 0.15);
+    --card-glass-hover: hsl(199 89% 42% / 0.25);
   }
 }
 
@@ -42,15 +84,21 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
     font-family: var(--font-sans), "LXGW WenKai", "Noto Sans TC", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     position: relative;
     min-height: 100vh;
+    /* 默認深色背景 - 確保在 JS 載入前也有正確樣式 */
     background: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 33% 8%) 50%, hsl(222 47% 11%) 100%);
   }
 
-  /* Logo 浮水印背景 - 全螢幕填滿 */
+  /* 淺色主題背景 - 覆蓋默認深色 */
+  .light body {
+    background: linear-gradient(135deg, hsl(210 40% 98%) 0%, hsl(210 40% 96%) 50%, hsl(210 40% 98%) 100%);
+  }
+
+  /* Logo 浮水印背景 - 默認深色主題 */
   html::after {
     content: "";
     position: fixed;
@@ -69,6 +117,11 @@
     z-index: 0;
   }
 
+  /* Logo 浮水印背景 - 淺色主題（較淡） */
+  html.light::after {
+    opacity: 0.06;
+  }
+
   /* 確保所有內容都在浮水印上方 */
   body>* {
     position: relative;
@@ -77,6 +130,8 @@
 }
 
 @layer components {
+
+  /* ===== 默認深色主題元件樣式 ===== */
 
   /* 科技感卡片 */
   .card,
@@ -103,23 +158,7 @@
     transform: translateY(-2px);
   }
 
-  /* 科技感按鈕 */
-  .bg-primary {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-    box-shadow:
-      0 4px 15px rgba(14, 164, 233, 0.317),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-  }
-
-  .bg-primary:hover {
-    box-shadow:
-      0 6px 25px rgba(14, 165, 233, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
-  }
-
-  /* 輸入框科技風格 */
+  /* 輸入框 */
   input,
   select,
   textarea {
@@ -136,11 +175,7 @@
     outline: none;
   }
 
-  /* 表格科技風格 */
-  table {
-    background: transparent;
-  }
-
+  /* 表格 */
   thead {
     background: linear-gradient(90deg,
         hsl(199 89% 48% / 0.1) 0%,
@@ -157,7 +192,7 @@
     background: hsl(199 89% 48% / 0.08);
   }
 
-  /* 側邊欄科技風格 */
+  /* 側邊欄 */
   [data-sidebar="sidebar"] {
     background: linear-gradient(180deg,
         hsl(222 47% 13%) 0%,
@@ -165,12 +200,111 @@
     border-right: 1px solid hsl(199 89% 48% / 0.15);
   }
 
-  /* 選單項目懸停效果 */
   [data-sidebar="menu-button"]:hover {
     background: linear-gradient(90deg,
         hsl(199 89% 48% / 0.15) 0%,
         transparent 100%);
     border-left: 2px solid hsl(199 89% 48%);
+  }
+
+  /* ===== 淺色主題元件樣式 ===== */
+
+  /* 科技感卡片 - 淺色 */
+  .light .card,
+  .light .rounded-xl.border {
+    background: linear-gradient(145deg,
+        hsl(0 0% 100% / 0.9) 0%,
+        hsl(210 40% 98% / 0.8) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(199 89% 42% / 0.15);
+    box-shadow:
+      0 4px 30px rgba(0, 0, 0, 0.06),
+      0 0 20px rgba(14, 165, 233, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+  }
+
+  .light .card:hover,
+  .light .rounded-xl.border:hover {
+    border-color: hsl(199 89% 42% / 0.3);
+    box-shadow:
+      0 8px 40px rgba(0, 0, 0, 0.1),
+      0 0 30px rgba(14, 165, 233, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+  }
+
+  /* 輸入框 - 淺色 */
+  .light input,
+  .light select,
+  .light textarea {
+    background: hsl(0 0% 100% / 0.9) !important;
+    border: 1px solid hsl(214 32% 85%) !important;
+    color: hsl(222 47% 11%) !important;
+    transition: all 0.3s ease;
+  }
+
+  .light input:focus,
+  .light select:focus,
+  .light textarea:focus {
+    border-color: hsl(199 89% 42%) !important;
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.15) !important;
+    outline: none;
+  }
+
+  /* 表格 - 淺色 */
+  .light thead {
+    background: linear-gradient(90deg,
+        hsl(199 89% 42% / 0.08) 0%,
+        transparent 50%,
+        hsl(173 80% 35% / 0.08) 100%);
+  }
+
+  .light tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid hsl(214 32% 91%);
+  }
+
+  .light tbody tr:hover {
+    background: hsl(199 89% 42% / 0.05);
+  }
+
+  /* 側邊欄 - 淺色 */
+  .light [data-sidebar="sidebar"] {
+    background: linear-gradient(180deg,
+        hsl(0 0% 100% / 0.95) 0%,
+        hsl(210 40% 98% / 0.9) 100%) !important;
+    border-right: 1px solid hsl(199 89% 42% / 0.1);
+  }
+
+  .light [data-sidebar="menu-button"]:hover {
+    background: linear-gradient(90deg,
+        hsl(199 89% 42% / 0.1) 0%,
+        transparent 100%);
+    border-left: 2px solid hsl(199 89% 42%);
+  }
+
+  /* ===== 通用按鈕樣式 ===== */
+
+  /* 科技感按鈕 */
+  .bg-primary {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    box-shadow:
+      0 4px 15px rgba(14, 164, 233, 0.317),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .bg-primary:hover {
+    box-shadow:
+      0 6px 25px rgba(14, 165, 233, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* 表格通用 */
+  table {
+    background: transparent;
   }
 
   /* 標籤/徽章科技風格 */
@@ -180,7 +314,183 @@
     border: 1px solid hsl(199 89% 48% / 0.3);
   }
 
-  /* 滾動條科技風格 */
+  .light .bg-primary\/10,
+  .light .bg-muted {
+    background: hsl(199 89% 42% / 0.1) !important;
+    border: 1px solid hsl(199 89% 42% / 0.2);
+  }
+
+  /* ===== Bento Grid 卡片樣式 ===== */
+
+  /* Bento 卡片 - 默認深色 */
+  .bento-card {
+    background: linear-gradient(145deg,
+        hsl(222 47% 16% / 0.8) 0%,
+        hsl(217 33% 12% / 0.7) 100%);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(199 89% 48% / 0.15);
+    border-radius: 1rem;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.2),
+      0 0 16px rgba(14, 165, 233, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .bento-card:hover {
+    border-color: hsl(199 89% 48% / 0.35);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 24px rgba(14, 165, 233, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+  }
+
+  .bento-card-mini {
+    background: linear-gradient(145deg,
+        hsl(222 47% 18% / 0.6) 0%,
+        hsl(217 33% 14% / 0.5) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(199 89% 48% / 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+  }
+
+  .bento-card-mini:hover {
+    border-color: hsl(199 89% 48% / 0.25);
+    transform: scale(1.02);
+  }
+
+  /* Bento 卡片 - 淺色 */
+  .light .bento-card {
+    background: linear-gradient(145deg,
+        hsl(0 0% 100% / 0.85) 0%,
+        hsl(210 40% 98% / 0.75) 100%);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(199 89% 42% / 0.12);
+    border-radius: 1rem;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.04),
+      0 0 16px rgba(14, 165, 233, 0.02),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .light .bento-card:hover {
+    border-color: hsl(199 89% 42% / 0.25);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      0 0 24px rgba(14, 165, 233, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+  }
+
+  .light .bento-card-mini {
+    background: linear-gradient(145deg,
+        hsl(0 0% 100% / 0.7) 0%,
+        hsl(210 40% 98% / 0.6) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(199 89% 42% / 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+  }
+
+  .light .bento-card-mini:hover {
+    border-color: hsl(199 89% 42% / 0.18);
+    transform: scale(1.02);
+  }
+
+  /* 科技感數字 */
+  .tech-number {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px rgba(14, 165, 233, 0.25);
+  }
+
+  .light .tech-number {
+    text-shadow: 0 0 12px rgba(14, 165, 233, 0.1);
+  }
+
+  /* ===== 側邊欄項目樣式 ===== */
+
+  /* 側邊欄項目 - 默認深色 */
+  .sidebar-item {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .sidebar-item:hover {
+    background: linear-gradient(90deg,
+        hsl(199 89% 48% / 0.12) 0%,
+        transparent 100%);
+  }
+
+  .sidebar-item-active {
+    background: linear-gradient(90deg,
+        hsl(199 89% 48% / 0.18) 0%,
+        hsl(199 89% 48% / 0.08) 100%);
+    border-radius: 0.5rem;
+  }
+
+  /* 側邊欄項目 - 淺色 */
+  .light .sidebar-item {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .light .sidebar-item:hover {
+    background: linear-gradient(90deg,
+        hsl(199 89% 42% / 0.08) 0%,
+        transparent 100%);
+  }
+
+  .light .sidebar-item-active {
+    background: linear-gradient(90deg,
+        hsl(199 89% 42% / 0.12) 0%,
+        hsl(199 89% 42% / 0.05) 100%);
+    border-radius: 0.5rem;
+  }
+
+  /* ===== Header 玻璃態樣式 ===== */
+
+  .header-glass {
+    background: hsl(222 47% 12% / 0.8);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid hsl(199 89% 48% / 0.1);
+  }
+
+  .light .header-glass {
+    background: hsl(0 0% 100% / 0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid hsl(199 89% 42% / 0.08);
+  }
+
+  /* 主題切換按鈕 */
+  .theme-toggle-btn {
+    background: hsl(217 33% 20% / 0.6);
+    border: 1px solid hsl(199 89% 48% / 0.15);
+  }
+
+  .theme-toggle-btn:hover {
+    background: hsl(217 33% 25% / 0.8);
+    border-color: hsl(199 89% 48% / 0.3);
+    transform: scale(1.05);
+  }
+
+  .light .theme-toggle-btn {
+    background: hsl(210 40% 96% / 0.8);
+    border: 1px solid hsl(199 89% 42% / 0.1);
+  }
+
+  .light .theme-toggle-btn:hover {
+    background: hsl(210 40% 94%);
+    border-color: hsl(199 89% 42% / 0.2);
+    transform: scale(1.05);
+  }
+
+  /* 滾動條科技風格 - 默認深色 */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -197,6 +507,19 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, hsl(199 89% 58%) 0%, hsl(173 80% 50%) 100%);
+  }
+
+  /* 滾動條科技風格 - 淺色 */
+  .light ::-webkit-scrollbar-track {
+    background: hsl(210 40% 96%);
+  }
+
+  .light ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsl(199 89% 55%) 0%, hsl(173 80% 45%) 100%);
+  }
+
+  .light ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, hsl(199 89% 45%) 0%, hsl(173 80% 35%) 100%);
   }
 }
 

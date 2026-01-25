@@ -89,8 +89,7 @@ export function ReceiptAuditButton({
         }
     };
 
-    // 取得審核狀態顯示
-    const getStatusIcon = () => {
+    function getStatusIcon(): React.ReactElement | null {
         if (existingAuditStatus === true) {
             return <CheckCircle2 className="h-3 w-3 text-green-500" />;
         }
@@ -98,59 +97,45 @@ export function ReceiptAuditButton({
             return <XCircle className="h-3 w-3 text-red-500" />;
         }
         return null;
-    };
+    }
 
-    // 渲染按鈕
-    const renderButton = () => {
-        if (variant === "icon") {
-            return (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleClick}
-                    disabled={isLoading}
-                    className="h-8 w-8"
-                    title="智慧審核收據"
-                >
-                    {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <ScanSearch className="h-4 w-4" />
-                    )}
-                </Button>
-            );
-        }
-
-        if (variant === "compact") {
-            return (
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClick}
-                    disabled={isLoading}
-                    className="gap-1"
-                >
-                    {isLoading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                        <>
-                            <ScanSearch className="h-3 w-3" />
-                            {getStatusIcon()}
-                        </>
-                    )}
-                    審核
-                </Button>
-            );
-        }
-
-        // default variant
+    function renderIconButton(): React.ReactElement {
         return (
             <Button
-                variant="outline"
+                variant="ghost"
+                size="icon"
                 onClick={handleClick}
                 disabled={isLoading}
-                className="gap-2"
+                className="h-8 w-8"
+                title="智慧審核收據"
             >
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
+            </Button>
+        );
+    }
+
+    function renderCompactButton(): React.ReactElement {
+        return (
+            <Button variant="outline" size="sm" onClick={handleClick} disabled={isLoading} className="gap-1">
+                {isLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                    <>
+                        <ScanSearch className="h-3 w-3" />
+                        {getStatusIcon()}
+                    </>
+                )}
+                審核
+            </Button>
+        );
+    }
+
+    function renderDefaultButton(): React.ReactElement {
+        const icon = receiptUrl ? <ScanSearch className="h-4 w-4" /> : <Upload className="h-4 w-4" />;
+        const label = receiptUrl ? "智慧審核收據" : "上傳並審核收據";
+
+        return (
+            <Button variant="outline" onClick={handleClick} disabled={isLoading} className="gap-2">
                 {isLoading ? (
                     <>
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -158,18 +143,25 @@ export function ReceiptAuditButton({
                     </>
                 ) : (
                     <>
-                        {receiptUrl ? (
-                            <ScanSearch className="h-4 w-4" />
-                        ) : (
-                            <Upload className="h-4 w-4" />
-                        )}
-                        {receiptUrl ? "智慧審核收據" : "上傳並審核收據"}
+                        {icon}
+                        {label}
                         {getStatusIcon()}
                     </>
                 )}
             </Button>
         );
-    };
+    }
+
+    function renderButton(): React.ReactElement {
+        switch (variant) {
+            case "icon":
+                return renderIconButton();
+            case "compact":
+                return renderCompactButton();
+            default:
+                return renderDefaultButton();
+        }
+    }
 
     return (
         <>

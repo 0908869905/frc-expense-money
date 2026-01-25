@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, Suspense } from "react"
+import React, { useState, Suspense, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,10 +11,15 @@ import { useSearchParams } from "next/navigation"
 import { useLanguage } from "@/lib/language-context"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useOrganization } from "@/lib/organization-context"
+import { LoadingScreen, LoginResult } from "@/components/loading/loading-screen"
 
-function LoginForm() {
+interface LoginFormProps {
+  onLoginStart: (email: string, password: string) => void
+  error: string
+}
+
+function LoginForm({ onLoginStart, error }: LoginFormProps) {
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
   const searchParams = useSearchParams()
   const registered = searchParams.get("registered")
   const { t } = useLanguage()
@@ -22,24 +27,13 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    setError("")
 
     const formData = new FormData(e.currentTarget)
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
-
-    if (result?.error) {
-      setError(t("login_error"))
-      setLoading(false)
-    } else {
-      window.location.href = "/dashboard"
-    }
+    // 立即觸發載入動畫，同時在背景進行登入驗證
+    onLoginStart(email, password)
   }
 
   return (
@@ -79,9 +73,9 @@ function LoginForm() {
             className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl transition-all text-base"
           />
         </div>
-        <Button 
-          className="w-full h-14 bg-white text-black hover:bg-gray-100 border-0 rounded-xl shadow-lg shadow-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-white/20 text-base font-medium" 
-          type="submit" 
+        <Button
+          className="w-full h-14 bg-white text-black hover:bg-gray-100 border-0 rounded-xl shadow-lg shadow-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-white/20 text-base font-medium"
+          type="submit"
           disabled={loading}
         >
           {loading ? (
@@ -101,6 +95,55 @@ function LoginForm() {
 export default function LoginPage() {
   const { t, language } = useLanguage()
   const { org } = useOrganization()
+  const [showLoading, setShowLoading] = useState(false)
+  const [loginError, setLoginError] = useState("")
+  const loginPromiseRef = useRef<Promise<LoginResult> | null>(null)
+
+  // 點擊登入按鈕時立即顯示載入動畫，同時開始登入
+  const handleLoginStart = useCallback((email: string, password: string) => {
+    setLoginError("")
+
+    // 創建登入 Promise
+    loginPromiseRef.current = new Promise<LoginResult>(async (resolve) => {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        resolve({ success: false, error: t("login_error") })
+      } else {
+        resolve({ success: true })
+      }
+    })
+
+    // 立即顯示載入動畫
+    setShowLoading(true)
+  }, [t])
+
+  // 載入動畫完成後的回調
+  const handleLoadingComplete = useCallback((result: LoginResult) => {
+    if (result.success) {
+      // 登入成功，導向儀表板
+      window.location.href = "/dashboard"
+    } else {
+      // 登入失敗，返回登入頁面顯示錯誤
+      setShowLoading(false)
+      setLoginError(result.error || t("login_error"))
+    }
+  }, [t])
+
+  // 顯示載入畫面
+  if (showLoading && loginPromiseRef.current) {
+    return (
+      <LoadingScreen
+        language={language}
+        onComplete={handleLoadingComplete}
+        loginPromise={loginPromiseRef.current}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen flex bg-black text-white overflow-hidden">
@@ -183,7 +226,7 @@ export default function LoginPage() {
 
             {/* Login Form */}
             <Suspense fallback={<div className="animate-pulse h-64 bg-white/5 rounded-2xl" />}>
-              <LoginForm />
+              <LoginForm onLoginStart={handleLoginStart} error={loginError} />
             </Suspense>
 
             {/* Register Link */}

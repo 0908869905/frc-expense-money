@@ -3,21 +3,15 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
+import { requireAuth as baseRequireAuth } from "@/lib/actions/helpers"
 
 const DEPARTMENTS = ["ELECTRICAL", "MECHANICAL", "DOCUMENTATION", "PR", "FINANCE", "DESIGN"] as const;
 
 type DepartmentBudgetInfo = { budget: number; updatedBy: string; updatedAt: Date | null };
 type DepartmentFinancialInfo = { budget: number; spent: number; remaining: number; isOverspent: boolean };
 
-async function requireAuth(): Promise<void> {
-    const session = await auth()
-    if (!session?.user) {
-        throw new Error("Unauthorized")
-    }
-}
-
 export async function getDepartmentBudgets(): Promise<Record<string, DepartmentBudgetInfo>> {
-    await requireAuth()
+    await baseRequireAuth()
 
     const budgets = await prisma.departmentBudget.findMany()
     const budgetMap: Record<string, DepartmentBudgetInfo> = {}
@@ -35,7 +29,7 @@ export async function getDepartmentBudgets(): Promise<Record<string, DepartmentB
 }
 
 export async function getDepartmentExpenses(): Promise<Record<string, number>> {
-    await requireAuth()
+    await baseRequireAuth()
 
     const expenses = await prisma.expenseReport.groupBy({
         by: ["department"],
@@ -54,7 +48,7 @@ export async function getDepartmentExpenses(): Promise<Record<string, number>> {
 }
 
 export async function getDepartmentFinancialSummary(): Promise<Record<string, DepartmentFinancialInfo>> {
-    await requireAuth()
+    await baseRequireAuth()
 
     const [budgets, expenses] = await Promise.all([
         getDepartmentBudgets(),

@@ -9,54 +9,41 @@ interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
     currency?: string
 }
 
+function formatNumber(num: number): string {
+    return num.toLocaleString("en-US", { maximumFractionDigits: 2 })
+}
+
+function parseNumber(str: string): number {
+    const cleaned = str.replace(/[^0-9.]/g, "")
+    const parsed = parseFloat(cleaned)
+    return isNaN(parsed) ? 0 : parsed
+}
+
 export function CurrencyInput({
     value = 0,
     onChange,
     currency = "NT$",
     className,
     ...props
-}: CurrencyInputProps) {
-    const [displayValue, setDisplayValue] = React.useState("")
+}: CurrencyInputProps): React.ReactElement {
+    const [displayValue, setDisplayValue] = React.useState(() => formatNumber(value))
 
-    // Format number with thousand separators
-    const formatNumber = (num: number) => {
-        return num.toLocaleString("en-US", { maximumFractionDigits: 2 })
-    }
-
-    // Parse formatted string back to number
-    const parseNumber = (str: string) => {
-        const cleaned = str.replace(/[^0-9.]/g, "")
-        const parsed = parseFloat(cleaned)
-        return isNaN(parsed) ? 0 : parsed
-    }
-
-    // Initialize display value
     React.useEffect(() => {
-        if (value !== undefined) {
-            setDisplayValue(formatNumber(value))
-        }
-    }, [])
+        setDisplayValue(formatNumber(value))
+    }, [value])
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = e.target.value
-
-        // Allow only digits, dots, and commas
-        const cleaned = rawValue.replace(/[^0-9.,]/g, "")
-
-        // Parse and format
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
+        const cleaned = e.target.value.replace(/[^0-9.,]/g, "")
         const numValue = parseNumber(cleaned)
         setDisplayValue(formatNumber(numValue))
         onChange?.(numValue)
     }
 
-    const handleBlur = () => {
-        // Re-format on blur
-        const numValue = parseNumber(displayValue)
-        setDisplayValue(formatNumber(numValue))
+    function handleBlur(): void {
+        setDisplayValue(formatNumber(parseNumber(displayValue)))
     }
 
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-        // Select all on focus for easy replacement
+    function handleFocus(e: React.FocusEvent<HTMLInputElement>): void {
         e.target.select()
     }
 

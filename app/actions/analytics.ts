@@ -1,12 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-async function requireAuth(): Promise<boolean> {
-    const session = await auth();
-    return !!session?.user?.id;
-}
+import { getAuthenticatedUserId } from "@/lib/actions/helpers";
 
 function aggregateByKey<T, K extends string>(
     items: T[],
@@ -22,7 +17,7 @@ function aggregateByKey<T, K extends string>(
 }
 
 export async function getMonthlyExpenseStats(): Promise<{ month: string; amount: number }[]> {
-    if (!(await requireAuth())) return [];
+    if (!(await getAuthenticatedUserId())) return [];
 
     try {
         const reports = await prisma.expenseReport.findMany({
@@ -48,7 +43,7 @@ export async function getMonthlyExpenseStats(): Promise<{ month: string; amount:
 }
 
 export async function getCategoryExpenseStats(): Promise<{ category: string; amount: number }[]> {
-    if (!(await requireAuth())) return [];
+    if (!(await getAuthenticatedUserId())) return [];
 
     try {
         const items = await prisma.expenseItem.findMany({
@@ -71,7 +66,7 @@ export async function getCategoryExpenseStats(): Promise<{ category: string; amo
 }
 
 export async function getStatusStats(): Promise<{ status: string; count: number; amount: number }[]> {
-    if (!(await requireAuth())) return [];
+    if (!(await getAuthenticatedUserId())) return [];
 
     try {
         const reports = await prisma.expenseReport.groupBy({
@@ -97,7 +92,7 @@ export async function getOverviewStats(): Promise<{
     totalAmount: number;
     thisMonthAmount: number;
 } | null> {
-    if (!(await requireAuth())) return null;
+    if (!(await getAuthenticatedUserId())) return null;
 
     try {
         const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);

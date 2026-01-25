@@ -20,10 +20,6 @@ function getFullKey(key: string): string {
     return DRAFT_PREFIX + key;
 }
 
-function isExpired(timestamp: number): boolean {
-    return Date.now() - timestamp > DRAFT_EXPIRY_MS;
-}
-
 export function saveDraft<T>(key: string, data: T): void {
     if (!isClient()) return;
 
@@ -43,8 +39,9 @@ export function loadDraft<T>(key: string): T | null {
         if (!stored) return null;
 
         const draftData: DraftData<T> = JSON.parse(stored);
+        const isExpired = Date.now() - draftData.timestamp > DRAFT_EXPIRY_MS;
 
-        if (isExpired(draftData.timestamp)) {
+        if (isExpired) {
             removeDraft(key);
             return null;
         }
@@ -63,45 +60,5 @@ export function removeDraft(key: string): void {
         localStorage.removeItem(getFullKey(key));
     } catch (error) {
         console.warn("無法刪除草稿:", error);
-    }
-}
-
-export function getAllDraftKeys(): string[] {
-    if (!isClient()) return [];
-
-    try {
-        const keys: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key?.startsWith(DRAFT_PREFIX)) {
-                keys.push(key.slice(DRAFT_PREFIX.length));
-            }
-        }
-        return keys;
-    } catch (error) {
-        console.warn("無法取得草稿列表:", error);
-        return [];
-    }
-}
-
-export function clearExpiredDrafts(): void {
-    if (!isClient()) return;
-
-    try {
-        const now = Date.now();
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-            const key = localStorage.key(i);
-            if (!key?.startsWith(DRAFT_PREFIX)) continue;
-
-            const stored = localStorage.getItem(key);
-            if (!stored) continue;
-
-            const draftData = JSON.parse(stored) as DraftData<unknown>;
-            if (now - draftData.timestamp > DRAFT_EXPIRY_MS) {
-                localStorage.removeItem(key);
-            }
-        }
-    } catch (error) {
-        console.warn("無法清除過期草稿:", error);
     }
 }

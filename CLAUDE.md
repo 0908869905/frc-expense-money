@@ -347,3 +347,127 @@ ipRequestCounts.forEach((record, ip) => { ... })
 **待辦事項**：
 - [ ] 替換 `.env` 中的 `AUTH_SECRET` 和 `CRON_SECRET_KEY` 為強密碼
 - [ ] 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）
+
+### 2026-01-25（續）：登入失敗問題修復
+
+**問題描述**：
+用戶輸入正確密碼，但無法登入且沒有錯誤訊息。
+
+**根本原因分析**：
+| 問題 | 原因 | 影響 |
+|------|------|------|
+| Redis 連接失敗 | Upstash Redis DNS 無法解析 | 速率限制檢查拋出異常，登入流程中斷 |
+| AUTH_URL 錯誤 | `.env` 中設為 Vercel 線上地址 | 本地開發時 cookie 域名不匹配，session 無法保存 |
+
+**修復方案**：
+
+1. **Redis 錯誤處理**（`auth.ts`）：
+```typescript
+// 修復前：Redis 失敗會中斷登入
+const rateLimit = await checkLoginRateLimit(email)
+
+// 修復後：Redis 失敗時降級運作（跳過速率限制）
+async function checkLoginRateLimit(email: string) {
+  try {
+    // ... Redis 操作
+  } catch (error) {
+    console.warn("Redis connection failed:", error)
+    return { allowed: true, remaining: 5 }  // 允許登入繼續
+  }
+}
+```
+
+2. **AUTH_URL 配置**（`.env`）：
+```bash
+# 本地開發時應註釋掉，讓 NextAuth 自動偵測
+# AUTH_URL="https://two-chi-74.vercel.app/login"
+```
+
+**修改的檔案**：
+- `auth.ts` - 三個 Redis 函式都添加 try-catch 錯誤處理
+- `.env` - 註釋掉 AUTH_URL
+
+**經驗教訓**：
+1. **外部服務依賴要有降級機制** - Redis 等服務不可用時，核心功能（登入）應該繼續運作
+2. **本地開發環境變數要與線上分開** - 使用 `.env.local` 覆蓋或註釋線上配置
+3. **錯誤處理要完整** - 所有外部 API 呼叫都應該有 try-catch
+
+**新增腳本**：
+- `scripts/check-user.ts` - 檢查用戶帳號狀態和密碼驗證
+- `scripts/clear-login-lock.ts` - 清除登入速率限制鎖定
+
+**使用方式**：
+```bash
+# 檢查用戶帳號
+npx tsx scripts/check-user.ts user@example.com [password]
+
+# 清除登入鎖定
+npx tsx scripts/clear-login-lock.ts user@example.com
+```
+
+### 2026-01-25（續）：Build 錯誤修復
+
+**修復的問題**：
+
+| 錯誤 | 原因 | 修復 |
+|------|------|------|
+| `Server actions must be async functions` | `lib/actions/helpers.ts` 有 `"use server"` 但含同步函式 | 移除 `"use server"` 指令 |
+| `Cannot find name 'useLanguage'` | `funding-dialog.tsx` 使用未導入的 hook | 移除未使用的 `useLanguage` 行 |
+| `Using <img> could result in slower LCP` | 使用原生 `<img>` 而非 `next/image` | 改用 `<Image>` 組件 |
+| `React Hook has missing dependency` | `useEffect` 依賴陣列不完整 | 加入 `value` 到依賴陣列 |
+| `Type 'X' is not assignable to type 'DataRow'` | 介面缺少索引簽名 | 添加 `[key: string]: T` 索引簽名 |
+
+**修改的檔案**：
+- `lib/actions/helpers.ts` - 移除 `"use server"` 指令
+- `components/funding-dialog.tsx` - 移除未使用的 `useLanguage`
+- `components/app-sidebar.tsx` - 改用 `next/image` 的 `Image` 組件
+- `components/settings-content.tsx` - 改用 `next/image` 的 `Image` 組件
+- `components/ui/currency-input.tsx` - 修正 `useEffect` 依賴陣列
+- `app/actions/export.ts` - 添加索引簽名到匯出介面
+- `lib/export-utils.ts` - 調整 `DataRow` 類型
+
+**經驗教訓**：
+1. **`"use server"` 僅用於 Server Actions 檔案** - 輔助函式庫不需要此指令
+2. **Next.js 建議使用 `<Image>` 組件** - 提供自動優化和更好的 LCP
+3. **React Hooks 依賴必須完整** - ESLint 的 `exhaustive-deps` 規則要遵守
+4. **TypeScript 介面需索引簽名** - 用於 `Record<string, T>` 類型時需加 `[key: string]: T`
+
+### 2026-01-25（續）：程式碼簡化與安全掃描
+
+**程式碼簡化**（7 個檔案）：
+
+| 檔案 | 簡化內容 |
+|------|----------|
+| `lib/actions/helpers.ts` | 新增 `FINANCE_ROLES` 常數，消除重複角色檢查 |
+| `components/funding-dialog.tsx` | 提取常數，useEffect 加入 cleanup，明確回傳類型 |
+| `components/app-sidebar.tsx` | 簡化 `isMenuItemVisible` 和 `isActive` 函式 |
+| `components/settings-content.tsx` | 提取類型別名、按鈕 className 常數、`getText()` 輔助函式、`PasswordField` 組件 |
+| `components/ui/currency-input.tsx` | 提取 `formatNumber`/`parseNumber` 到元件外部 |
+| `app/actions/export.ts` | 新增 `ExportValue` 類型，合併 label 函式為通用 `getLabel` |
+| `lib/export-utils.ts` | 新增 `CellValue` 類型，重命名 `hasNoData` → `validateData` |
+
+**安全掃描結果**：
+- **npm audit**: 0 個已知 CVE 漏洞
+- **整體狀態**: 良好
+
+**已實施的安全措施**：
+| 類別 | 狀態 |
+|------|------|
+| CSP 標頭 | ✅ 已配置（含 HSTS） |
+| 登入速率限制 | ✅ 5 次/15 分鐘 |
+| 全局速率限制 | ✅ 100 req/min per IP |
+| SSRF 防護 | ✅ 阻擋內部 IP、metadata endpoints |
+| Server Actions 權限檢查 | ✅ 全部通過 |
+| 開發端點保護 | ✅ 生產環境禁用 |
+| Timing-safe 比較 | ✅ 固定長度 buffer |
+| 密碼強度 | ✅ 8 字元 + 英數 |
+
+**未發現的漏洞類別**：
+- XSS (dangerouslySetInnerHTML, eval)
+- SQL/NoSQL/Command Injection
+- 硬編碼密鑰
+
+**建議事項**（優先級低）：
+1. 可選擇性增加特殊字元密碼要求
+2. 多實例部署時確保使用 Redis 進行分佈式速率限制
+3. 如架構允許，可升級為 nonce-based CSP

@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUserId, unauthorizedState } from "@/lib/actions/helpers";
 
 export type AvatarState = {
     success: boolean;
@@ -11,15 +11,10 @@ export type AvatarState = {
 
 const MAX_IMAGE_SIZE_BYTES = 500 * 1024;
 
-async function getAuthenticatedUserId(): Promise<string | null> {
-    const session = await auth();
-    return session?.user?.id ?? null;
-}
-
 export async function uploadAvatar(imageBase64: string): Promise<AvatarState> {
     const userId = await getAuthenticatedUserId();
     if (!userId) {
-        return { success: false, message: "未授權的操作" };
+        return unauthorizedState() as AvatarState;
     }
 
     if (!imageBase64.startsWith("data:image/")) {
@@ -49,7 +44,7 @@ export async function uploadAvatar(imageBase64: string): Promise<AvatarState> {
 export async function removeAvatar(): Promise<AvatarState> {
     const userId = await getAuthenticatedUserId();
     if (!userId) {
-        return { success: false, message: "未授權的操作" };
+        return unauthorizedState() as AvatarState;
     }
 
     try {

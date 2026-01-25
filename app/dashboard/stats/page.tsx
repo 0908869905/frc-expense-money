@@ -7,24 +7,27 @@ export const revalidate = 0
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
-interface Stats {
-    totalReports: number
-    totalPaid: number
-    recentActivity: number
+interface StatCardProps {
+    label: string
+    value: number
+    colorClass?: string
 }
 
-async function getStats(): Promise<Stats> {
+function StatCard({ label, value, colorClass }: StatCardProps): React.JSX.Element {
+    return (
+        <div className="rounded-xl border bg-card p-6">
+            <div className="text-sm text-muted-foreground">{label}</div>
+            <div className={`text-3xl font-bold mt-2 ${colorClass ?? ""}`}>{value}</div>
+        </div>
+    )
+}
+
+async function getStats(): Promise<{ totalReports: number; totalPaid: number; recentActivity: number }> {
     const [totalReports, totalPaid, recentActivity] = await Promise.all([
         prisma.expenseReport.count(),
+        prisma.expenseReport.count({ where: { status: "PAID" } }),
         prisma.expenseReport.count({
-            where: { status: "PAID" },
-        }),
-        prisma.expenseReport.count({
-            where: {
-                createdAt: {
-                    gte: new Date(Date.now() - SEVEN_DAYS_MS),
-                },
-            },
+            where: { createdAt: { gte: new Date(Date.now() - SEVEN_DAYS_MS) } },
         }),
     ])
 
@@ -38,7 +41,8 @@ export default async function StatsPage(): Promise<React.JSX.Element> {
         redirect("/login")
     }
 
-    if (session.user.role !== "ADMIN" && session.user.role !== "FINANCE") {
+    const role = session.user.role
+    if (role !== "ADMIN" && role !== "FINANCE") {
         redirect("/dashboard")
     }
 
@@ -52,18 +56,9 @@ export default async function StatsPage(): Promise<React.JSX.Element> {
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border bg-card p-6">
-                    <div className="text-sm text-muted-foreground">總報帳單</div>
-                    <div className="text-3xl font-bold mt-2">{stats.totalReports}</div>
-                </div>
-                <div className="rounded-xl border bg-card p-6">
-                    <div className="text-sm text-muted-foreground">已完成付款</div>
-                    <div className="text-3xl font-bold mt-2 text-green-600">{stats.totalPaid}</div>
-                </div>
-                <div className="rounded-xl border bg-card p-6">
-                    <div className="text-sm text-muted-foreground">近 7 天活動</div>
-                    <div className="text-3xl font-bold mt-2 text-blue-600">{stats.recentActivity}</div>
-                </div>
+                <StatCard label="總報帳單" value={stats.totalReports} />
+                <StatCard label="已完成付款" value={stats.totalPaid} colorClass="text-green-600" />
+                <StatCard label="近 7 天活動" value={stats.recentActivity} colorClass="text-blue-600" />
             </div>
         </div>
     )

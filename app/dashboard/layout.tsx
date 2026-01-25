@@ -19,11 +19,8 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     redirect("/login")
   }
 
-  const userName = session.user?.name || null
-  const userEmail = session.user?.email || null
-  const userImage = session.user?.image || null
-  const userRole = session.user?.role || "USER"
-  const userDepartment = (session.user as any)?.department || null
+  const { name: userName = null, email: userEmail = null, image: userImage = null, role: userRole = "USER" } = session.user
+  const userDepartment = (session.user as { department?: string }).department ?? null
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>

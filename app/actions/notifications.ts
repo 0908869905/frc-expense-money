@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUserId, unauthorizedState, successState, errorState } from "@/lib/actions/helpers";
 
 export type NotificationState = {
     success: boolean;
@@ -15,33 +15,33 @@ const DEFAULT_FREQUENCY: NotificationFrequency = "INSTANT";
 export async function updateNotificationFrequency(
     frequency: NotificationFrequency
 ): Promise<NotificationState> {
-    const session = await auth();
-    if (!session?.user?.id) {
-        return { success: false, message: "未授權的操作" };
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
+        return unauthorizedState() as NotificationState;
     }
 
     try {
         await prisma.user.update({
-            where: { id: session.user.id },
+            where: { id: userId },
             data: { notificationFrequency: frequency },
         });
 
-        return { success: true, message: "通知設定已更新" };
+        return successState("通知設定已更新") as NotificationState;
     } catch (error) {
         console.error("Update notification frequency error:", error);
-        return { success: false, message: "更新通知設定時發生錯誤" };
+        return errorState("更新通知設定時發生錯誤") as NotificationState;
     }
 }
 
 export async function getNotificationFrequency(): Promise<NotificationFrequency> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
         return DEFAULT_FREQUENCY;
     }
 
     try {
         const user = await prisma.user.findUnique({
-            where: { id: session.user.id },
+            where: { id: userId },
             select: { notificationFrequency: true },
         });
 

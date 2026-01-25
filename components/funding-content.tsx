@@ -8,18 +8,13 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormState } from "react-dom"
-
-interface FundingRecord {
-    id: string
-    title: string
-    amount: number
-    type: string
-    source: string | null
-    description: string | null
-    date: Date | string
-    recordedBy: string
-    createdAt: Date | string
-}
+import {
+    FUNDING_TYPES,
+    getTypeLabel,
+    formatCurrency,
+    formatDate,
+    type FundingRecord,
+} from "@/lib/constants/funding"
 
 interface FundingContentProps {
     fundingRecords: FundingRecord[]
@@ -29,14 +24,6 @@ interface FundingContentProps {
         currentBalance: number
     }
 }
-
-const FUNDING_TYPES = [
-    { value: "SPONSORSHIP", label: "贊助", labelEn: "Sponsorship" },
-    { value: "DONATION", label: "捐款", labelEn: "Donation" },
-    { value: "GRANT", label: "補助金", labelEn: "Grant" },
-    { value: "FUNDRAISING", label: "募款活動", labelEn: "Fundraising" },
-    { value: "OTHER", label: "其他", labelEn: "Other" },
-]
 
 export function FundingContent({ fundingRecords, financialSummary }: FundingContentProps) {
     const { language } = useLanguage()
@@ -69,24 +56,6 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
     })
 
     const t = (zh: string, en: string) => language === "zh" ? zh : en
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("zh-TW", {
-            style: "currency",
-            currency: "TWD",
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount)
-    }
-
-    const formatDate = (date: Date | string) => {
-        return new Date(date).toLocaleDateString("zh-TW")
-    }
-
-    const getTypeLabel = (type: string) => {
-        const found = FUNDING_TYPES.find(t => t.value === type)
-        return found ? (language === "zh" ? found.label : found.labelEn) : type
-    }
 
     const showMessage = (type: "success" | "error", text: string) => {
         setMessage({ type, text })
@@ -277,7 +246,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                     </td>
                                     <td className="p-4">
                                         <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
-                                            {getTypeLabel(record.type)}
+                                            {getTypeLabel(record.type, language)}
                                         </span>
                                     </td>
                                     <td className="p-4 text-muted-foreground">{record.source || "-"}</td>

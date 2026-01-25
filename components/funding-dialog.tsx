@@ -1,45 +1,36 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useFormState } from "react-dom"
 import { createFundingRecord, FundingState } from "@/app/actions/funding"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Plus, X, DollarSign } from "lucide-react"
-import { useLanguage } from "@/lib/language-context"
+import { FUNDING_TYPES } from "@/lib/constants/funding"
 
-const FUNDING_TYPES = [
-    { value: "SPONSORSHIP", label: "贊助" },
-    { value: "DONATION", label: "捐款" },
-    { value: "GRANT", label: "補助金" },
-    { value: "FUNDRAISING", label: "募款活動" },
-    { value: "OTHER", label: "其他" },
-]
+const INITIAL_STATE: FundingState = { success: false, message: null }
 
-export function FundingDialog() {
+export function FundingDialog(): React.ReactElement {
     const [open, setOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
-    const { t } = useLanguage()
+    const [state, formAction] = useFormState<FundingState, FormData>(createFundingRecord, INITIAL_STATE)
 
-    const [state, formAction] = useFormState<FundingState, FormData>(
-        createFundingRecord,
-        { success: false, message: null }
-    )
-
-    const handleSubmit = (formData: FormData) => {
+    function handleSubmit(formData: FormData): void {
         startTransition(() => {
             formAction(formData)
         })
     }
 
-    // 成功後關閉對話框
-    if (state.success && open) {
-        setTimeout(() => {
-            setOpen(false)
-            window.location.reload()
-        }, 500)
-    }
+    useEffect(() => {
+        if (state.success && open) {
+            const timer = setTimeout(() => {
+                setOpen(false)
+                window.location.reload()
+            }, 500)
+            return () => clearTimeout(timer)
+        }
+    }, [state.success, open])
 
     if (!open) {
         return (
@@ -69,10 +60,11 @@ export function FundingDialog() {
                 <form action={handleSubmit} className="p-4 space-y-4">
                     {state.message && (
                         <div
-                            className={`p-3 rounded-lg text-sm ${state.success
+                            className={`p-3 rounded-lg text-sm ${
+                                state.success
                                     ? "bg-green-50 text-green-700 border border-green-200"
                                     : "bg-red-50 text-red-700 border border-red-200"
-                                }`}
+                            }`}
                         >
                             {state.message}
                         </div>

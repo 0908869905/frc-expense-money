@@ -38,6 +38,15 @@ interface ActionCellProps {
   userRole: string
 }
 
+function canUserModifyReport(status: string, role: string): boolean {
+  if (role === "ADMIN") {
+    return status === "PENDING_MANAGER" || status === "PENDING_FINANCE"
+  }
+  if (role === "MANAGER" && status === "PENDING_MANAGER") return true
+  if (role === "FINANCE" && status === "PENDING_FINANCE") return true
+  return false
+}
+
 function ActionCell({ report, userRole }: ActionCellProps): React.JSX.Element {
   const [isPending, startTransition] = useTransition()
   const [showRejectInput, setShowRejectInput] = useState(false)
@@ -65,9 +74,7 @@ function ActionCell({ report, userRole }: ActionCellProps): React.JSX.Element {
     })
   }
 
-  const canModify =
-    (report.status === "PENDING_MANAGER" && (userRole === "MANAGER" || userRole === "ADMIN")) ||
-    (report.status === "PENDING_FINANCE" && (userRole === "FINANCE" || userRole === "ADMIN"))
+  const canModify = canUserModifyReport(report.status, userRole)
 
   if (!canModify) {
     return <div className="text-muted-foreground text-xs italic">Read Only</div>

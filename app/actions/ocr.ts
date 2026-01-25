@@ -1,6 +1,5 @@
 "use server";
 
-import { auth } from "@/auth";
 import { recognizeInvoice, InvoiceData } from "@/lib/agents/ocr";
 import {
     auditReceipt,
@@ -10,6 +9,7 @@ import {
     BatchAuditResult,
 } from "@/lib/agents/receipt-audit";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUserId, requireAuth } from "@/lib/actions/helpers";
 
 // --- Types ---
 export type OCRResult = {
@@ -123,8 +123,8 @@ function isInternalUrl(urlString: string): boolean {
  * @param imageBase64 Base64 編碼的圖片（含 data:image/... 前綴）
  */
 export async function scanInvoice(imageBase64: string): Promise<OCRResult> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
         return { success: false, error: "Unauthorized" };
     }
 
@@ -155,8 +155,8 @@ export async function scanInvoice(imageBase64: string): Promise<OCRResult> {
  * 從 URL 辨識發票（僅支援 HTTPS）
  */
 export async function scanInvoiceFromUrl(imageUrl: string): Promise<OCRResult> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
         return { success: false, error: "Unauthorized" };
     }
 
@@ -185,8 +185,10 @@ export async function auditExpenseItem(
     itemId: string,
     receiptImage: string
 ): Promise<AuditResult> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    let ctx;
+    try {
+        ctx = await requireAuth();
+    } catch {
         return createUnauthorizedAuditResult("Unauthorized");
     }
 
@@ -219,9 +221,9 @@ export async function auditExpenseItem(
 
         const canAudit = hasAuditPermission(
             item.report,
-            session.user.id,
-            session.user.email || "",
-            session.user.role || ""
+            ctx.userId,
+            ctx.userEmail,
+            ctx.userRole
         );
 
         if (!canAudit) {
@@ -246,8 +248,10 @@ export async function auditExpenseItem(
  * 批次審核整個報帳單
  */
 export async function batchAuditExpenseReport(reportId: string): Promise<BatchAuditResult> {
-    const session = await auth();
-    if (!session?.user?.id) {
+    let ctx;
+    try {
+        ctx = await requireAuth();
+    } catch {
         return createUnauthorizedBatchResult("Unauthorized");
     }
 
@@ -266,9 +270,9 @@ export async function batchAuditExpenseReport(reportId: string): Promise<BatchAu
 
         const canAudit = hasAuditPermission(
             report,
-            session.user.id,
-            session.user.email || "",
-            session.user.role || ""
+            ctx.userId,
+            ctx.userEmail,
+            ctx.userRole
         );
 
         if (!canAudit) {

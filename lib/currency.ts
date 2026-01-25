@@ -1,5 +1,7 @@
 /**
  * 幣別工具函數
+ *
+ * 統一的貨幣格式化模組，預設使用 TWD（新台幣）
  */
 
 export const SUPPORTED_CURRENCIES = [
@@ -15,24 +17,18 @@ export const SUPPORTED_CURRENCIES = [
 
 export type CurrencyCode = (typeof SUPPORTED_CURRENCIES)[number]["code"];
 
-const ZERO_DECIMAL_CURRENCIES = new Set(["JPY", "KRW"]);
+const ZERO_DECIMAL_CURRENCIES = new Set(["JPY", "KRW", "TWD"]);
 
-export const DEFAULT_EXCHANGE_RATES: Record<string, number> = {
-    USD: 1,
-    TWD: 31.5,
-    EUR: 0.92,
-    JPY: 150,
-    CNY: 7.2,
-    HKD: 7.8,
-    KRW: 1300,
-    GBP: 0.79,
-};
-
-export function getCurrencyInfo(code: string) {
+export function getCurrencyInfo(code: string): (typeof SUPPORTED_CURRENCIES)[number] {
     return SUPPORTED_CURRENCIES.find((c) => c.code === code) ?? SUPPORTED_CURRENCIES[0];
 }
 
-export function formatCurrencyAmount(amount: number, currencyCode: string = "TWD"): string {
+/**
+ * 格式化貨幣金額
+ * @param amount 金額
+ * @param currencyCode 幣別代碼（預設 TWD）
+ */
+export function formatCurrency(amount: number, currencyCode: string = "TWD"): string {
     const currency = getCurrencyInfo(currencyCode);
     const fractionDigits = ZERO_DECIMAL_CURRENCIES.has(currencyCode) ? 0 : 2;
 
@@ -42,22 +38,4 @@ export function formatCurrencyAmount(amount: number, currencyCode: string = "TWD
         minimumFractionDigits: fractionDigits,
         maximumFractionDigits: fractionDigits,
     }).format(amount);
-}
-
-export function convertCurrency(
-    amount: number,
-    fromCurrency: string,
-    toCurrency: string,
-    rates: Record<string, number>
-): number {
-    if (fromCurrency === toCurrency) return amount;
-
-    const fromRate = rates[fromCurrency] ?? 1;
-    const toRate = rates[toCurrency] ?? 1;
-
-    return (amount / fromRate) * toRate;
-}
-
-export function fetchExchangeRates(): Promise<Record<string, number>> {
-    return Promise.resolve(DEFAULT_EXCHANGE_RATES);
 }

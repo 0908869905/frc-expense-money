@@ -4,8 +4,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { expenseReportSchema } from "@/lib/schemas";
 import { toStorageUnit } from "@/lib/money";
-import { revalidatePath } from "next/cache";
 import { TeamDepartment } from "@prisma/client";
+import { revalidateExpenses, revalidateDashboard } from "@/lib/actions/helpers";
 
 // --- Types ---
 export type State = {
@@ -28,12 +28,6 @@ const SUBMIT_MESSAGES: Record<string, string> = {
     PENDING_FINANCE: "報帳單已提交至財務審核！",
     PENDING_MANAGER: "報帳單已提交至組長審核！",
 };
-
-// --- Helper Functions ---
-function revalidateExpensePaths(): void {
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/expenses");
-}
 
 function parseItemDate(dateInput: Date | string): Date {
     const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
@@ -154,7 +148,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
             }
         });
 
-        revalidateExpensePaths();
+        revalidateExpenses();
         return { success: true, message: "報帳單建立成功！" };
     } catch (error) {
         console.error("Failed to create expense report:", error);
@@ -209,8 +203,8 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
             }
         });
 
-        revalidatePath("/dashboard");
-        revalidatePath("/dashboard/reports");
+        revalidateDashboard();
+        revalidateExpenses();
 
         return { success: true, message: "Report updated successfully!" };
     } catch (error) {
@@ -268,7 +262,7 @@ export async function submitReport(reportId: string): Promise<State> {
             }
         });
 
-        revalidateExpensePaths();
+        revalidateExpenses();
         return { success: true, message: SUBMIT_MESSAGES[newStatus] || "Report submitted!" };
     } catch (error) {
         console.error("Failed to submit report:", error);
@@ -308,7 +302,7 @@ export async function deleteReport(reportId: string): Promise<State> {
             await tx.expenseReport.delete({ where: { id: reportId } });
         });
 
-        revalidateExpensePaths();
+        revalidateExpenses();
         return { success: true, message: "Report deleted!" };
     } catch (error) {
         console.error("Failed to delete report:", error);

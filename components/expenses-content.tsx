@@ -7,6 +7,7 @@ import { submitReport, deleteReport } from "@/app/actions/expenses"
 import { Send, Trash2, Clock, CheckCircle, XCircle, FileText } from "lucide-react"
 import { ReceiptAuditButton } from "@/components/receipt-audit-button"
 import { BatchAuditButton } from "@/components/batch-audit-button"
+import { getStatusColor, getStatusLabel, getDepartmentLabel } from "@/lib/constants/expense-status"
 import type { AuditResult } from "@/types/audit"
 
 interface ExpensesContentProps {
@@ -49,28 +50,6 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
         return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US')
     }
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "DRAFT": return "bg-gray-100 text-gray-700"
-            case "PENDING_MANAGER": return "bg-yellow-100 text-yellow-700"
-            case "PENDING_FINANCE": return "bg-blue-100 text-blue-700"
-            case "PAID": return "bg-green-100 text-green-700"
-            case "REJECTED": return "bg-red-100 text-red-700"
-            default: return "bg-gray-100 text-gray-700"
-        }
-    }
-
-    const getStatusLabel = (status: string) => {
-        const labels: Record<string, Record<string, string>> = {
-            DRAFT: { zh: "草稿", en: "Draft" },
-            PENDING_MANAGER: { zh: "待主管審核", en: "Pending Manager" },
-            PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
-            PAID: { zh: "已付款", en: "Paid" },
-            REJECTED: { zh: "已拒絕", en: "Rejected" }
-        }
-        return labels[status]?.[language] || status
-    }
-
     const getStatusIcon = (status: string) => {
         switch (status) {
             case "DRAFT": return <FileText className="h-4 w-4" />
@@ -80,19 +59,6 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
             case "REJECTED": return <XCircle className="h-4 w-4" />
             default: return <FileText className="h-4 w-4" />
         }
-    }
-
-    const getDepartmentLabel = (dept: string) => {
-        const labels: Record<string, { zh: string, en: string, icon: string }> = {
-            ELECTRICAL: { zh: "電資組", en: "Electrical", icon: "⚡" },
-            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
-            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
-            PR: { zh: "公關組", en: "PR", icon: "📣" },
-            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
-            DESIGN: { zh: "意象組", en: "Design", icon: "🎨" },
-        }
-        const found = labels[dept]
-        return found ? `${found.icon} ${found[language]}` : dept
     }
 
     const showMessage = (type: "success" | "error", text: string) => {
@@ -202,7 +168,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                         {report.department && (
                                             <>
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                                    {getDepartmentLabel(report.department)}
+                                                    {getDepartmentLabel(report.department, language)}
                                                 </span>
                                                 <span>•</span>
                                             </>
@@ -211,7 +177,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                         <span>•</span>
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
                                             {getStatusIcon(report.status)}
-                                            {getStatusLabel(report.status)}
+                                            {getStatusLabel(report.status, language)}
                                         </span>
                                     </div>
                                 </div>

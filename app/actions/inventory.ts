@@ -1,17 +1,20 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { ItemCategory, TransactionType } from "@prisma/client";
+import {
+  requireAuth,
+  getAuthenticatedUserId,
+  revalidateInventory,
+  unauthorizedState,
+  successState,
+  errorState,
+  type ActionState
+} from "@/lib/actions/helpers";
 
 // ========== 類型定義 ==========
 
-export type InventoryState = {
-  success: boolean;
-  message: string | null;
-  errors?: Record<string, string[]>;
-};
+export type InventoryState = ActionState;
 
 // 自定義例外：庫存不足
 class InsufficientStockError extends Error {
@@ -42,13 +45,12 @@ export async function adjustStock(
   type: TransactionType,
   projectId?: string
 ): Promise<InventoryState> {
-  // 驗證使用者身份
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, message: "未授權的操作" };
+  let ctx;
+  try {
+    ctx = await requireAuth();
+  } catch {
+    return unauthorizedState();
   }
-
-  const performedBy = session.user.name || session.user.email || "Unknown";
 
   try {
     // 使用 Transaction 確保原子性
@@ -83,25 +85,25 @@ export async function adjustStock(
           changeAmount: amount,
           transactionType: type,
           relatedProjectId: projectId || null,
-          performedBy: performedBy,
+          performedBy: ctx.userName,
         },
       });
     });
 
-    revalidatePath("/dashboard/inventory");
-    return { success: true, message: "庫存調整成功" };
+    revalidateInventory();
+    return successState("庫存調整成功");
   } catch (error) {
     console.error("庫存調整失敗:", error);
 
     // 只有自定義錯誤才返回詳細訊息，其他錯誤返回通用訊息
     if (error instanceof InsufficientStockError) {
-      return { success: false, message: error.message };
+      return errorState(error.message);
     }
     if (error instanceof Error && error.message === "找不到指定的零件") {
-      return { success: false, message: error.message };
+      return errorState(error.message);
     }
 
-    return { success: false, message: "庫存調整失敗，請稍後再試" };
+    return errorState("庫存調整失敗，請稍後再試");
   }
 }
 
@@ -112,8 +114,8 @@ export async function adjustStock(
  * 用於提醒管理者哪些零件需要補貨
  */
 export async function getRestockList() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
     return [];
   }
 
@@ -135,8 +137,8 @@ export async function getRestockList() {
  * 取得所有零件清單
  */
 export async function getAllItems() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
     return [];
   }
 
@@ -160,8 +162,8 @@ export async function getAllItems() {
  * 取得單一零件及其異動紀錄
  */
 export async function getItemWithTransactions(itemId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
     return null;
   }
 
@@ -192,9 +194,9 @@ export async function createItem(data: {
   safetyStockLevel?: number;
   vendorLink?: string;
 }): Promise<InventoryState> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, message: "未授權的操作" };
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
+    return unauthorizedState();
   }
 
   try {
@@ -204,7 +206,7 @@ export async function createItem(data: {
     });
 
     if (existing) {
-      return { success: false, message: `料號 ${data.sku} 已存在` };
+      return errorState(`料號 ${data.sku} 已存在`);
     }
 
     await prisma.inventoryItem.create({
@@ -219,11 +221,11 @@ export async function createItem(data: {
       },
     });
 
-    revalidatePath("/dashboard/inventory");
-    return { success: true, message: "零件新增成功" };
+    revalidateInventory();
+    return successState("零件新增成功");
   } catch (error) {
     console.error("新增零件失敗:", error);
-    return { success: false, message: "資料庫錯誤" };
+    return errorState("資料庫錯誤");
   }
 }
 
@@ -241,9 +243,9 @@ export async function updateItem(
     vendorLink?: string;
   }
 ): Promise<InventoryState> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, message: "未授權的操作" };
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
+    return unauthorizedState();
   }
 
   try {
@@ -253,7 +255,7 @@ export async function updateItem(
       });
 
       if (existing) {
-        return { success: false, message: `料號 ${data.sku} 已被其他零件使用` };
+        return errorState(`料號 ${data.sku} 已被其他零件使用`);
       }
     }
 
@@ -262,11 +264,11 @@ export async function updateItem(
       data,
     });
 
-    revalidatePath("/dashboard/inventory");
-    return { success: true, message: "零件更新成功" };
+    revalidateInventory();
+    return successState("零件更新成功");
   } catch (error) {
     console.error("更新零件失敗:", error);
-    return { success: false, message: "資料庫錯誤" };
+    return errorState("資料庫錯誤");
   }
 }
 
@@ -274,14 +276,16 @@ export async function updateItem(
  * 刪除零件 (會連同刪除所有異動紀錄)
  */
 export async function deleteItem(itemId: string): Promise<InventoryState> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, message: "未授權的操作" };
+  let ctx;
+  try {
+    ctx = await requireAuth();
+  } catch {
+    return unauthorizedState();
   }
 
   // 只有 ADMIN 可以刪除零件
-  if (session.user.role !== "ADMIN") {
-    return { success: false, message: "只有管理員可以刪除零件" };
+  if (ctx.userRole !== "ADMIN") {
+    return errorState("只有管理員可以刪除零件");
   }
 
   try {
@@ -289,10 +293,10 @@ export async function deleteItem(itemId: string): Promise<InventoryState> {
       where: { id: itemId },
     });
 
-    revalidatePath("/dashboard/inventory");
-    return { success: true, message: "零件已刪除" };
+    revalidateInventory();
+    return successState("零件已刪除");
   } catch (error) {
     console.error("刪除零件失敗:", error);
-    return { success: false, message: "資料庫錯誤" };
+    return errorState("資料庫錯誤");
   }
 }

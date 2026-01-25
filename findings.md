@@ -310,3 +310,106 @@ ipRequestCounts.forEach((record, ip) => { ... })
 1. **Map 遍歷兼容性**：`forEach` 比 `for...of` 更兼容舊版 TypeScript 配置
 2. **Vercel vs 本地環境**：Vercel 的 TypeScript 配置可能與本地不同
 3. **推送前測試**：永遠執行 `npm run build` 確認無錯誤
+
+---
+
+## Session: 2026-01-25 (續) - 登入失敗問題診斷與修復
+
+### 問題描述
+用戶輸入正確的帳號密碼，但無法登入。本地和線上環境都有同樣問題。
+更奇怪的是，沒有顯示任何錯誤訊息。
+
+### 診斷過程
+
+#### 步驟 1：驗證用戶資料
+創建診斷腳本 `scripts/check-user.ts`：
+```
+📋 資料庫用戶資訊：
+   - Email: user@example.com
+   - 密碼欄位: ✅ 已設定
+   - 密碼格式: ✅ bcrypt 雜湊
+
+🔐 密碼驗證測試：
+   - 結果: ✅ 密碼正確
+```
+結論：用戶存在，密碼正確。
+
+#### 步驟 2：檢查 Redis 連接
+```
+TypeError: fetch failed
+Error: getaddrinfo ENOTFOUND clever-fawn-40577.upstash.io
+```
+結論：**Redis DNS 解析失敗**，這是導致登入失敗的直接原因。
+
+#### 步驟 3：分析認證流程
+`auth.ts` 中的 `authorize()` 函式：
+1. 檢查速率限制 → **呼叫 Redis（失敗）**
+2. 查詢用戶 → 使用 Prisma
+3. 驗證密碼 → bcrypt.compare
+
+問題：Redis 操作沒有錯誤處理，一旦 Redis 連接失敗，整個 `authorize()` 函式就會拋出異常。
+
+#### 步驟 4：發現第二個問題
+用戶表示「沒有顯示密碼錯誤」，表示登入「看似成功」但實際上沒有。
+檢查 `.env` 發現：
+```
+AUTH_URL="https://two-chi-74.vercel.app/login"
+```
+這是 Vercel 線上地址，但用戶在本地測試（localhost:3000）。
+NextAuth cookie 的 domain 不匹配，導致 session 無法保存。
+
+### 根本原因
+
+| 問題 | 類別 | 影響 |
+|------|------|------|
+| Redis 連接失敗無錯誤處理 | 程式碼健壯性 | 登入流程中斷，無明確錯誤 |
+| AUTH_URL 設為線上地址 | 環境配置 | 本地開發 session 無法保存 |
+
+### 修復方案
+
+#### 1. Redis 錯誤處理（`auth.ts`）
+為三個 Redis 函式添加 try-catch：
+- `checkLoginRateLimit()` - 失敗時返回 `{ allowed: true }`（允許登入繼續）
+- `recordFailedLogin()` - 失敗時靜默忽略
+- `resetLoginAttempts()` - 失敗時靜默忽略
+
+```typescript
+async function checkLoginRateLimit(email: string) {
+  try {
+    const key = `${RATE_LIMIT_PREFIX}${email.toLowerCase()}`
+    const current = await redis.get<number>(key) || 0
+    return {
+      allowed: current < RATE_LIMIT_MAX_ATTEMPTS,
+      remaining: Math.max(0, RATE_LIMIT_MAX_ATTEMPTS - current),
+    }
+  } catch (error) {
+    // Redis 連接失敗時，允許登入繼續（速率限制降級）
+    console.warn("Redis connection failed for rate limit check:", error)
+    return { allowed: true, remaining: RATE_LIMIT_MAX_ATTEMPTS }
+  }
+}
+```
+
+#### 2. AUTH_URL 配置（`.env`）
+```bash
+# 本地開發時註釋掉，讓 NextAuth 自動偵測
+# AUTH_URL="https://two-chi-74.vercel.app/login"
+```
+
+### 技術決策
+| 決策 | 理由 |
+|------|------|
+| Redis 失敗時允許登入 | 速率限制是增強功能，不應阻止核心登入流程 |
+| 使用 console.warn 記錄 | 方便除錯，但不影響用戶體驗 |
+| 註釋而非刪除 AUTH_URL | 方便切換環境，保留參考 |
+
+### 預防措施
+1. **所有外部服務呼叫都要有錯誤處理** - Redis、第三方 API 等
+2. **本地開發使用 `.env.local`** - 覆蓋線上配置
+3. **創建診斷工具** - 方便快速排查問題
+
+### 新增的診斷腳本
+| 腳本 | 用途 |
+|------|------|
+| `scripts/check-user.ts` | 檢查用戶是否存在、密碼是否正確 |
+| `scripts/clear-login-lock.ts` | 清除速率限制鎖定 |

@@ -1,24 +1,16 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
 import bcrypt from "bcryptjs"
-import { revalidatePath } from "next/cache"
 import { TeamDepartment } from "@prisma/client"
 import { validatePassword } from "@/lib/schemas"
+import { requireAdmin as baseRequireAdmin, revalidateUsers } from "@/lib/actions/helpers"
 
 type UserRole = "USER" | "VICE_LEADER" | "LEADER" | "FINANCE" | "ADMIN";
 
 async function requireAdmin(): Promise<string> {
-    const session = await auth()
-    if (!session?.user || session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
-    }
-    return session.user.id!
-}
-
-function revalidateUsers(): void {
-    revalidatePath("/dashboard/users")
+    const ctx = await baseRequireAdmin()
+    return ctx.userId
 }
 
 export async function getUsers() {

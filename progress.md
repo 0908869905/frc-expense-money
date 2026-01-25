@@ -411,8 +411,61 @@
 
 ---
 
+---
+
+## Session: 2026-01-25 (續) - 登入失敗問題修復
+
+### Phase 1: 問題診斷
+- **Status:** complete
+- **Started:** 2026-01-25
+- **Reported Issue:** 用戶輸入正確密碼但無法登入，無錯誤訊息
+- Actions taken:
+  - 創建診斷腳本 `scripts/check-user.ts`
+  - 驗證用戶存在且密碼正確
+  - 發現 Redis 連接失敗（DNS 無法解析）
+  - 發現 AUTH_URL 設為線上地址
+
+### Phase 2: 問題修復
+- **Status:** complete
+- Actions taken:
+  - 為 `auth.ts` 三個 Redis 函式添加 try-catch 錯誤處理
+  - 註釋 `.env` 中的 AUTH_URL
+  - 重啟開發伺服器測試
+- Files modified:
+  - `auth.ts` - 添加 Redis 錯誤處理
+  - `.env` - 註釋 AUTH_URL
+- Files created:
+  - `scripts/check-user.ts` - 用戶診斷腳本
+  - `scripts/clear-login-lock.ts` - 清除登入鎖定腳本
+
+### Phase 3: 文件更新
+- **Status:** complete
+- Actions taken:
+  - 更新 CLAUDE.md 添加問題紀錄
+  - 更新 findings.md 添加診斷過程
+  - 更新 progress.md（此檔案）
+  - 創建 TROUBLESHOOTING.md 錯誤排查指南
+
+## 問題根因分析
+| 問題 | 根因 | 解決方案 |
+|------|------|----------|
+| 登入無錯誤但失敗 | Redis 連接失敗無錯誤處理 | 添加 try-catch，失敗時降級運作 |
+| Session 無法保存 | AUTH_URL 設為線上地址 | 本地開發時註釋 AUTH_URL |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | 登入問題已修復 |
+| Where am I going? | 更新文件，創建錯誤排查指南 |
+| What's the goal? | 修復登入失敗問題 + 防止未來發生 |
+| What have I learned? | 外部服務必須有錯誤處理；本地/線上環境配置要分開 |
+| What have I done? | 診斷問題、修復 auth.ts、更新 .env、創建診斷腳本 |
+
+---
+
 ## 下一步建議
 1. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
 2. 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）
 3. 考慮使用外部儲存服務存放 Avatar（S3/Vercel Blob）
 4. 推送前永遠執行 `npm run build`
+5. **檢查 Upstash Redis 配置是否正確** - 目前 DNS 無法解析
