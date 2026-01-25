@@ -92,12 +92,16 @@ export async function adjustStock(
     return { success: true, message: "庫存調整成功" };
   } catch (error) {
     console.error("庫存調整失敗:", error);
-    
+
+    // 只有自定義錯誤才返回詳細訊息，其他錯誤返回通用訊息
     if (error instanceof InsufficientStockError) {
       return { success: false, message: error.message };
     }
-    
-    return { success: false, message: error instanceof Error ? error.message : "資料庫錯誤" };
+    if (error instanceof Error && error.message === "找不到指定的零件") {
+      return { success: false, message: error.message };
+    }
+
+    return { success: false, message: "庫存調整失敗，請稍後再試" };
   }
 }
 

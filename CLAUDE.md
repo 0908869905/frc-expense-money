@@ -294,3 +294,23 @@ npm run build
 **修改的檔案**：
 - `auth.ts` - 新增速率限制函式和邏輯
 - `next.config.mjs` - 改善 CSP 標頭
+
+### 2026-01-25（續）：安全掃描修復
+
+**修復的問題**：
+
+| 嚴重度 | 問題 | 修復 |
+|--------|------|------|
+| MEDIUM | Timing-Safe 長度洩漏 | 使用固定長度 256 bytes buffer |
+| MEDIUM | Debug API 洩漏 email | 遮罩為 `a***@domain.com` |
+| LOW | 錯誤訊息洩漏內部細節 | 改為通用錯誤訊息 |
+| INFO | 缺少 Middleware | 新增全局速率限制 |
+
+**新增檔案**：
+- `middleware.ts` - 全局速率限制（100 req/min per IP）
+
+**修改的檔案**：
+- `app/api/cron/cleanup-sessions/route.ts` - 固定長度 timing-safe
+- `app/api/debug/route.ts` - email 遮罩
+- `app/actions/inventory.ts` - 通用錯誤訊息
+- `app/actions/ocr.ts` - 通用錯誤訊息

@@ -340,10 +340,26 @@
 - Actions taken:
   - 執行 `npm run build` - 成功
 
+### Phase 4: 安全掃描修復
+- **Status:** complete
+- Actions taken:
+  - 修復 Timing-Safe 比較（固定長度 buffer）
+  - Debug API 遮罩 email（a***@example.com）
+  - 錯誤訊息改為通用訊息（不洩漏內部細節）
+  - 創建 middleware.ts（全局速率限制）
+- Files modified:
+  - app/api/cron/cleanup-sessions/route.ts
+  - app/api/debug/route.ts
+  - app/actions/inventory.ts
+  - app/actions/ocr.ts
+- Files created:
+  - middleware.ts
+
 ## Git Commits (2026-01-25)
 | Commit | Message |
 |--------|---------|
-| (pending) | feat: 登入速率限制 + CSP 改善 |
+| 9f9aa8c | feat: 登入速率限制 + CSP 改善 |
+| (pending) | fix: 安全掃描修復 |
 
 ## 5-Question Reboot Check
 | Question | Answer |

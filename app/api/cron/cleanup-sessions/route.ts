@@ -5,11 +5,19 @@ import crypto from "crypto"
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
 function isValidCronKey(providedKey: string, expectedKey: string): boolean {
-    const expectedBuffer = Buffer.from(expectedKey, "utf8")
-    const providedBuffer = Buffer.from(providedKey, "utf8")
+    // 使用固定長度 buffer 進行 timing-safe 比較，避免長度洩漏
+    const FIXED_LENGTH = 256
+    const expectedBuffer = Buffer.alloc(FIXED_LENGTH)
+    const providedBuffer = Buffer.alloc(FIXED_LENGTH)
 
-    return expectedBuffer.length === providedBuffer.length &&
-        crypto.timingSafeEqual(expectedBuffer, providedBuffer)
+    Buffer.from(expectedKey, "utf8").copy(expectedBuffer)
+    Buffer.from(providedKey, "utf8").copy(providedBuffer)
+
+    // 同時比較長度和內容，避免時序攻擊
+    const lengthMatch = expectedKey.length === providedKey.length
+    const contentMatch = crypto.timingSafeEqual(expectedBuffer, providedBuffer)
+
+    return lengthMatch && contentMatch
 }
 
 function validateCronAuth(request: Request): NextResponse | null {

@@ -14,6 +14,14 @@ export async function GET(): Promise<NextResponse> {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // 遮罩 email 函式：a]test@example.com → a***@example.com
+    const maskEmail = (email: string): string => {
+        const [local, domain] = email.split("@")
+        if (!domain) return "***"
+        const maskedLocal = local.length > 1 ? local[0] + "***" : "***"
+        return `${maskedLocal}@${domain}`
+    }
+
     try {
         const [userCount, users] = await Promise.all([
             prisma.user.count(),
@@ -23,10 +31,16 @@ export async function GET(): Promise<NextResponse> {
             }),
         ])
 
+        // 遮罩敏感資訊
+        const maskedUsers = users.map((u) => ({
+            ...u,
+            email: u.email ? maskEmail(u.email) : null,
+        }))
+
         return NextResponse.json({
             success: true,
-            database: { connected: true, userCount, users },
-            session: { hasSession: true, user: session.user },
+            database: { connected: true, userCount, users: maskedUsers },
+            session: { hasSession: true, user: { ...session.user, email: session.user.email ? maskEmail(session.user.email) : null } },
         })
     } catch (error: unknown) {
         console.error("Debug error:", error)

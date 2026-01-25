@@ -237,8 +237,8 @@ export async function auditExpenseItem(
         return result;
     } catch (error) {
         console.error("審核失敗:", error);
-        const errorMessage = error instanceof Error ? error.message : "審核處理失敗";
-        return createUnauthorizedAuditResult(errorMessage);
+        // 不洩漏內部錯誤細節，返回通用訊息
+        return createUnauthorizedAuditResult("審核處理失敗，請稍後再試");
     }
 }
 
@@ -278,7 +278,7 @@ export async function batchAuditExpenseReport(reportId: string): Promise<BatchAu
         return await batchAuditReport(reportId);
     } catch (error) {
         console.error("批次審核失敗:", error);
-        const errorMessage = error instanceof Error ? error.message : "批次審核處理失敗";
-        return createUnauthorizedBatchResult(errorMessage);
+        // 不洩漏內部錯誤細節，返回通用訊息
+        return createUnauthorizedBatchResult("批次審核處理失敗，請稍後再試");
     }
 }
