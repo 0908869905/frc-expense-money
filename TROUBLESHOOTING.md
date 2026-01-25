@@ -176,6 +176,42 @@ const unique = array.filter((item, index) => array.indexOf(item) === index)
 
 **記住**：優先使用 `Array.from()` 來解決此問題，這是最簡單且不需要修改配置的方法。
 
+### 問題：第三方函式庫類型不匹配
+
+**症狀**：Build 時出現類似以下錯誤：
+```
+Type error: Type 'SomeClass' is not assignable to type 'MyInterface'.
+  The types returned by 'someMethod(...)' are incompatible between these types.
+    Type 'Promise<null>' is not assignable to type 'Promise<void>'.
+```
+
+**原因**：
+自定義的介面類型與實際函式庫的回傳類型不一致。常見於動態導入的函式庫。
+
+**範例**：html5-qrcode 的 `start()` 方法
+```typescript
+// ❌ 錯誤 - 假設回傳 void
+interface Html5QrCodeInstance {
+    start: (...) => Promise<void>
+}
+
+// ✅ 正確 - 實際回傳 null
+interface Html5QrCodeInstance {
+    start: (...) => Promise<null>
+}
+```
+
+**解決方法**：
+1. 查看函式庫的實際類型定義（node_modules 或官方文檔）
+2. 或使用 `any` 類型暫時繞過（不推薦）
+3. 或安裝官方 `@types/xxx` 套件（如果有的話）
+
+**診斷技巧**：
+```bash
+# 查看函式庫的類型定義
+cat node_modules/html5-qrcode/esm/html5-qrcode.d.ts | grep "start"
+```
+
 ### 問題：Server actions must be async functions
 
 **症狀**：Build 時出現類似以下錯誤：
@@ -395,4 +431,4 @@ npx tsx scripts/clear-login-lock.ts admin@example.com
 ---
 
 *最後更新：2026-01-25*
-*新增：Set 迭代錯誤 (downlevelIteration) 解決方案*
+*新增：第三方函式庫類型不匹配解決方案*
