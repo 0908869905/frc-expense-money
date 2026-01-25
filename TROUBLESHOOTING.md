@@ -136,8 +136,45 @@ npm run build
 |------|----------|
 | `Cannot find module` | 檢查導入路徑是否正確 |
 | `Type 'X' is not assignable to type 'Y'` | 使用正確的類型轉換 |
-| `downlevelIteration` 錯誤 | 使用 `forEach` 代替 `for...of` |
+| `downlevelIteration` 錯誤 | 使用 `Array.from()` 代替展開運算子 |
 | `Server actions must be async functions` | 移除輔助函式檔案的 `"use server"` |
+
+### 問題：Set 迭代錯誤 (downlevelIteration)
+
+**症狀**：Build 時出現類似以下錯誤：
+```
+Type error: Type 'Set<string>' can only be iterated through when using the
+'--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+```
+
+**原因**：
+TypeScript 預設的編譯目標不支援直接對 `Set` 使用展開運算子 `[...set]`。
+
+**錯誤範例**：
+```typescript
+// ❌ 這會造成編譯錯誤
+const uniqueValues = [...new Set(items.map(item => item.value))]
+```
+
+**正確做法**：
+```typescript
+// ✅ 使用 Array.from() 替代展開運算子
+const uniqueValues = Array.from(new Set(items.map(item => item.value)))
+```
+
+**其他替代方案**：
+```typescript
+// 方案 1：使用 Array.from()（推薦）
+const unique = Array.from(new Set(array))
+
+// 方案 2：使用 filter + indexOf（較慢但相容性最好）
+const unique = array.filter((item, index) => array.indexOf(item) === index)
+
+// 方案 3：修改 tsconfig.json（不推薦，可能影響其他設定）
+// "compilerOptions": { "downlevelIteration": true }
+```
+
+**記住**：優先使用 `Array.from()` 來解決此問題，這是最簡單且不需要修改配置的方法。
 
 ### 問題：Server actions must be async functions
 
@@ -358,4 +395,4 @@ npx tsx scripts/clear-login-lock.ts admin@example.com
 ---
 
 *最後更新：2026-01-25*
-*新增：NextAuth Session 類型不匹配解決方案*
+*新增：Set 迭代錯誤 (downlevelIteration) 解決方案*
