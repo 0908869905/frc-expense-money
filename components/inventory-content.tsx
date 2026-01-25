@@ -7,18 +7,12 @@ import { adjustStock, createItem, updateItem, deleteItem } from "@/app/actions/i
 import { ItemCategory, TransactionType } from "@prisma/client"
 import { InventoryQRModal } from "./inventory-qr-modal"
 import Link from "next/link"
-
-interface InventoryItem {
-    id: string
-    name: string
-    sku: string
-    category: string
-    storageLocation: string
-    currentQuantity: number
-    safetyStockLevel: number
-    vendorLink: string | null
-    transactions?: any[]
-}
+import {
+    type InventoryItem,
+    ITEM_CATEGORIES,
+    TRANSACTION_TYPES,
+    getCategoryLabel,
+} from "@/types/inventory"
 
 interface InventoryContentProps {
     items: InventoryItem[]
@@ -26,25 +20,35 @@ interface InventoryContentProps {
     userRole: string
 }
 
-const CATEGORIES: { value: ItemCategory; labelZh: string; labelEn: string }[] = [
-    { value: "MOTOR", labelZh: "馬達", labelEn: "Motor" },
-    { value: "SENSOR", labelZh: "感測器", labelEn: "Sensor" },
-    { value: "PNEUMATIC", labelZh: "氣壓", labelEn: "Pneumatic" },
-    { value: "CONTROLLER", labelZh: "控制器", labelEn: "Controller" },
-    { value: "HARDWARE", labelZh: "五金", labelEn: "Hardware" },
-    { value: "RAW_MATERIAL", labelZh: "原料", labelEn: "Raw Material" },
-    { value: "TOOL", labelZh: "工具", labelEn: "Tool" },
-]
+type ModalType = "add" | "edit" | "adjust" | "stockIn" | "stockOut" | "qr" | null
 
-const TRANSACTION_TYPES: { value: TransactionType; labelZh: string; labelEn: string }[] = [
-    { value: "PURCHASE_IN", labelZh: "採購入庫", labelEn: "Purchase In" },
-    { value: "PROJECT_USE", labelZh: "專案領用", labelEn: "Project Use" },
-    { value: "DAMAGED", labelZh: "損壞報廢", labelEn: "Damaged" },
-    { value: "LOST", labelZh: "遺失", labelEn: "Lost" },
-    { value: "AUDIT_ADJUSTMENT", labelZh: "盤點調整", labelEn: "Audit Adjustment" },
-]
+interface FormData {
+    name: string
+    sku: string
+    category: ItemCategory
+    storageLocation: string
+    currentQuantity: number
+    safetyStockLevel: number
+    vendorLink: string
+}
 
-export function InventoryContent({ items, restockItems, userRole }: InventoryContentProps) {
+interface AdjustData {
+    amount: number
+    type: TransactionType
+    projectId: string
+}
+
+const INITIAL_FORM_DATA: FormData = {
+    name: "",
+    sku: "",
+    category: "HARDWARE",
+    storageLocation: "",
+    currentQuantity: 0,
+    safetyStockLevel: 0,
+    vendorLink: "",
+}
+
+export function InventoryContent({ items, restockItems, userRole }: InventoryContentProps): JSX.Element {
     const { language } = useLanguage()
     const [isPending, startTransition] = useTransition()
     const [localItems, setLocalItems] = useState(items)
@@ -53,74 +57,66 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
     const [locationFilter, setLocationFilter] = useState<string>("all")
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
-    // Modal states
-    const [showAddModal, setShowAddModal] = useState(false)
-    const [showEditModal, setShowEditModal] = useState(false)
-    const [showAdjustModal, setShowAdjustModal] = useState(false)
-    const [showStockInModal, setShowStockInModal] = useState(false)
-    const [showStockOutModal, setShowStockOutModal] = useState(false)
-    const [showQRModal, setShowQRModal] = useState(false)
+    const [activeModal, setActiveModal] = useState<ModalType>(null)
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
-
-    // 提取唯一的儲存位置
-    const uniqueLocations = [...new Set(localItems.map(item => item.storageLocation).filter(Boolean))].sort()
-
-    // Form states
-    const [formData, setFormData] = useState({
-        name: "",
-        sku: "",
-        category: "HARDWARE" as ItemCategory,
-        storageLocation: "",
-        currentQuantity: 0,
-        safetyStockLevel: 0,
-        vendorLink: "",
-    })
-    const [adjustData, setAdjustData] = useState({
-        amount: 0,
-        type: "PURCHASE_IN" as TransactionType,
-        projectId: "",
-    })
+    const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA)
+    const [adjustData, setAdjustData] = useState<AdjustData>({ amount: 0, type: "PURCHASE_IN", projectId: "" })
 
     const isAdmin = userRole === "ADMIN"
+    const uniqueLocations = [...new Set(localItems.map(item => item.storageLocation).filter(Boolean))].sort()
 
-    const showMessage = (type: "success" | "error", text: string) => {
-        setMessage({ type, text })
-        setTimeout(() => setMessage(null), 3000)
-    }
-
-    const getCategoryLabel = (category: string) => {
-        const cat = CATEGORIES.find((c) => c.value === category)
-        return cat ? (language === "zh" ? cat.labelZh : cat.labelEn) : category
-    }
-
-    const getTypeLabel = (type: string) => {
-        const t = TRANSACTION_TYPES.find((tt) => tt.value === type)
-        return t ? (language === "zh" ? t.labelZh : t.labelEn) : type
-    }
-
-    // Filter items - 搜尋支援名稱、料號、位置
     const filteredItems = localItems.filter((item) => {
+        const searchLower = searchTerm.toLowerCase()
         const matchesSearch =
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.storageLocation?.toLowerCase().includes(searchTerm.toLowerCase())
+            item.name.toLowerCase().includes(searchLower) ||
+            item.sku.toLowerCase().includes(searchLower) ||
+            item.storageLocation?.toLowerCase().includes(searchLower)
         const matchesCategory = categoryFilter === "all" || item.category === categoryFilter
         const matchesLocation = locationFilter === "all" || item.storageLocation === locationFilter
         return matchesSearch && matchesCategory && matchesLocation
     })
 
-    const openQRModal = (item: InventoryItem) => {
-        setSelectedItem(item)
-        setShowQRModal(true)
+    function showMessage(type: "success" | "error", text: string): void {
+        setMessage({ type, text })
+        setTimeout(() => setMessage(null), 3000)
     }
 
-    // Handlers
-    const handleAddItem = async () => {
+    function closeModal(): void {
+        setActiveModal(null)
+        setSelectedItem(null)
+    }
+
+    function openModal(type: ModalType, item?: InventoryItem): void {
+        setSelectedItem(item ?? null)
+        setActiveModal(type)
+
+        if (type === "add") {
+            setFormData(INITIAL_FORM_DATA)
+        } else if (type === "edit" && item) {
+            setFormData({
+                name: item.name,
+                sku: item.sku,
+                category: item.category as ItemCategory,
+                storageLocation: item.storageLocation,
+                currentQuantity: item.currentQuantity,
+                safetyStockLevel: item.safetyStockLevel,
+                vendorLink: item.vendorLink || "",
+            })
+        } else if (type === "adjust" && item) {
+            setAdjustData({ amount: 0, type: "PURCHASE_IN", projectId: "" })
+        } else if (type === "stockIn" && item) {
+            setAdjustData({ amount: 1, type: "PURCHASE_IN", projectId: "" })
+        } else if (type === "stockOut" && item) {
+            setAdjustData({ amount: 1, type: "PROJECT_USE", projectId: "" })
+        }
+    }
+
+    async function handleAddItem(): Promise<void> {
         startTransition(async () => {
             const result = await createItem(formData)
             if (result.success) {
                 showMessage("success", result.message || "成功")
-                setShowAddModal(false)
+                closeModal()
                 window.location.reload()
             } else {
                 showMessage("error", result.message || "失敗")
@@ -128,13 +124,13 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         })
     }
 
-    const handleUpdateItem = async () => {
+    async function handleUpdateItem(): Promise<void> {
         if (!selectedItem) return
         startTransition(async () => {
             const result = await updateItem(selectedItem.id, formData)
             if (result.success) {
                 showMessage("success", result.message || "成功")
-                setShowEditModal(false)
+                closeModal()
                 window.location.reload()
             } else {
                 showMessage("error", result.message || "失敗")
@@ -142,8 +138,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         })
     }
 
-    const handleDeleteItem = async (itemId: string) => {
-        if (!confirm(language === "zh" ? "確定要刪除此零件嗎？" : "Delete this item?")) return
+    async function handleDeleteItem(itemId: string): Promise<void> {
+        const confirmMessage = language === "zh" ? "確定要刪除此零件嗎？" : "Delete this item?"
+        if (!confirm(confirmMessage)) return
+
         startTransition(async () => {
             const result = await deleteItem(itemId)
             if (result.success) {
@@ -155,7 +153,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         })
     }
 
-    const handleAdjustStock = async () => {
+    async function handleAdjustStock(): Promise<void> {
         if (!selectedItem) return
         startTransition(async () => {
             const result = await adjustStock(
@@ -166,7 +164,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             )
             if (result.success) {
                 showMessage("success", result.message || "成功")
-                setShowAdjustModal(false)
+                closeModal()
                 window.location.reload()
             } else {
                 showMessage("error", result.message || "失敗")
@@ -174,82 +172,19 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         })
     }
 
-    const openAddModal = () => {
-        setFormData({
-            name: "",
-            sku: "",
-            category: "HARDWARE",
-            storageLocation: "",
-            currentQuantity: 0,
-            safetyStockLevel: 0,
-            vendorLink: "",
-        })
-        setShowAddModal(true)
-    }
-
-    const openEditModal = (item: InventoryItem) => {
-        setSelectedItem(item)
-        setFormData({
-            name: item.name,
-            sku: item.sku,
-            category: item.category as ItemCategory,
-            storageLocation: item.storageLocation,
-            currentQuantity: item.currentQuantity,
-            safetyStockLevel: item.safetyStockLevel,
-            vendorLink: item.vendorLink || "",
-        })
-        setShowEditModal(true)
-    }
-
-    const openAdjustModal = (item: InventoryItem) => {
-        setSelectedItem(item)
-        setAdjustData({ amount: 0, type: "PURCHASE_IN", projectId: "" })
-        setShowAdjustModal(true)
-    }
-
-    const openStockInModal = (item: InventoryItem) => {
-        setSelectedItem(item)
-        setAdjustData({ amount: 1, type: "PURCHASE_IN", projectId: "" })
-        setShowStockInModal(true)
-    }
-
-    const openStockOutModal = (item: InventoryItem) => {
-        setSelectedItem(item)
-        setAdjustData({ amount: 1, type: "PROJECT_USE", projectId: "" })
-        setShowStockOutModal(true)
-    }
-
-    const handleQuickStockIn = async () => {
+    async function handleQuickStock(isStockIn: boolean): Promise<void> {
         if (!selectedItem || adjustData.amount <= 0) return
         startTransition(async () => {
-            const result = await adjustStock(
-                selectedItem.id,
-                adjustData.amount,
-                "PURCHASE_IN",
-                undefined
-            )
-            if (result.success) {
-                showMessage("success", result.message || "入庫成功")
-                setShowStockInModal(false)
-                window.location.reload()
-            } else {
-                showMessage("error", result.message || "失敗")
-            }
-        })
-    }
+            const amount = isStockIn ? adjustData.amount : -adjustData.amount
+            const type = isStockIn ? "PURCHASE_IN" : adjustData.type
+            const result = await adjustStock(selectedItem.id, amount, type, adjustData.projectId || undefined)
 
-    const handleQuickStockOut = async () => {
-        if (!selectedItem || adjustData.amount <= 0) return
-        startTransition(async () => {
-            const result = await adjustStock(
-                selectedItem.id,
-                -adjustData.amount, // 負數表示出庫
-                adjustData.type,
-                adjustData.projectId || undefined
-            )
             if (result.success) {
-                showMessage("success", result.message || "領用成功")
-                setShowStockOutModal(false)
+                const successMessage = isStockIn
+                    ? (language === "zh" ? "入庫成功" : "Stock in successful")
+                    : (language === "zh" ? "領用成功" : "Stock out successful")
+                showMessage("success", result.message || successMessage)
+                closeModal()
                 window.location.reload()
             } else {
                 showMessage("error", result.message || "失敗")
@@ -278,7 +213,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         {language === "zh" ? "掃描" : "Scan"}
                     </Link>
                     <button
-                        onClick={openAddModal}
+                        onClick={() => openModal("add")}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
                         <Plus className="h-4 w-4" />
@@ -339,7 +274,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                     className="px-4 py-2 border rounded-lg bg-background"
                 >
                     <option value="all">{language === "zh" ? "所有類別" : "All Categories"}</option>
-                    {CATEGORIES.map((cat) => (
+                    {ITEM_CATEGORIES.map((cat) => (
                         <option key={cat.value} value={cat.value}>
                             {language === "zh" ? cat.labelZh : cat.labelEn}
                         </option>
@@ -388,7 +323,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     <td className="p-4 text-muted-foreground font-mono text-sm">{item.sku}</td>
                                     <td className="p-4">
                                         <span className="px-2 py-1 bg-muted rounded text-xs">
-                                            {getCategoryLabel(item.category)}
+                                            {getCategoryLabel(item.category, language)}
                                         </span>
                                     </td>
                                     <td className="p-4 text-muted-foreground">{item.storageLocation}</td>
@@ -406,35 +341,35 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     <td className="p-4">
                                         <div className="flex gap-1">
                                             <button
-                                                onClick={() => openQRModal(item)}
+                                                onClick={() => openModal("qr", item)}
                                                 className="p-1.5 rounded hover:bg-blue-100 text-blue-600"
-                                                title={language === "zh" ? "QR Code" : "QR Code"}
+                                                title="QR Code"
                                             >
                                                 <QrCode className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() => openStockInModal(item)}
+                                                onClick={() => openModal("stockIn", item)}
                                                 className="p-1.5 rounded hover:bg-green-100 text-green-600"
                                                 title={language === "zh" ? "入庫" : "Stock In"}
                                             >
                                                 <ArrowDownToLine className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() => openStockOutModal(item)}
+                                                onClick={() => openModal("stockOut", item)}
                                                 className="p-1.5 rounded hover:bg-orange-100 text-orange-600"
                                                 title={language === "zh" ? "領用" : "Stock Out"}
                                             >
                                                 <ArrowUpFromLine className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() => openAdjustModal(item)}
+                                                onClick={() => openModal("adjust", item)}
                                                 className="p-1.5 rounded hover:bg-muted"
                                                 title={language === "zh" ? "進階調整" : "Advanced"}
                                             >
                                                 <ArrowUpDown className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() => openEditModal(item)}
+                                                onClick={() => openModal("edit", item)}
                                                 className="p-1.5 rounded hover:bg-muted"
                                                 title={language === "zh" ? "編輯" : "Edit"}
                                             >
@@ -471,17 +406,13 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             </div>
 
             {/* Add/Edit Modal */}
-            {(showAddModal || showEditModal) && (
+            {(activeModal === "add" || activeModal === "edit") && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-card rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold mb-4">
-                            {showAddModal
-                                ? language === "zh"
-                                    ? "新增零件"
-                                    : "Add Item"
-                                : language === "zh"
-                                    ? "編輯零件"
-                                    : "Edit Item"}
+                            {activeModal === "add"
+                                ? (language === "zh" ? "新增零件" : "Add Item")
+                                : (language === "zh" ? "編輯零件" : "Edit Item")}
                         </h2>
                         <div className="space-y-4">
                             <div>
@@ -518,7 +449,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     }
                                     className="w-full px-3 py-2 border rounded-lg"
                                 >
-                                    {CATEGORIES.map((cat) => (
+                                    {ITEM_CATEGORIES.map((cat) => (
                                         <option key={cat.value} value={cat.value}>
                                             {language === "zh" ? cat.labelZh : cat.labelEn}
                                         </option>
@@ -537,7 +468,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     className="w-full px-3 py-2 border rounded-lg"
                                 />
                             </div>
-                            {showAddModal && (
+                            {activeModal === "add" && (
                                 <div>
                                     <label className="block text-sm font-medium mb-1">
                                         {language === "zh" ? "初始數量" : "Initial Quantity"}
@@ -580,26 +511,19 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
-                                onClick={() => {
-                                    setShowAddModal(false)
-                                    setShowEditModal(false)
-                                }}
+                                onClick={closeModal}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
                             </button>
                             <button
-                                onClick={showAddModal ? handleAddItem : handleUpdateItem}
+                                onClick={activeModal === "add" ? handleAddItem : handleUpdateItem}
                                 disabled={isPending}
                                 className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                             >
                                 {isPending
-                                    ? language === "zh"
-                                        ? "處理中..."
-                                        : "Processing..."
-                                    : language === "zh"
-                                        ? "儲存"
-                                        : "Save"}
+                                    ? (language === "zh" ? "處理中..." : "Processing...")
+                                    : (language === "zh" ? "儲存" : "Save")}
                             </button>
                         </div>
                     </div>
@@ -607,7 +531,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             )}
 
             {/* Adjust Stock Modal */}
-            {showAdjustModal && selectedItem && (
+            {activeModal === "adjust" && selectedItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-card rounded-xl p-6 w-full max-w-md mx-4">
                         <h2 className="text-xl font-bold mb-2">
@@ -665,7 +589,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
-                                onClick={() => setShowAdjustModal(false)}
+                                onClick={closeModal}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
@@ -676,12 +600,8 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                 className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
                             >
                                 {isPending
-                                    ? language === "zh"
-                                        ? "處理中..."
-                                        : "Processing..."
-                                    : language === "zh"
-                                        ? "確認調整"
-                                        : "Confirm"}
+                                    ? (language === "zh" ? "處理中..." : "Processing...")
+                                    : (language === "zh" ? "確認調整" : "Confirm")}
                             </button>
                         </div>
                     </div>
@@ -689,7 +609,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             )}
 
             {/* Quick Stock In Modal */}
-            {showStockInModal && selectedItem && (
+            {activeModal === "stockIn" && selectedItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
                         <h2 className="text-xl font-bold mb-2 text-green-600 flex items-center gap-2">
@@ -717,23 +637,19 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
-                                onClick={() => setShowStockInModal(false)}
+                                onClick={closeModal}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
                             </button>
                             <button
-                                onClick={handleQuickStockIn}
+                                onClick={() => handleQuickStock(true)}
                                 disabled={isPending || adjustData.amount <= 0}
                                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                             >
                                 {isPending
-                                    ? language === "zh"
-                                        ? "處理中..."
-                                        : "Processing..."
-                                    : language === "zh"
-                                        ? "確認入庫"
-                                        : "Confirm"}
+                                    ? (language === "zh" ? "處理中..." : "Processing...")
+                                    : (language === "zh" ? "確認入庫" : "Confirm")}
                             </button>
                         </div>
                     </div>
@@ -741,7 +657,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             )}
 
             {/* Quick Stock Out Modal */}
-            {showStockOutModal && selectedItem && (
+            {activeModal === "stockOut" && selectedItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
                         <h2 className="text-xl font-bold mb-2 text-orange-600 flex items-center gap-2">
@@ -782,23 +698,19 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
-                                onClick={() => setShowStockOutModal(false)}
+                                onClick={closeModal}
                                 className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
                             </button>
                             <button
-                                onClick={handleQuickStockOut}
+                                onClick={() => handleQuickStock(false)}
                                 disabled={isPending || adjustData.amount <= 0 || adjustData.amount > selectedItem.currentQuantity}
                                 className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
                             >
                                 {isPending
-                                    ? language === "zh"
-                                        ? "處理中..."
-                                        : "Processing..."
-                                    : language === "zh"
-                                        ? "確認領用"
-                                        : "Confirm"}
+                                    ? (language === "zh" ? "處理中..." : "Processing...")
+                                    : (language === "zh" ? "確認領用" : "Confirm")}
                             </button>
                         </div>
                     </div>
@@ -806,10 +718,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             )}
 
             {/* QR Code Modal */}
-            {showQRModal && selectedItem && (
+            {activeModal === "qr" && selectedItem && (
                 <InventoryQRModal
                     item={selectedItem}
-                    onClose={() => setShowQRModal(false)}
+                    onClose={closeModal}
                 />
             )}
         </div>

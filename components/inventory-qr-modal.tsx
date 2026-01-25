@@ -4,34 +4,25 @@ import { useLanguage } from "@/lib/language-context"
 import { QRCodeSVG } from "qrcode.react"
 import { X, Printer, Download } from "lucide-react"
 import { useRef } from "react"
-
-interface InventoryItem {
-    id: string
-    name: string
-    sku: string
-    category: string
-    storageLocation: string
-    currentQuantity: number
-    safetyStockLevel: number
-}
+import { type InventoryItem } from "@/types/inventory"
 
 interface InventoryQRModalProps {
     item: InventoryItem
     onClose: () => void
 }
 
-export function InventoryQRModal({ item, onClose }: InventoryQRModalProps) {
+export function InventoryQRModal({ item, onClose }: InventoryQRModalProps): JSX.Element {
     const { language } = useLanguage()
     const printRef = useRef<HTMLDivElement>(null)
 
-    const handlePrint = () => {
-        const printContent = printRef.current
-        if (!printContent) return
+    function handlePrint(): void {
+        const svgElement = printRef.current?.querySelector("svg")
+        if (!svgElement) return
 
         const printWindow = window.open("", "_blank")
         if (!printWindow) return
 
-        printWindow.document.write(`
+        const printHtml = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -53,35 +44,16 @@ export function InventoryQRModal({ item, onClose }: InventoryQRModalProps) {
                         text-align: center;
                         max-width: 300px;
                     }
-                    .qr-container {
-                        margin-bottom: 15px;
-                    }
-                    .sku {
-                        font-size: 18px;
-                        font-weight: bold;
-                        font-family: monospace;
-                        margin-bottom: 8px;
-                    }
-                    .name {
-                        font-size: 14px;
-                        margin-bottom: 5px;
-                    }
-                    .location {
-                        font-size: 12px;
-                        color: #666;
-                    }
-                    @media print {
-                        body {
-                            min-height: auto;
-                        }
-                    }
+                    .qr-container { margin-bottom: 15px; }
+                    .sku { font-size: 18px; font-weight: bold; font-family: monospace; margin-bottom: 8px; }
+                    .name { font-size: 14px; margin-bottom: 5px; }
+                    .location { font-size: 12px; color: #666; }
+                    @media print { body { min-height: auto; } }
                 </style>
             </head>
             <body>
                 <div class="label">
-                    <div class="qr-container">
-                        ${printContent.querySelector("svg")?.outerHTML || ""}
-                    </div>
+                    <div class="qr-container">${svgElement.outerHTML}</div>
                     <div class="sku">${item.sku}</div>
                     <div class="name">${item.name}</div>
                     <div class="location">${item.storageLocation}</div>
@@ -89,18 +61,17 @@ export function InventoryQRModal({ item, onClose }: InventoryQRModalProps) {
                 <script>
                     window.onload = function() {
                         window.print();
-                        window.onafterprint = function() {
-                            window.close();
-                        };
+                        window.onafterprint = function() { window.close(); };
                     };
                 </script>
             </body>
             </html>
-        `)
+        `
+        printWindow.document.write(printHtml)
         printWindow.document.close()
     }
 
-    const handleDownload = () => {
+    function handleDownload(): void {
         const svg = printRef.current?.querySelector("svg")
         if (!svg) return
 
@@ -129,9 +100,7 @@ export function InventoryQRModal({ item, onClose }: InventoryQRModalProps) {
             <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">
-                        {language === "zh" ? "QR Code" : "QR Code"}
-                    </h2>
+                    <h2 className="text-xl font-bold">QR Code</h2>
                     <button
                         onClick={onClose}
                         className="p-1.5 rounded-lg hover:bg-muted"
@@ -155,30 +124,25 @@ export function InventoryQRModal({ item, onClose }: InventoryQRModalProps) {
 
                 {/* Item Info */}
                 <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                            {language === "zh" ? "料號" : "SKU"}
-                        </span>
-                        <span className="font-mono font-semibold">{item.sku}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                            {language === "zh" ? "名稱" : "Name"}
-                        </span>
-                        <span className="font-medium">{item.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                            {language === "zh" ? "位置" : "Location"}
-                        </span>
-                        <span>{item.storageLocation}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                            {language === "zh" ? "數量" : "Quantity"}
-                        </span>
-                        <span className="font-semibold">{item.currentQuantity}</span>
-                    </div>
+                    <InfoRow
+                        label={language === "zh" ? "料號" : "SKU"}
+                        value={item.sku}
+                        valueClassName="font-mono font-semibold"
+                    />
+                    <InfoRow
+                        label={language === "zh" ? "名稱" : "Name"}
+                        value={item.name}
+                        valueClassName="font-medium"
+                    />
+                    <InfoRow
+                        label={language === "zh" ? "位置" : "Location"}
+                        value={item.storageLocation}
+                    />
+                    <InfoRow
+                        label={language === "zh" ? "數量" : "Quantity"}
+                        value={String(item.currentQuantity)}
+                        valueClassName="font-semibold"
+                    />
                 </div>
 
                 {/* Actions */}
@@ -199,6 +163,19 @@ export function InventoryQRModal({ item, onClose }: InventoryQRModalProps) {
                     </button>
                 </div>
             </div>
+        </div>
+    )
+}
+
+function InfoRow({ label, value, valueClassName = "" }: {
+    label: string
+    value: string
+    valueClassName?: string
+}): JSX.Element {
+    return (
+        <div className="flex justify-between">
+            <span className="text-muted-foreground">{label}</span>
+            <span className={valueClassName}>{value}</span>
         </div>
     )
 }

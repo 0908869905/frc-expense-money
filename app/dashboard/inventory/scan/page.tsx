@@ -2,39 +2,28 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { useState, useTransition } from "react"
-import { ArrowLeft, ScanLine, Search, Package, ArrowDownToLine, ArrowUpFromLine, MapPin, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Search, Package, ArrowDownToLine, ArrowUpFromLine, MapPin, AlertTriangle, Keyboard } from "lucide-react"
 import Link from "next/link"
 import { getItemBySku, adjustStock } from "@/app/actions/inventory"
-import { isNativeApp, scanQRCode } from "@/lib/capacitor-scanner"
+import { QRScanner } from "@/components/qr-scanner"
+import { type InventoryItem, isLowStock } from "@/types/inventory"
 
-interface ScannedItem {
-    id: string
-    name: string
-    sku: string
-    category: string
-    storageLocation: string
-    currentQuantity: number
-    safetyStockLevel: number
-    vendorLink: string | null
-}
-
-export default function ScanPage() {
+export default function ScanPage(): JSX.Element {
     const { language } = useLanguage()
     const [isPending, startTransition] = useTransition()
     const [manualSku, setManualSku] = useState("")
-    const [scannedItem, setScannedItem] = useState<ScannedItem | null>(null)
+    const [scannedItem, setScannedItem] = useState<InventoryItem | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
     const [adjustAmount, setAdjustAmount] = useState(1)
-    const [isScanning, setIsScanning] = useState(false)
+    const [showManualInput, setShowManualInput] = useState(false)
 
-    const showMessage = (type: "success" | "error", text: string) => {
+    function showMessage(type: "success" | "error", text: string): void {
         setMessage({ type, text })
         setTimeout(() => setMessage(null), 3000)
     }
 
-    // 查詢 SKU
-    const handleLookup = async (sku: string) => {
+    function handleLookup(sku: string): void {
         if (!sku.trim()) {
             setError(language === "zh" ? "請輸入或掃描料號" : "Please enter or scan SKU")
             return
@@ -48,77 +37,47 @@ export default function ScanPage() {
 
             if (result.success && result.item) {
                 setScannedItem(result.item)
+                showMessage("success", language === "zh" ? "找到零件！" : "Item found!")
             } else {
                 setError(result.message || (language === "zh" ? "查詢失敗" : "Lookup failed"))
             }
         })
     }
 
-    // 原生掃描
-    const handleNativeScan = async () => {
-        if (!isNativeApp()) {
-            showMessage("error", language === "zh" ? "此功能僅在 App 中可用" : "This feature is only available in the app")
-            return
-        }
-
-        setIsScanning(true)
-        setError(null)
-
-        try {
-            const sku = await scanQRCode()
-            if (sku) {
-                setManualSku(sku)
-                await handleLookup(sku)
-            } else {
-                setError(language === "zh" ? "未掃描到 QR Code" : "No QR Code scanned")
-            }
-        } catch {
-            setError(language === "zh" ? "掃描失敗" : "Scan failed")
-        } finally {
-            setIsScanning(false)
-        }
+    function handleScanSuccess(result: string): void {
+        setManualSku(result)
+        handleLookup(result)
     }
 
-    // 快速入庫
-    const handleStockIn = async () => {
+    function handleStockChange(isStockIn: boolean): void {
         if (!scannedItem || adjustAmount <= 0) return
 
-        startTransition(async () => {
-            const result = await adjustStock(scannedItem.id, adjustAmount, "PURCHASE_IN")
-
-            if (result.success) {
-                showMessage("success", language === "zh" ? `已入庫 ${adjustAmount} 個` : `Added ${adjustAmount}`)
-                // 重新查詢更新數量
-                await handleLookup(scannedItem.sku)
-            } else {
-                showMessage("error", result.message || (language === "zh" ? "入庫失敗" : "Stock in failed"))
-            }
-        })
-    }
-
-    // 快速出庫
-    const handleStockOut = async () => {
-        if (!scannedItem || adjustAmount <= 0) return
-
-        if (adjustAmount > scannedItem.currentQuantity) {
+        if (!isStockIn && adjustAmount > scannedItem.currentQuantity) {
             showMessage("error", language === "zh" ? "庫存不足" : "Insufficient stock")
             return
         }
 
         startTransition(async () => {
-            const result = await adjustStock(scannedItem.id, -adjustAmount, "PROJECT_USE")
+            const amount = isStockIn ? adjustAmount : -adjustAmount
+            const type = isStockIn ? "PURCHASE_IN" : "PROJECT_USE"
+            const result = await adjustStock(scannedItem.id, amount, type)
 
             if (result.success) {
-                showMessage("success", language === "zh" ? `已領用 ${adjustAmount} 個` : `Took ${adjustAmount}`)
-                // 重新查詢更新數量
-                await handleLookup(scannedItem.sku)
+                const successText = isStockIn
+                    ? (language === "zh" ? `已入庫 ${adjustAmount} 個` : `Added ${adjustAmount}`)
+                    : (language === "zh" ? `已領用 ${adjustAmount} 個` : `Took ${adjustAmount}`)
+                showMessage("success", successText)
+                handleLookup(scannedItem.sku)
             } else {
-                showMessage("error", result.message || (language === "zh" ? "領用失敗" : "Stock out failed"))
+                const failText = isStockIn
+                    ? (language === "zh" ? "入庫失敗" : "Stock in failed")
+                    : (language === "zh" ? "領用失敗" : "Stock out failed")
+                showMessage("error", result.message || failText)
             }
         })
     }
 
-    const isLowStock = scannedItem && scannedItem.currentQuantity <= scannedItem.safetyStockLevel
+    const itemIsLowStock = scannedItem ? isLowStock(scannedItem) : false
 
     return (
         <div className="flex flex-col gap-6 max-w-lg mx-auto">
@@ -152,46 +111,50 @@ export default function ScanPage() {
                 </div>
             )}
 
-            {/* Scan Button (Native only) */}
-            {isNativeApp() && (
-                <button
-                    onClick={handleNativeScan}
-                    disabled={isScanning || isPending}
-                    className="w-full py-6 rounded-xl border-2 border-dashed border-primary/50 hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center gap-2 disabled:opacity-50"
-                >
-                    <ScanLine className={`h-12 w-12 text-primary ${isScanning ? "animate-pulse" : ""}`} />
-                    <span className="font-medium">
-                        {isScanning
-                            ? language === "zh" ? "掃描中..." : "Scanning..."
-                            : language === "zh" ? "點擊開始掃描 QR Code" : "Tap to scan QR Code"
-                        }
-                    </span>
-                </button>
+            {/* QR Scanner */}
+            {!showManualInput && (
+                <QRScanner
+                    onScan={handleScanSuccess}
+                    onError={(err) => console.error("Scanner error:", err)}
+                />
             )}
 
+            {/* Toggle Manual Input */}
+            <button
+                onClick={() => setShowManualInput(!showManualInput)}
+                className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+                <Keyboard className="h-4 w-4" />
+                {showManualInput
+                    ? (language === "zh" ? "切換到相機掃描" : "Switch to camera")
+                    : (language === "zh" ? "切換到手動輸入" : "Switch to manual input")}
+            </button>
+
             {/* Manual Input */}
-            <div className="flex flex-col gap-3">
-                <label className="text-sm font-medium">
-                    {language === "zh" ? "手動輸入料號" : "Enter SKU manually"}
-                </label>
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={manualSku}
-                        onChange={(e) => setManualSku(e.target.value.toUpperCase())}
-                        onKeyDown={(e) => e.key === "Enter" && handleLookup(manualSku)}
-                        placeholder={language === "zh" ? "例如: MOTOR-001" : "e.g. MOTOR-001"}
-                        className="flex-1 px-4 py-3 border rounded-lg font-mono text-lg bg-background"
-                    />
-                    <button
-                        onClick={() => handleLookup(manualSku)}
-                        disabled={isPending || !manualSku.trim()}
-                        className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
-                    >
-                        <Search className="h-5 w-5" />
-                    </button>
+            {showManualInput && (
+                <div className="flex flex-col gap-3">
+                    <label className="text-sm font-medium">
+                        {language === "zh" ? "手動輸入料號" : "Enter SKU manually"}
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={manualSku}
+                            onChange={(e) => setManualSku(e.target.value.toUpperCase())}
+                            onKeyDown={(e) => e.key === "Enter" && handleLookup(manualSku)}
+                            placeholder={language === "zh" ? "例如: MOTOR-001" : "e.g. MOTOR-001"}
+                            className="flex-1 px-4 py-3 border rounded-lg font-mono text-lg bg-background"
+                        />
+                        <button
+                            onClick={() => handleLookup(manualSku)}
+                            disabled={isPending || !manualSku.trim()}
+                            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                        >
+                            <Search className="h-5 w-5" />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Error */}
             {error && (
@@ -227,7 +190,7 @@ export default function ScanPage() {
                             <div className="text-sm text-muted-foreground mb-1">
                                 {language === "zh" ? "目前數量" : "Current Qty"}
                             </div>
-                            <div className={`text-3xl font-bold ${isLowStock ? "text-red-600" : ""}`}>
+                            <div className={`text-3xl font-bold ${itemIsLowStock ? "text-red-600" : ""}`}>
                                 {scannedItem.currentQuantity}
                             </div>
                         </div>
@@ -242,7 +205,7 @@ export default function ScanPage() {
                     </div>
 
                     {/* Low Stock Warning */}
-                    {isLowStock && (
+                    {itemIsLowStock && (
                         <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 text-yellow-700 border border-yellow-200">
                             <AlertTriangle className="h-5 w-5" />
                             <span className="font-medium">
@@ -288,7 +251,7 @@ export default function ScanPage() {
 
                         <div className="flex gap-3">
                             <button
-                                onClick={handleStockIn}
+                                onClick={() => handleStockChange(true)}
                                 disabled={isPending || adjustAmount <= 0}
                                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
                             >
@@ -296,7 +259,7 @@ export default function ScanPage() {
                                 {language === "zh" ? "入庫" : "Stock In"}
                             </button>
                             <button
-                                onClick={handleStockOut}
+                                onClick={() => handleStockChange(false)}
                                 disabled={isPending || adjustAmount <= 0 || adjustAmount > scannedItem.currentQuantity}
                                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 font-medium"
                             >
@@ -305,20 +268,6 @@ export default function ScanPage() {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Help Text */}
-            {!scannedItem && !error && !isPending && (
-                <div className="text-center text-sm text-muted-foreground p-8">
-                    {isNativeApp()
-                        ? language === "zh"
-                            ? "掃描零件標籤上的 QR Code，或手動輸入料號"
-                            : "Scan the QR Code on the part label, or enter SKU manually"
-                        : language === "zh"
-                            ? "輸入料號查詢庫存資訊"
-                            : "Enter SKU to lookup inventory info"
-                    }
                 </div>
             )}
         </div>
