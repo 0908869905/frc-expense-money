@@ -46,7 +46,10 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.sentry.io https://*.googleapis.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            // 生產環境移除 unsafe-eval，開發環境保留（Hot Reload 需要）
+            value: process.env.NODE_ENV === 'production'
+              ? "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.sentry.io https://*.googleapis.com wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+              : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.sentry.io https://*.googleapis.com wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
           },
         ],
       },

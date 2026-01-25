@@ -275,5 +275,22 @@ npm run build
 
 **待辦事項**：
 - [ ] **重要**：到 Google Cloud Console 撤銷並更換外洩的服務帳戶金鑰
-- [ ] 實作登入速率限制（防暴力破解）
-- [ ] 考慮改善 CSP 設定（目前使用 unsafe-inline/unsafe-eval）
+
+### 2026-01-25：登入速率限制 + CSP 改善
+
+**登入速率限制**：
+- 每個 Email 每 15 分鐘最多 5 次失敗嘗試
+- 使用 Redis 追蹤失敗次數（key: `login_attempts:{email}`）
+- 登入成功後自動重置計數
+- 不透露具體錯誤原因（防止帳號枚舉）
+
+**CSP 改善**：
+| 變更 | 說明 |
+|------|------|
+| 移除 `unsafe-eval` | 僅生產環境，開發環境保留（Hot Reload 需要）|
+| 添加 `upgrade-insecure-requests` | 強制 HTTPS |
+| 添加 `wss://*.supabase.co` | 支援 WebSocket 連線 |
+
+**修改的檔案**：
+- `auth.ts` - 新增速率限制函式和邏輯
+- `next.config.mjs` - 改善 CSP 標頭

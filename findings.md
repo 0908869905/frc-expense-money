@@ -191,3 +191,44 @@ Vercel 部署連續失敗，Build 無法通過。
 1. **簡化時要小心類型**：過度添加類型標註可能引入新錯誤
 2. **重複檔案要徹底清理**：不只刪除檔案，還要更新所有導入路徑
 3. **Build 驗證是必要的**：每次簡化後都要跑 build 確認
+
+---
+
+## Session: 2026-01-24 - 註冊功能增強 + 安全性修復
+
+### 功能需求
+- 使用者在註冊時能選擇所屬組別
+- 組別為必填欄位
+
+### 安全掃描發現（第二次掃描）
+
+#### 高風險
+| 問題 | 檔案 | 修復 |
+|------|------|------|
+| 缺少 CSP 標頭 | next.config.mjs | 新增 Content-Security-Policy |
+| CRON 時序攻擊 | cleanup-sessions/route.ts | `crypto.timingSafeEqual()` |
+| 報帳單拒絕無狀態驗證 | approvals.ts | 新增可拒絕狀態白名單 |
+
+#### 中風險
+| 問題 | 檔案 | 修復 |
+|------|------|------|
+| 密碼僅 6 字元 | register.ts | 改為 8 字元 + 英文 + 數字 |
+| JSON 無大小限制 | expenses.ts | 新增 1MB 限制 |
+
+### 實作決策
+| 決策 | 理由 |
+|------|------|
+| 組別必填 | 確保隊員歸屬明確，便於報帳單分組 |
+| 密碼 8 字元 + 英數 | 平衡安全性與用戶體驗 |
+| CSP 允許 unsafe-inline | Next.js App Router 需要內聯腳本 |
+| 使用 `z.nativeEnum()` | 自動與 Prisma enum 同步，減少維護成本 |
+
+### 組別清單
+| 值 | 中文 | 英文 |
+|----|------|------|
+| ELECTRICAL | 電資組 | Electrical |
+| MECHANICAL | 機構組 | Mechanical |
+| DOCUMENTATION | 文書組 | Documentation |
+| PR | 公關組 | PR |
+| FINANCE | 財管組 | Finance |
+| DESIGN | 意象組 | Design |

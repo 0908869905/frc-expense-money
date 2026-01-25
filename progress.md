@@ -231,8 +231,134 @@
 
 ---
 
+---
+
+## Session: 2026-01-24 - 註冊功能增強 + 安全性修復
+
+### Phase 1: 新增註冊組別選擇
+- **Status:** complete
+- **Started:** 2026-01-24
+- Actions taken:
+  - 讀取現有註冊表單結構
+  - 新增組別下拉選單至 `register-form.tsx`
+  - 修改 `register.ts` schema 加入 department 欄位
+  - 新增中英文翻譯至 `language-context.tsx`
+- Files modified:
+  - components/register-form.tsx
+  - app/actions/register.ts
+  - lib/language-context.tsx
+
+### Phase 2: 安全性修復（第二次掃描）
+- **Status:** complete
+- Actions taken:
+  - 新增 Content-Security-Policy (CSP) 標頭
+  - CRON 驗證改用 timing-safe 比較
+  - 報帳單拒絕新增狀態白名單驗證
+  - 密碼要求加強至 8 字元 + 英文 + 數字
+  - JSON 解析前新增 1MB 大小限制
+- Files modified:
+  - next.config.mjs (CSP)
+  - app/api/cron/cleanup-sessions/route.ts (timing-safe)
+  - app/actions/approvals.ts (狀態驗證)
+  - app/actions/register.ts (密碼強度)
+  - app/actions/expenses.ts (JSON 大小限制)
+
+### Phase 3: 組別必填 + 名稱調整
+- **Status:** complete
+- Actions taken:
+  - 將 department 從 optional 改為 required
+  - 「電控組」→「電資組」
+  - 「形象組」→「意象組」
+- Files modified:
+  - app/actions/register.ts
+  - components/register-form.tsx
+  - lib/language-context.tsx
+
+### Phase 4: 程式碼簡化
+- **Status:** complete
+- Actions taken:
+  - 使用 code-simplifier agent 簡化修改的程式碼
+  - 抽取 `isValidCronKey()` 輔助函式
+  - 合併權限檢查為單一 if-else 鏈
+  - 簡化 department null 處理
+- Simplifications:
+  - cleanup-sessions/route.ts: 抽取 timing-safe 函式
+  - approvals.ts: 合併 4 個權限檢查
+  - register.ts: 簡化 `formData.get("department") || null`
+
+### Phase 5: 提交與推送
+- **Status:** complete
+- Commits:
+  - `6a96b63` feat: 註冊時新增組別選擇 + 安全性修復
+  - `1b69e39` fix: 電控組改為電資組
+
+## Git Commits (2026-01-24)
+| Commit | Message |
+|--------|---------|
+| `6a96b63` | feat: 註冊時新增組別選擇 + 安全性修復 |
+| `1b69e39` | fix: 電控組改為電資組 |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | 已完成註冊功能增強和安全修復 |
+| Where am I going? | 功能完成，已推送至 GitHub |
+| What's the goal? | 註冊時新增組別選擇 + 安全加固 |
+| What have I learned? | 見 findings.md 2026-01-24 section |
+| What have I done? | 修改 7 個檔案，修復 5 個安全問題，新增組別選擇功能 |
+
+---
+
+## Session: 2026-01-25 - 登入速率限制 + CSP 改善
+
+### Phase 1: 登入速率限制
+- **Status:** complete
+- **Started:** 2026-01-25
+- Actions taken:
+  - 在 `auth.ts` 新增速率限制邏輯
+  - 使用 Redis 追蹤失敗登入嘗試
+  - 每個 Email 每 15 分鐘最多 5 次失敗嘗試
+  - 登入成功後自動重置計數
+- Functions added:
+  - `checkLoginRateLimit(email)` - 檢查是否超過限制
+  - `recordFailedLogin(email)` - 記錄失敗嘗試
+  - `resetLoginAttempts(email)` - 成功登入後重置
+- Files modified:
+  - auth.ts
+
+### Phase 2: CSP 改善
+- **Status:** complete
+- Actions taken:
+  - 生產環境移除 `unsafe-eval`（開發環境保留，Hot Reload 需要）
+  - 添加 `upgrade-insecure-requests`（強制 HTTPS）
+  - 添加 `wss://*.supabase.co` 支援 WebSocket
+- Files modified:
+  - next.config.mjs
+
+### Phase 3: 驗證
+- **Status:** complete
+- Actions taken:
+  - 執行 `npm run build` - 成功
+
+## Git Commits (2026-01-25)
+| Commit | Message |
+|--------|---------|
+| (pending) | feat: 登入速率限制 + CSP 改善 |
+
+## 5-Question Reboot Check
+| Question | Answer |
+|----------|--------|
+| Where am I? | 速率限制和 CSP 改善完成 |
+| Where am I going? | 待提交到 Git |
+| What's the goal? | 登入安全加固 |
+| What have I learned? | Redis 可直接用於速率限制 |
+| What have I done? | 修改 2 個檔案，新增 3 個函式 |
+
+---
+
 ## 下一步建議
-1. 推送簡化變更至遠端：`git push origin main`
+1. ~~推送簡化變更至遠端~~（已完成）
 2. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
-3. 考慮合併 `lib/agents/` 和 `lib/services/` 中仍存在的重複邏輯
-4. 推送前永遠執行 `npm run build`
+3. ~~實作登入速率限制~~（已完成）
+4. ~~改善 CSP 設定~~（已完成）
+5. 推送前永遠執行 `npm run build`
