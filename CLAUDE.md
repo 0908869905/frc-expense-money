@@ -314,3 +314,36 @@ npm run build
 - `app/api/debug/route.ts` - email 遮罩
 - `app/actions/inventory.ts` - 通用錯誤訊息
 - `app/actions/ocr.ts` - 通用錯誤訊息
+
+### 2026-01-25（續）：程式碼簡化
+
+**刪除的重複/未使用檔案（31 個，~7,689 行）**：
+- `lib/context/` - 2 個檔案（與 `lib/` 下重複）
+- `components/dashboard/` - 5 個檔案
+- `components/admin/` - 5 個檔案
+- `components/audit/` - 3 個檔案
+- `components/expense/` - 3 個檔案
+- `components/funding/` - 2 個檔案
+- `components/inventory/` - 1 個檔案
+- `components/layout/` - 2 個檔案
+- `components/shared/` - 3 個檔案
+- `components/` 根目錄 - 4 個檔案
+- `types.ts` - 與 `types/index.ts` 重複
+
+**修復 Vercel 部署錯誤**：
+```typescript
+// 修復前（Vercel 報錯：downlevelIteration）
+for (const [ip, record] of ipRequestCounts.entries()) { ... }
+
+// 修復後
+ipRequestCounts.forEach((record, ip) => { ... })
+```
+
+**Git Commits**：
+- `9f9aa8c` feat: 登入速率限制 + CSP 改善
+- `5b9c5f7` fix: 安全掃描修復
+- `240a02c` refactor: 程式碼簡化 + 修復 Vercel 部署錯誤
+
+**待辦事項**：
+- [ ] 替換 `.env` 中的 `AUTH_SECRET` 和 `CRON_SECRET_KEY` 為強密碼
+- [ ] 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）

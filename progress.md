@@ -355,26 +355,64 @@
 - Files created:
   - middleware.ts
 
+### Phase 5: 完整安全掃描
+- **Status:** complete
+- Actions taken:
+  - 執行 Next.js 安全掃描（OWASP Top 10）
+  - 掃描結果：0 CRITICAL, 0 HIGH, 2 MEDIUM, 3 LOW, 4 INFO
+- Scan results:
+  - 依賴漏洞：無
+  - 硬編碼密鑰：無
+  - XSS 漏洞：無
+  - SQL 注入：Prisma ORM 保護
+  - 認證檢查：全部通過
+
+### Phase 6: 程式碼簡化（第二次）
+- **Status:** complete
+- Actions taken:
+  - 刪除 31 個重複/未使用的元件檔案
+  - 修復 middleware.ts 的 TypeScript 錯誤（for...of → forEach）
+- Files deleted: 31 個
+- Code removed: ~7,689 行
+- Fix: `for...of` 改為 `forEach`（修復 Vercel downlevelIteration 錯誤）
+
+### Phase 7: 提交與部署
+- **Status:** complete
+- Actions taken:
+  - 提交所有變更
+  - 推送至 GitHub
+  - Vercel 自動部署
+
 ## Git Commits (2026-01-25)
 | Commit | Message |
 |--------|---------|
-| 9f9aa8c | feat: 登入速率限制 + CSP 改善 |
-| (pending) | fix: 安全掃描修復 |
+| `9f9aa8c` | feat: 登入速率限制 + CSP 改善 |
+| `5b9c5f7` | fix: 安全掃描修復 |
+| `240a02c` | refactor: 程式碼簡化 + 修復 Vercel 部署錯誤 |
+
+## 今日工作統計
+| 項目 | 數量 |
+|------|------|
+| 新增檔案 | 1 (middleware.ts) |
+| 修改檔案 | 8 |
+| 刪除檔案 | 31 |
+| 減少程式碼 | ~7,689 行 |
+| 安全問題修復 | 5 (2 MEDIUM + 3 LOW) |
+| 新功能 | 2 (登入速率限制 + 全局速率限制) |
 
 ## 5-Question Reboot Check
 | Question | Answer |
 |----------|--------|
-| Where am I? | 速率限制和 CSP 改善完成 |
-| Where am I going? | 待提交到 Git |
-| What's the goal? | 登入安全加固 |
-| What have I learned? | Redis 可直接用於速率限制 |
-| What have I done? | 修改 2 個檔案，新增 3 個函式 |
+| Where am I? | 2026-01-25 工作完成 |
+| Where am I going? | 已推送至 GitHub，Vercel 自動部署中 |
+| What's the goal? | 安全加固 + 程式碼簡化 |
+| What have I learned? | Map.forEach 比 for...of 更兼容 |
+| What have I done? | 登入速率限制、CSP 改善、安全修復、程式碼簡化 |
 
 ---
 
 ## 下一步建議
-1. ~~推送簡化變更至遠端~~（已完成）
-2. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
-3. ~~實作登入速率限制~~（已完成）
-4. ~~改善 CSP 設定~~（已完成）
-5. 推送前永遠執行 `npm run build`
+1. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
+2. 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）
+3. 考慮使用外部儲存服務存放 Avatar（S3/Vercel Blob）
+4. 推送前永遠執行 `npm run build`

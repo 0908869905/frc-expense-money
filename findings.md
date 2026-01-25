@@ -232,3 +232,81 @@ Vercel 部署連續失敗，Build 無法通過。
 | PR | 公關組 | PR |
 | FINANCE | 財管組 | Finance |
 | DESIGN | 意象組 | Design |
+
+---
+
+## Session: 2026-01-25 - 安全加固 + 程式碼簡化
+
+### 新增功能
+
+#### 登入速率限制
+- 每個 Email 每 15 分鐘最多 5 次失敗嘗試
+- 使用 Redis 追蹤（key: `login_attempts:{email}`）
+- 登入成功後自動重置
+
+#### 全局速率限制（Middleware）
+- 每個 IP 每分鐘最多 100 次請求
+- 返回 429 Too Many Requests
+- 內存追蹤（單實例適用）
+
+### 安全掃描結果
+
+#### 掃描結果統計
+| 嚴重度 | 數量 |
+|--------|------|
+| CRITICAL | 0 |
+| HIGH | 0 |
+| MEDIUM | 2 |
+| LOW | 3 |
+| INFO | 4 |
+
+#### 修復的問題
+| 嚴重度 | 問題 | 修復 |
+|--------|------|------|
+| MEDIUM | Timing-Safe 長度洩漏 | 固定長度 256 bytes buffer |
+| MEDIUM | Debug API 洩漏 email | 遮罩為 `a***@domain.com` |
+| LOW | 錯誤訊息洩漏內部細節 | 改為通用錯誤訊息 |
+| INFO | 缺少 Middleware | 新增全局速率限制 |
+
+### 程式碼簡化
+
+#### 刪除的檔案（31 個，~7,689 行）
+| 目錄 | 數量 | 原因 |
+|------|------|------|
+| lib/context/ | 2 | 與 lib/ 下檔案重複 |
+| components/dashboard/ | 5 | 未使用 |
+| components/admin/ | 5 | 未使用 |
+| components/audit/ | 3 | 未使用 |
+| components/expense/ | 3 | 未使用 |
+| components/funding/ | 2 | 未使用 |
+| components/inventory/ | 1 | 未使用 |
+| components/layout/ | 2 | 未使用 |
+| components/shared/ | 3 | 未使用 |
+| components/ | 4 | 未使用 |
+| types.ts | 1 | 與 types/index.ts 重複 |
+
+### Vercel 部署錯誤修復
+
+#### 問題
+```
+Type error: Type 'MapIterator<[string, {...}]>' can only be iterated
+through when using the '--downlevelIteration' flag or with a '--target'
+of 'es2015' or higher.
+```
+
+#### 原因
+`for...of` 遍歷 Map 需要較高的 ES 版本或 `downlevelIteration` 編譯選項。
+
+#### 解決方案
+```typescript
+// 修復前
+for (const [ip, record] of ipRequestCounts.entries()) { ... }
+
+// 修復後
+ipRequestCounts.forEach((record, ip) => { ... })
+```
+
+### 經驗教訓
+1. **Map 遍歷兼容性**：`forEach` 比 `for...of` 更兼容舊版 TypeScript 配置
+2. **Vercel vs 本地環境**：Vercel 的 TypeScript 配置可能與本地不同
+3. **推送前測試**：永遠執行 `npm run build` 確認無錯誤
