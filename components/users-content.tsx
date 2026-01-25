@@ -66,6 +66,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
             PR: { zh: "公關組", en: "PR", icon: "📣" },
             FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
             DESIGN: { zh: "意象組", en: "Design", icon: "🎨" },
+            MENTOR: { zh: "老師", en: "Mentor", icon: "👨‍🏫" },
         }
         const found = labels[dept]
         return found ? `${found.icon} ${found[language as "zh" | "en"]}` : dept
@@ -78,6 +79,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
         { value: "PR", zh: "公關組", en: "PR", icon: "📣" },
         { value: "FINANCE", zh: "財管組", en: "Finance", icon: "💰" },
         { value: "DESIGN", zh: "意象組", en: "Design", icon: "🎨" },
+        { value: "MENTOR", zh: "老師", en: "Mentor", icon: "👨‍🏫" },
     ]
 
     const showMessage = (type: "success" | "error", text: string) => {
