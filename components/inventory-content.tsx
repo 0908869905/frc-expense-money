@@ -63,7 +63,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
     const [adjustData, setAdjustData] = useState<AdjustData>({ amount: 0, type: "PURCHASE_IN", projectId: "" })
 
     const isAdmin = userRole === "ADMIN"
-    const uniqueLocations = [...new Set(localItems.map(item => item.storageLocation).filter(Boolean))].sort()
+    const uniqueLocations = Array.from(new Set(localItems.map(item => item.storageLocation).filter(Boolean))).sort()
 
     const filteredItems = localItems.filter((item) => {
         const searchLower = searchTerm.toLowerCase()
