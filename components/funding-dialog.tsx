@@ -109,7 +109,7 @@ export function FundingDialog(): React.ReactElement {
                         >
                             {FUNDING_TYPES.map((type) => (
                                 <option key={type.value} value={type.value}>
-                                    {type.label}
+                                    {type.labelZh}
                                 </option>
                             ))}
                         </select>

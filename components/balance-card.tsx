@@ -244,7 +244,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                                 >
                                     {FUNDING_TYPES.map((type) => (
                                         <option key={type.value} value={type.value}>
-                                            {type.label}
+                                            {type.labelZh}
                                         </option>
                                     ))}
                                 </select>
