@@ -201,7 +201,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                     <option value="all">{t("所有類型", "All Types")}</option>
                     {FUNDING_TYPES.map((type) => (
                         <option key={type.value} value={type.value}>
-                            {language === "zh" ? type.labelZhZh : type.labelZhEn}
+                            {language === "zh" ? type.labelZh : type.labelEn}
                         </option>
                     ))}
                 </select>
@@ -320,7 +320,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                 >
                                     {FUNDING_TYPES.map((type) => (
                                         <option key={type.value} value={type.value}>
-                                            {language === "zh" ? type.labelZh : type.labelZhEn}
+                                            {language === "zh" ? type.labelZh : type.labelEn}
                                         </option>
                                     ))}
                                 </select>
@@ -404,7 +404,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                 >
                                     {FUNDING_TYPES.map((type) => (
                                         <option key={type.value} value={type.value}>
-                                            {language === "zh" ? type.labelZh : type.labelZhEn}
+                                            {language === "zh" ? type.labelZh : type.labelEn}
                                         </option>
                                     ))}
                                 </select>
