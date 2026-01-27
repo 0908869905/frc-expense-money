@@ -17,9 +17,8 @@ interface Html5QrCodeInstance {
         config: { fps: number; qrbox: { width: number; height: number }; aspectRatio?: number },
         onSuccess: (text: string) => void,
         onError: () => void
-    ) => Promise<void>
+    ) => Promise<null>
     stop: () => Promise<void>
-    getState: () => number
 }
 
 export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
