@@ -4,8 +4,9 @@
 
 export type ExpenseStatus = "DRAFT" | "PENDING_MANAGER" | "PENDING_FINANCE" | "PAID" | "REJECTED" | "RETURNED";
 
-// Re-export Language from central location for convenience
-export type { Language } from "@/lib/language-context";
+// Import and re-export Language from central location
+import type { Language } from "@/lib/language-context";
+export type { Language };
 
 interface LocalizedLabel {
     labelZh: string;
