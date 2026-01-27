@@ -4,6 +4,39 @@ import { useEffect, useRef, useState } from "react"
 import { useLanguage } from "@/lib/language-context"
 import { Camera, XCircle, RotateCcw } from "lucide-react"
 
+// ========== 常數定義 ==========
+
+const MESSAGES = {
+    zh: {
+        permissionDenied: "相機權限被拒絕",
+        noCameraFound: "找不到相機",
+        failedToStart: "無法啟動相機",
+        allowCameraAccess: "請在瀏覽器設定中允許相機權限",
+        clickToStart: "點擊下方按鈕啟動相機",
+        startCamera: "啟動相機掃描",
+        stop: "停止掃描",
+        restart: "重新啟動",
+        scanningHint: "將 QR Code 對準框框內，保持距離 10-20 公分",
+        scanning: "🔍 掃描中...",
+    },
+    en: {
+        permissionDenied: "Camera permission denied",
+        noCameraFound: "No camera found",
+        failedToStart: "Failed to start camera",
+        allowCameraAccess: "Please allow camera access in browser settings",
+        clickToStart: "Click button below to start camera",
+        startCamera: "Start Camera",
+        stop: "Stop",
+        restart: "Restart",
+        scanningHint: "Align QR Code within the frame, keep 10-20cm distance",
+        scanning: "🔍 Scanning...",
+    },
+} as const
+
+const DUPLICATE_SCAN_COOLDOWN_MS = 5000
+
+// ========== 類型定義 ==========
+
 interface QRScannerProps {
     onScan: (result: string) => void
     onError?: (error: string) => void
@@ -21,6 +54,8 @@ interface Html5QrCodeInstance {
     stop: () => Promise<void>
 }
 
+// ========== 組件 ==========
+
 export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
     const { language } = useLanguage()
     const scannerRef = useRef<HTMLDivElement>(null)
@@ -29,6 +64,8 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
     const [state, setState] = useState<ScannerState>("idle")
     const [hasPermission, setHasPermission] = useState<boolean | null>(null)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+    const t = MESSAGES[language]
 
     async function startScanner(): Promise<void> {
         if (!scannerRef.current) return
@@ -57,19 +94,15 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
                     aspectRatio: 1.0
                 },
                 (decodedText) => {
-                    // 避免重複掃描同一個碼
                     if (decodedText === lastScannedRef.current) return
                     lastScannedRef.current = decodedText
 
-                    // 掃描成功後震動提示（如果支援）
                     if (navigator.vibrate) {
                         navigator.vibrate(100)
                     }
-                    console.log("QR Code scanned:", decodedText)
                     onScan(decodedText)
 
-                    // 5 秒後允許重新掃描同一個碼
-                    setTimeout(() => { lastScannedRef.current = null }, 5000)
+                    setTimeout(() => { lastScannedRef.current = null }, DUPLICATE_SCAN_COOLDOWN_MS)
                 },
                 () => { /* Scanning in progress */ }
             )
@@ -84,11 +117,11 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
             const message = error.message || ""
             if (message.includes("Permission")) {
                 setHasPermission(false)
-                setErrorMessage(language === "zh" ? "相機權限被拒絕" : "Camera permission denied")
+                setErrorMessage(t.permissionDenied)
             } else if (message.includes("NotFoundError")) {
-                setErrorMessage(language === "zh" ? "找不到相機" : "No camera found")
+                setErrorMessage(t.noCameraFound)
             } else {
-                setErrorMessage(language === "zh" ? "無法啟動相機" : "Failed to start camera")
+                setErrorMessage(t.failedToStart)
             }
 
             onError?.(message || "Scanner error")
@@ -132,9 +165,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/90">
                         <Camera className="h-16 w-16 text-muted-foreground mb-4" />
                         <p className="text-muted-foreground text-center px-4">
-                            {language === "zh"
-                                ? "點擊下方按鈕啟動相機"
-                                : "Click button below to start camera"}
+                            {t.clickToStart}
                         </p>
                     </div>
                 )}
@@ -146,9 +177,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
                         <p className="text-red-600 text-center px-4 font-medium">{errorMessage}</p>
                         {hasPermission === false && (
                             <p className="text-red-500 text-sm text-center px-4 mt-2">
-                                {language === "zh"
-                                    ? "請在瀏覽器設定中允許相機權限"
-                                    : "Please allow camera access in browser settings"}
+                                {t.allowCameraAccess}
                             </p>
                         )}
                     </div>
@@ -163,7 +192,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
                         className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-medium"
                     >
                         <Camera className="h-5 w-5" />
-                        {language === "zh" ? "啟動相機掃描" : "Start Camera"}
+                        {t.startCamera}
                     </button>
                 ) : (
                     <>
@@ -171,12 +200,12 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
                             onClick={stopScanner}
                             className="flex items-center gap-2 px-6 py-3 border rounded-lg hover:bg-muted font-medium"
                         >
-                            {language === "zh" ? "停止掃描" : "Stop"}
+                            {t.stop}
                         </button>
                         <button
                             onClick={restartScanner}
                             className="flex items-center gap-2 px-4 py-3 border rounded-lg hover:bg-muted"
-                            title={language === "zh" ? "重新啟動" : "Restart"}
+                            title={t.restart}
                         >
                             <RotateCcw className="h-5 w-5" />
                         </button>
@@ -187,16 +216,8 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
             {/* Scanning Hint */}
             {state === "scanning" && (
                 <div className="text-center space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                        {language === "zh"
-                            ? "將 QR Code 對準框框內，保持距離 10-20 公分"
-                            : "Align QR Code within the frame, keep 10-20cm distance"}
-                    </p>
-                    <p className="text-xs text-muted-foreground animate-pulse">
-                        {language === "zh"
-                            ? "🔍 掃描中..."
-                            : "🔍 Scanning..."}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t.scanningHint}</p>
+                    <p className="text-xs text-muted-foreground animate-pulse">{t.scanning}</p>
                 </div>
             )}
         </div>
