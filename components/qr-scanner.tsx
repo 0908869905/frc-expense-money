@@ -14,17 +14,19 @@ type ScannerState = "idle" | "scanning" | "error"
 interface Html5QrCodeInstance {
     start: (
         cameraId: { facingMode: string },
-        config: { fps: number; qrbox: { width: number; height: number } },
+        config: { fps: number; qrbox: { width: number; height: number }; aspectRatio?: number },
         onSuccess: (text: string) => void,
         onError: () => void
     ) => Promise<void>
     stop: () => Promise<void>
+    getState: () => number
 }
 
 export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
     const { language } = useLanguage()
     const scannerRef = useRef<HTMLDivElement>(null)
     const html5QrCodeRef = useRef<Html5QrCodeInstance | null>(null)
+    const lastScannedRef = useRef<string | null>(null)
     const [state, setState] = useState<ScannerState>("idle")
     const [hasPermission, setHasPermission] = useState<boolean | null>(null)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -50,8 +52,26 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
 
             await html5QrCode.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText) => onScan(decodedText),
+                {
+                    fps: 15,
+                    qrbox: { width: 200, height: 200 },
+                    aspectRatio: 1.0
+                },
+                (decodedText) => {
+                    // 避免重複掃描同一個碼
+                    if (decodedText === lastScannedRef.current) return
+                    lastScannedRef.current = decodedText
+
+                    // 掃描成功後震動提示（如果支援）
+                    if (navigator.vibrate) {
+                        navigator.vibrate(100)
+                    }
+                    console.log("QR Code scanned:", decodedText)
+                    onScan(decodedText)
+
+                    // 5 秒後允許重新掃描同一個碼
+                    setTimeout(() => { lastScannedRef.current = null }, 5000)
+                },
                 () => { /* Scanning in progress */ }
             )
 
@@ -167,11 +187,18 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
 
             {/* Scanning Hint */}
             {state === "scanning" && (
-                <p className="text-center text-sm text-muted-foreground">
-                    {language === "zh"
-                        ? "將 QR Code 對準框框內"
-                        : "Align QR Code within the frame"}
-                </p>
+                <div className="text-center space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                        {language === "zh"
+                            ? "將 QR Code 對準框框內，保持距離 10-20 公分"
+                            : "Align QR Code within the frame, keep 10-20cm distance"}
+                    </p>
+                    <p className="text-xs text-muted-foreground animate-pulse">
+                        {language === "zh"
+                            ? "🔍 掃描中..."
+                            : "🔍 Scanning..."}
+                    </p>
+                </div>
             )}
         </div>
     )
