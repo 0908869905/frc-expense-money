@@ -1,16 +1,17 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
 import { z } from "zod"
 import { FundingType } from "@prisma/client"
 import {
   getAuthenticatedUserId,
+  requireFinanceAccess,
   revalidateFunding,
   unauthorizedState,
   successState,
   errorState,
-  type ActionState
+  type ActionState,
+  type AuthContext
 } from "@/lib/actions/helpers"
 
 const fundingRecordSchema = z.object({
@@ -24,19 +25,11 @@ const fundingRecordSchema = z.object({
 
 export type FundingState = ActionState
 
-const FINANCE_ROLES = ["FINANCE", "ADMIN"] as const;
-
-async function requireFinanceAccess(): Promise<{ userId: string; userName: string } | null> {
-  const session = await auth()
-
-  if (!session?.user?.id) return null
-
-  const role = session.user.role || ""
-  if (!FINANCE_ROLES.includes(role as typeof FINANCE_ROLES[number])) return null
-
-  return {
-    userId: session.user.id,
-    userName: session.user.name || session.user.email || "Unknown"
+async function getFinanceContext(): Promise<AuthContext | null> {
+  try {
+    return await requireFinanceAccess()
+  } catch {
+    return null
   }
 }
 
@@ -44,8 +37,8 @@ export async function createFundingRecord(
   prevState: FundingState,
   formData: FormData
 ): Promise<FundingState> {
-  const access = await requireFinanceAccess()
-  if (!access) {
+  const ctx = await getFinanceContext()
+  if (!ctx) {
     return unauthorizedState("未授權或權限不足")
   }
 
@@ -75,7 +68,7 @@ export async function createFundingRecord(
         source,
         description,
         date: date ?? new Date(),
-        recordedBy: access.userName,
+        recordedBy: ctx.userName,
       },
     })
 
@@ -142,8 +135,8 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
 }
 
 export async function deleteFundingRecord(id: string): Promise<FundingState> {
-  const access = await requireFinanceAccess()
-  if (!access) {
+  const ctx = await getFinanceContext()
+  if (!ctx) {
     return unauthorizedState("未授權或權限不足")
   }
 
@@ -168,8 +161,8 @@ export async function updateFundingRecord(
     date?: Date
   }
 ): Promise<FundingState> {
-  const access = await requireFinanceAccess()
-  if (!access) {
+  const ctx = await getFinanceContext()
+  if (!ctx) {
     return unauthorizedState("未授權或權限不足")
   }
 

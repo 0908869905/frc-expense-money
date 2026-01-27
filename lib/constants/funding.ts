@@ -4,6 +4,7 @@
 
 export { formatCurrency } from "@/lib/currency";
 export { formatDate } from "@/lib/utils";
+import type { Language } from "./expense-status";
 
 export interface FundingRecord {
     id: string;
@@ -17,21 +18,21 @@ export interface FundingRecord {
     createdAt?: Date | string;
 }
 
-export interface FundingType {
+interface FundingTypeOption {
     value: string;
-    label: string;
+    labelZh: string;
     labelEn: string;
 }
 
-export const FUNDING_TYPES: FundingType[] = [
-    { value: "SPONSORSHIP", label: "贊助", labelEn: "Sponsorship" },
-    { value: "DONATION", label: "捐款", labelEn: "Donation" },
-    { value: "GRANT", label: "補助金", labelEn: "Grant" },
-    { value: "FUNDRAISING", label: "募款活動", labelEn: "Fundraising" },
-    { value: "OTHER", label: "其他", labelEn: "Other" },
+export const FUNDING_TYPES: FundingTypeOption[] = [
+    { value: "SPONSORSHIP", labelZh: "贊助", labelEn: "Sponsorship" },
+    { value: "DONATION", labelZh: "捐款", labelEn: "Donation" },
+    { value: "GRANT", labelZh: "補助金", labelEn: "Grant" },
+    { value: "FUNDRAISING", labelZh: "募款活動", labelEn: "Fundraising" },
+    { value: "OTHER", labelZh: "其他", labelEn: "Other" },
 ];
 
-export function getTypeLabel(type: string, language: "zh" | "en" = "zh"): string {
+export function getTypeLabel(type: string, language: Language = "zh"): string {
     const found = FUNDING_TYPES.find((t) => t.value === type);
-    return found ? (language === "zh" ? found.label : found.labelEn) : type;
+    return found ? (language === "zh" ? found.labelZh : found.labelEn) : type;
 }

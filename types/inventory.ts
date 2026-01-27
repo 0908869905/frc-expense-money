@@ -1,4 +1,5 @@
 import { ItemCategory, TransactionType } from "@prisma/client"
+import type { Language } from "@/lib/constants/expense-status"
 
 // ========== 共用介面 ==========
 
@@ -14,21 +15,15 @@ export interface InventoryItem {
     transactions?: unknown[]
 }
 
+interface LocalizedOption {
+    value: string
+    labelZh: string
+    labelEn: string
+}
+
 // ========== 常數定義 ==========
 
-interface CategoryOption {
-    value: ItemCategory
-    labelZh: string
-    labelEn: string
-}
-
-interface TransactionTypeOption {
-    value: TransactionType
-    labelZh: string
-    labelEn: string
-}
-
-export const ITEM_CATEGORIES: CategoryOption[] = [
+export const ITEM_CATEGORIES: (LocalizedOption & { value: ItemCategory })[] = [
     { value: "MOTOR", labelZh: "馬達", labelEn: "Motor" },
     { value: "SENSOR", labelZh: "感測器", labelEn: "Sensor" },
     { value: "PNEUMATIC", labelZh: "氣壓", labelEn: "Pneumatic" },
@@ -38,7 +33,7 @@ export const ITEM_CATEGORIES: CategoryOption[] = [
     { value: "TOOL", labelZh: "工具", labelEn: "Tool" },
 ]
 
-export const TRANSACTION_TYPES: TransactionTypeOption[] = [
+export const TRANSACTION_TYPES: (LocalizedOption & { value: TransactionType })[] = [
     { value: "PURCHASE_IN", labelZh: "採購入庫", labelEn: "Purchase In" },
     { value: "PROJECT_USE", labelZh: "專案領用", labelEn: "Project Use" },
     { value: "DAMAGED", labelZh: "損壞報廢", labelEn: "Damaged" },
@@ -48,14 +43,17 @@ export const TRANSACTION_TYPES: TransactionTypeOption[] = [
 
 // ========== 工具函式 ==========
 
-export function getCategoryLabel(category: string, language: "zh" | "en"): string {
-    const found = ITEM_CATEGORIES.find((c) => c.value === category)
-    return found ? (language === "zh" ? found.labelZh : found.labelEn) : category
+function getLocalizedLabel(options: LocalizedOption[], value: string, language: Language): string {
+    const found = options.find((opt) => opt.value === value)
+    return found ? (language === "zh" ? found.labelZh : found.labelEn) : value
 }
 
-export function getTransactionTypeLabel(type: string, language: "zh" | "en"): string {
-    const found = TRANSACTION_TYPES.find((t) => t.value === type)
-    return found ? (language === "zh" ? found.labelZh : found.labelEn) : type
+export function getCategoryLabel(category: string, language: Language): string {
+    return getLocalizedLabel(ITEM_CATEGORIES, category, language)
+}
+
+export function getTransactionTypeLabel(type: string, language: Language): string {
+    return getLocalizedLabel(TRANSACTION_TYPES, type, language)
 }
 
 export function isLowStock(item: InventoryItem): boolean {

@@ -7,7 +7,9 @@ import { submitReport, deleteReport } from "@/app/actions/expenses"
 import { Send, Trash2, Clock, CheckCircle, XCircle, FileText } from "lucide-react"
 import { ReceiptAuditButton } from "@/components/receipt-audit-button"
 import { BatchAuditButton } from "@/components/batch-audit-button"
-import { getStatusColor, getStatusLabel, getDepartmentLabel } from "@/lib/constants/expense-status"
+import { getStatusColor, getStatusLabel, getDepartmentLabel, type Language } from "@/lib/constants/expense-status"
+import { useMessage } from "@/hooks/useMessage"
+import { formatDate } from "@/lib/utils"
 import type { AuditResult } from "@/types/audit"
 
 interface ExpensesContentProps {
@@ -21,7 +23,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
     const { t, language } = useLanguage()
     const [isPending, startTransition] = useTransition()
     const [localReports, setLocalReports] = useState(reports)
-    const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
+    const { message, showMessage } = useMessage()
 
     // 更新特定項目的審核狀態
     const handleAuditComplete = (reportId: string, itemId: string, result: AuditResult) => {
@@ -46,10 +48,6 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
         }
     };
 
-    const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US')
-    }
-
     const getStatusIcon = (status: string) => {
         switch (status) {
             case "DRAFT": return <FileText className="h-4 w-4" />
@@ -59,11 +57,6 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
             case "REJECTED": return <XCircle className="h-4 w-4" />
             default: return <FileText className="h-4 w-4" />
         }
-    }
-
-    const showMessage = (type: "success" | "error", text: string) => {
-        setMessage({ type, text })
-        setTimeout(() => setMessage(null), 3000)
     }
 
     const handleSubmit = async (reportId: string) => {
@@ -168,16 +161,16 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                         {report.department && (
                                             <>
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                                    {getDepartmentLabel(report.department, language)}
+                                                    {getDepartmentLabel(report.department, language as Language)}
                                                 </span>
                                                 <span>•</span>
                                             </>
                                         )}
-                                        <span>{t("created_on")}: {formatDate(report.createdAt)}</span>
+                                        <span>{t("created_on")}: {formatDate(report.createdAt, language as Language)}</span>
                                         <span>•</span>
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
                                             {getStatusIcon(report.status)}
-                                            {getStatusLabel(report.status, language)}
+                                            {getStatusLabel(report.status, language as Language)}
                                         </span>
                                     </div>
                                 </div>
@@ -227,7 +220,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                                     <span className="px-2 py-0.5 bg-muted rounded-full text-xs">
                                                         {item.category}
                                                     </span>
-                                                    <span>{formatDate(item.date)}</span>
+                                                    <span>{formatDate(item.date, language as Language)}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">

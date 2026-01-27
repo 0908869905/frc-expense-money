@@ -1,9 +1,11 @@
 "use client"
 
 import { useLanguage } from "@/lib/language-context"
-import { Check, X, Eye, Clock } from "lucide-react"
+import { Check, X, Clock } from "lucide-react"
 import { useState, useTransition } from "react"
 import { approveReport, rejectReport } from "@/app/actions/approvals"
+import { formatDate } from "@/lib/utils"
+import type { Language } from "@/lib/constants/expense-status"
 
 interface ApprovalsContentProps {
     reports: any[]
@@ -15,10 +17,6 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
     const [isPending, startTransition] = useTransition()
     const [processingId, setProcessingId] = useState<string | null>(null)
     const [localReports, setLocalReports] = useState(reports)
-
-    const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US')
-    }
 
     const handleApprove = async (reportId: string) => {
         setProcessingId(reportId)
@@ -83,7 +81,7 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                                         {language === "zh" ? "提交者" : "Submitted by"}: {report.submitter?.name || report.submitter?.email}
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        {formatDate(report.createdAt)} • {report.items.length} {language === "zh" ? "筆項目" : "items"}
+                                        {formatDate(report.createdAt, language as Language)} • {report.items.length} {language === "zh" ? "筆項目" : "items"}
                                     </p>
                                 </div>
                                 <div className="text-right">

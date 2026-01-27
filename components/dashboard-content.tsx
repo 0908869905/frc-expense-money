@@ -5,6 +5,8 @@ import Link from "next/link"
 import { BalanceCard } from "@/components/balance-card"
 import { FundingDialog } from "@/components/funding-dialog"
 import { formatCurrency, type FundingRecord } from "@/lib/constants/funding"
+import { getStatusLabel } from "@/lib/constants/expense-status"
+import type { Language } from "@/lib/constants/expense-status"
 import {
     FileText,
     Package,
@@ -31,8 +33,8 @@ interface DashboardContentProps {
     canAddFunding: boolean
 }
 
-// 狀態配色映射
-const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
+// Dashboard 專用的狀態樣式（包含圖示和深色模式支援）
+const DASHBOARD_STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
     DRAFT: {
         bg: "bg-slate-500/20 dark:bg-slate-500/10",
         text: "text-slate-600 dark:text-slate-400",
@@ -60,16 +62,6 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.Reac
     },
 }
 
-// 狀態翻譯
-const STATUS_LABELS: Record<string, { zh: string; en: string }> = {
-    DRAFT: { zh: "草稿", en: "Draft" },
-    PENDING_MANAGER: { zh: "待組長審核", en: "Pending Manager" },
-    PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
-    PAID: { zh: "已付款", en: "Paid" },
-    REJECTED: { zh: "已拒絕", en: "Rejected" },
-    RETURNED: { zh: "已退回", en: "Returned" },
-}
-
 export function DashboardContent({
     userName,
     role,
@@ -90,11 +82,7 @@ export function DashboardContent({
     ).length
     const paidCount = reports.filter(r => r.status === "PAID").length
 
-    const getStatusStyle = (status: string) => STATUS_STYLES[status] || STATUS_STYLES.DRAFT
-    const getStatusLabel = (status: string) => {
-        const label = STATUS_LABELS[status]
-        return label ? (language === "zh" ? label.zh : label.en) : status
-    }
+    const getStatusStyle = (status: string) => DASHBOARD_STATUS_STYLES[status] || DASHBOARD_STATUS_STYLES.DRAFT
 
     return (
         <div className="flex flex-col gap-6">
@@ -279,7 +267,7 @@ export function DashboardContent({
                                                         <span className="text-muted-foreground/50">•</span>
                                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}>
                                                             {statusStyle.icon}
-                                                            {getStatusLabel(report.status)}
+                                                            {getStatusLabel(report.status, language as Language)}
                                                         </span>
                                                     </div>
                                                 </div>

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormState } from "react-dom"
+import { useMessage } from "@/hooks/useMessage"
+import type { Language } from "@/lib/constants/expense-status"
 import {
     FUNDING_TYPES,
     getTypeLabel,
@@ -32,7 +34,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
     const [typeFilter, setTypeFilter] = useState<string>("all")
     const [showAddModal, setShowAddModal] = useState(false)
     const [editingRecord, setEditingRecord] = useState<FundingRecord | null>(null)
-    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+    const { message, showMessage } = useMessage()
 
     // Add form state
     const [addState, addFormAction] = useFormState<FundingState, FormData>(
@@ -56,11 +58,6 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
     })
 
     const t = (zh: string, en: string) => language === "zh" ? zh : en
-
-    const showMessage = (type: "success" | "error", text: string) => {
-        setMessage({ type, text })
-        setTimeout(() => setMessage(null), 3000)
-    }
 
     // Filter records
     const filteredRecords = fundingRecords.filter((record) => {
@@ -204,7 +201,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                     <option value="all">{t("所有類型", "All Types")}</option>
                     {FUNDING_TYPES.map((type) => (
                         <option key={type.value} value={type.value}>
-                            {language === "zh" ? type.label : type.labelEn}
+                            {language === "zh" ? type.labelZhZh : type.labelZhEn}
                         </option>
                     ))}
                 </select>
@@ -246,7 +243,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                     </td>
                                     <td className="p-4">
                                         <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
-                                            {getTypeLabel(record.type, language)}
+                                            {getTypeLabel(record.type, language as Language)}
                                         </span>
                                     </td>
                                     <td className="p-4 text-muted-foreground">{record.source || "-"}</td>
@@ -323,7 +320,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                 >
                                     {FUNDING_TYPES.map((type) => (
                                         <option key={type.value} value={type.value}>
-                                            {language === "zh" ? type.label : type.labelEn}
+                                            {language === "zh" ? type.labelZh : type.labelZhEn}
                                         </option>
                                     ))}
                                 </select>
@@ -407,7 +404,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                 >
                                     {FUNDING_TYPES.map((type) => (
                                         <option key={type.value} value={type.value}>
-                                            {language === "zh" ? type.label : type.labelEn}
+                                            {language === "zh" ? type.labelZh : type.labelZhEn}
                                         </option>
                                     ))}
                                 </select>

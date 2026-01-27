@@ -6,7 +6,9 @@ import { Package, AlertTriangle, Plus, Edit2, Trash2, ArrowUpDown, ExternalLink,
 import { adjustStock, createItem, updateItem, deleteItem } from "@/app/actions/inventory"
 import { ItemCategory, TransactionType } from "@prisma/client"
 import { InventoryQRModal } from "./inventory-qr-modal"
+import { useMessage } from "@/hooks/useMessage"
 import Link from "next/link"
+import type { Language } from "@/lib/constants/expense-status"
 import {
     type InventoryItem,
     ITEM_CATEGORIES,
@@ -55,7 +57,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
     const [searchTerm, setSearchTerm] = useState("")
     const [categoryFilter, setCategoryFilter] = useState<string>("all")
     const [locationFilter, setLocationFilter] = useState<string>("all")
-    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+    const { message, showMessage } = useMessage()
 
     const [activeModal, setActiveModal] = useState<ModalType>(null)
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
@@ -75,11 +77,6 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
         const matchesLocation = locationFilter === "all" || item.storageLocation === locationFilter
         return matchesSearch && matchesCategory && matchesLocation
     })
-
-    function showMessage(type: "success" | "error", text: string): void {
-        setMessage({ type, text })
-        setTimeout(() => setMessage(null), 3000)
-    }
 
     function closeModal(): void {
         setActiveModal(null)
@@ -323,7 +320,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     <td className="p-4 text-muted-foreground font-mono text-sm">{item.sku}</td>
                                     <td className="p-4">
                                         <span className="px-2 py-1 bg-muted rounded text-xs">
-                                            {getCategoryLabel(item.category, language)}
+                                            {getCategoryLabel(item.category, language as Language)}
                                         </span>
                                     </td>
                                     <td className="p-4 text-muted-foreground">{item.storageLocation}</td>

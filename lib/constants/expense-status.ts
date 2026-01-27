@@ -4,6 +4,9 @@
 
 export type ExpenseStatus = "DRAFT" | "PENDING_MANAGER" | "PENDING_FINANCE" | "PAID" | "REJECTED" | "RETURNED";
 
+// Re-export Language from central location for convenience
+export type { Language } from "@/lib/language-context";
+
 interface LocalizedLabel {
     labelZh: string;
     labelEn: string;
@@ -37,7 +40,10 @@ export const DEPARTMENT_CONFIG: Record<string, DepartmentConfig> = {
     DESIGN: { labelZh: "意象組", labelEn: "Design", icon: "🎨" },
 };
 
-function getLabel(config: LocalizedLabel | undefined, fallback: string, language: "zh" | "en"): string {
+/**
+ * 通用的本地化標籤取得函式
+ */
+export function getLocalizedLabel(config: LocalizedLabel | undefined, fallback: string, language: Language): string {
     if (!config) return fallback;
     return language === "zh" ? config.labelZh : config.labelEn;
 }
@@ -46,12 +52,12 @@ export function getStatusColor(status: string): string {
     return STATUS_CONFIG[status as ExpenseStatus]?.colorClass ?? DEFAULT_STATUS_COLOR;
 }
 
-export function getStatusLabel(status: string, language: "zh" | "en" = "zh"): string {
-    return getLabel(STATUS_CONFIG[status as ExpenseStatus], status, language);
+export function getStatusLabel(status: string, language: Language = "zh"): string {
+    return getLocalizedLabel(STATUS_CONFIG[status as ExpenseStatus], status, language);
 }
 
-export function getDepartmentLabel(dept: string, language: "zh" | "en" = "zh"): string {
+export function getDepartmentLabel(dept: string, language: Language = "zh"): string {
     const config = DEPARTMENT_CONFIG[dept];
     if (!config) return dept;
-    return `${config.icon} ${getLabel(config, dept, language)}`;
+    return `${config.icon} ${getLocalizedLabel(config, dept, language)}`;
 }
