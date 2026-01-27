@@ -358,11 +358,17 @@ export async function getItemBySku(sku: string): Promise<{
     return { success: false, message: validation.error };
   }
 
-  const sanitizedSku = sku.trim().toUpperCase();
+  const sanitizedSku = sku.trim();
 
   try {
-    const item = await prisma.inventoryItem.findUnique({
-      where: { sku: sanitizedSku },
+    // 大小寫不敏感查詢
+    const item = await prisma.inventoryItem.findFirst({
+      where: {
+        sku: {
+          equals: sanitizedSku,
+          mode: "insensitive",
+        },
+      },
     });
 
     if (!item) {
