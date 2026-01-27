@@ -2,7 +2,7 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { useState, useTransition } from "react"
-import { ArrowLeft, Search, Package, ArrowDownToLine, ArrowUpFromLine, MapPin, AlertTriangle, Keyboard } from "lucide-react"
+import { ArrowLeft, Search, Package, ArrowDownToLine, ArrowUpFromLine, MapPin, AlertTriangle, Keyboard, ScanLine } from "lucide-react"
 import Link from "next/link"
 import { getItemBySku, adjustStock } from "@/app/actions/inventory"
 import { QRScanner } from "@/components/qr-scanner"
@@ -17,6 +17,7 @@ export default function ScanPage(): JSX.Element {
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
     const [adjustAmount, setAdjustAmount] = useState(1)
     const [showManualInput, setShowManualInput] = useState(false)
+    const [showScanner, setShowScanner] = useState(true)
 
     function showMessage(type: "success" | "error", text: string): void {
         setMessage({ type, text })
@@ -37,6 +38,7 @@ export default function ScanPage(): JSX.Element {
 
             if (result.success && result.item) {
                 setScannedItem(result.item)
+                setShowScanner(false) // 找到零件後隱藏掃描器
                 showMessage("success", language === "zh" ? "找到零件！" : "Item found!")
             } else {
                 setError(result.message || (language === "zh" ? "查詢失敗" : "Lookup failed"))
@@ -111,8 +113,8 @@ export default function ScanPage(): JSX.Element {
                 </div>
             )}
 
-            {/* QR Scanner */}
-            {!showManualInput && (
+            {/* QR Scanner - 只在沒有找到零件時顯示 */}
+            {!showManualInput && showScanner && (
                 <QRScanner
                     onScan={handleScanSuccess}
                     onError={(err) => console.error("Scanner error:", err)}
@@ -267,6 +269,19 @@ export default function ScanPage(): JSX.Element {
                                 {language === "zh" ? "領用" : "Stock Out"}
                             </button>
                         </div>
+
+                        {/* 繼續掃描按鈕 */}
+                        <button
+                            onClick={() => {
+                                setScannedItem(null)
+                                setShowScanner(true)
+                                setAdjustAmount(1)
+                            }}
+                            className="w-full flex items-center justify-center gap-2 py-3 border rounded-lg hover:bg-muted font-medium"
+                        >
+                            <ScanLine className="h-5 w-5" />
+                            {language === "zh" ? "繼續掃描" : "Scan Another"}
+                        </button>
                     </div>
                 </div>
             )}
