@@ -303,27 +303,18 @@ export async function deleteItem(itemId: string): Promise<InventoryState> {
 
 // ========== QR Code 掃描相關 ==========
 
-// SKU 驗證規則：允許大部分可見字符，但禁止危險字符
-const MAX_SKU_LENGTH = 100;
-// 禁止的字符：SQL 注入相關、命令注入相關
-const DANGEROUS_CHARS = /['"`;\\<>]/;
+const MAX_SKU_LENGTH = 200;
 
 /**
- * 驗證 SKU 格式
+ * 驗證 SKU 格式（允許任何字符，只檢查空值和長度）
  */
 function validateSku(sku: string): { valid: boolean; error?: string } {
   if (!sku || sku.trim() === "") {
     return { valid: false, error: "請提供料號" };
   }
 
-  const trimmedSku = sku.trim();
-
-  if (trimmedSku.length > MAX_SKU_LENGTH) {
+  if (sku.trim().length > MAX_SKU_LENGTH) {
     return { valid: false, error: `料號長度不可超過 ${MAX_SKU_LENGTH} 個字符` };
-  }
-
-  if (DANGEROUS_CHARS.test(trimmedSku)) {
-    return { valid: false, error: "料號包含不允許的字符" };
   }
 
   return { valid: true };
