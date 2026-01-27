@@ -303,26 +303,18 @@ export async function deleteItem(itemId: string): Promise<InventoryState> {
 
 // ========== QR Code 掃描相關 ==========
 
-// SKU 驗證規則：允許字母、數字、連字符、底線，長度 1-50
-const SKU_PATTERN = /^[A-Za-z0-9\-_]{1,50}$/;
-const MAX_SKU_LENGTH = 50;
+const MAX_SKU_LENGTH = 200;
 
 /**
- * 驗證 SKU 格式
+ * 驗證 SKU 格式（允許任何字符，只檢查空值和長度）
  */
 function validateSku(sku: string): { valid: boolean; error?: string } {
   if (!sku || sku.trim() === "") {
     return { valid: false, error: "請提供料號" };
   }
 
-  const trimmedSku = sku.trim();
-
-  if (trimmedSku.length > MAX_SKU_LENGTH) {
+  if (sku.trim().length > MAX_SKU_LENGTH) {
     return { valid: false, error: `料號長度不可超過 ${MAX_SKU_LENGTH} 個字符` };
-  }
-
-  if (!SKU_PATTERN.test(trimmedSku)) {
-    return { valid: false, error: "料號只允許字母、數字、連字符和底線" };
   }
 
   return { valid: true };
@@ -357,11 +349,17 @@ export async function getItemBySku(sku: string): Promise<{
     return { success: false, message: validation.error };
   }
 
-  const sanitizedSku = sku.trim().toUpperCase();
+  const sanitizedSku = sku.trim();
 
   try {
-    const item = await prisma.inventoryItem.findUnique({
-      where: { sku: sanitizedSku },
+    // 大小寫不敏感查詢
+    const item = await prisma.inventoryItem.findFirst({
+      where: {
+        sku: {
+          equals: sanitizedSku,
+          mode: "insensitive",
+        },
+      },
     });
 
     if (!item) {
