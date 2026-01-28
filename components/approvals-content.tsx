@@ -1,18 +1,20 @@
 "use client"
 
 import { useLanguage } from "@/lib/language-context"
-import { Check, X, Clock } from "lucide-react"
+import { Check, X, Clock, Building2 } from "lucide-react"
 import { useState, useTransition } from "react"
 import { approveReport, rejectReport } from "@/app/actions/approvals"
 import { formatDate } from "@/lib/utils"
+import { maskAccountNumber } from "@/lib/utils/mask-account"
 import type { Language } from "@/lib/constants/expense-status"
 
 interface ApprovalsContentProps {
     reports: any[]
     userRole: string
+    canViewFullBankAccount?: boolean
 }
 
-export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
+export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = false }: ApprovalsContentProps) {
     const { language } = useLanguage()
     const [isPending, startTransition] = useTransition()
     const [processingId, setProcessingId] = useState<string | null>(null)
@@ -91,6 +93,38 @@ export function ApprovalsContent({ reports, userRole }: ApprovalsContentProps) {
                                     </span>
                                 </div>
                             </div>
+
+                            {/* Bank Account Info */}
+                            {report.bankAccount && (
+                                <div className="p-4 border-b bg-blue-50/50">
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <Building2 className="h-4 w-4 text-blue-600" />
+                                        <span className="font-medium text-blue-700">
+                                            {language === "zh" ? "收款帳戶" : "Bank Account"}:
+                                        </span>
+                                        <span>{report.bankAccount.bankName}</span>
+                                        {report.bankAccount.branchName && (
+                                            <span className="text-muted-foreground">
+                                                - {report.bankAccount.branchName}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="mt-1 ml-6 text-sm">
+                                        <span className="text-muted-foreground">
+                                            {language === "zh" ? "帳號" : "Account"}:
+                                        </span>{" "}
+                                        <span className="font-mono">
+                                            {canViewFullBankAccount
+                                                ? report.bankAccount.accountNumber
+                                                : maskAccountNumber(report.bankAccount.accountNumber)}
+                                        </span>
+                                        <span className="ml-4 text-muted-foreground">
+                                            {language === "zh" ? "戶名" : "Holder"}:
+                                        </span>{" "}
+                                        <span>{report.bankAccount.accountHolder}</span>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Items Preview */}
                             <div className="p-4 border-b">

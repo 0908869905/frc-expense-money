@@ -4,26 +4,31 @@ import { useLanguage } from "@/lib/language-context"
 import Link from "next/link"
 import { useState, useTransition } from "react"
 import { submitReport, deleteReport } from "@/app/actions/expenses"
-import { Send, Trash2, Clock, CheckCircle, XCircle, FileText } from "lucide-react"
+import { Send, Trash2, Clock, CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
 import { ReceiptAuditButton } from "@/components/receipt-audit-button"
 import { BatchAuditButton } from "@/components/batch-audit-button"
+import { BankAccountSelectDialog } from "@/components/bank-account-select-dialog"
 import { getStatusColor, getStatusLabel, getDepartmentLabel, type Language } from "@/lib/constants/expense-status"
 import { useMessage } from "@/hooks/useMessage"
 import { formatDate } from "@/lib/utils"
+import { maskAccountNumber } from "@/lib/utils/mask-account"
 import type { AuditResult } from "@/types/audit"
+import type { BankAccountData } from "@/app/actions/bank-accounts"
 
 interface ExpensesContentProps {
     reports: any[]
     totalReports: number
     totalItems: number
     totalAmount: number
+    bankAccounts?: BankAccountData[]
 }
 
-export function ExpensesContent({ reports, totalReports, totalItems, totalAmount }: ExpensesContentProps) {
+export function ExpensesContent({ reports, totalReports, totalItems, totalAmount, bankAccounts = [] }: ExpensesContentProps) {
     const { t, language } = useLanguage()
     const [isPending, startTransition] = useTransition()
     const [localReports, setLocalReports] = useState(reports)
     const { message, showMessage } = useMessage()
+    const [submitDialogReportId, setSubmitDialogReportId] = useState<string | null>(null)
 
     // 更新特定項目的審核狀態
     const handleAuditComplete = (reportId: string, itemId: string, result: AuditResult) => {
@@ -59,15 +64,24 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
         }
     }
 
-    const handleSubmit = async (reportId: string) => {
-        if (!confirm(language === "zh"
-            ? "確定要提交此報帳單嗎？提交後將無法編輯。"
-            : "Are you sure you want to submit this report? It cannot be edited after submission.")) {
-            return
+    const handleSubmitClick = (reportId: string) => {
+        // 如果有收款帳戶，顯示選擇對話框
+        if (bankAccounts.length > 0) {
+            setSubmitDialogReportId(reportId)
+        } else {
+            // 沒有帳戶，直接確認提交
+            if (confirm(language === "zh"
+                ? "確定要提交此報帳單嗎？提交後將無法編輯。\n\n提示：您尚未設定收款帳戶，可在設定頁面新增。"
+                : "Are you sure you want to submit this report? It cannot be edited after submission.\n\nTip: You haven't set up a bank account. You can add one in Settings.")) {
+                handleSubmitConfirm(reportId, undefined)
+            }
         }
+    }
 
+    const handleSubmitConfirm = (reportId: string, bankAccountId: string | undefined) => {
+        setSubmitDialogReportId(null)
         startTransition(async () => {
-            const result = await submitReport(reportId)
+            const result = await submitReport(reportId, bankAccountId)
             if (result.success) {
                 setLocalReports(prev => prev.map(r =>
                     r.id === reportId ? { ...r, status: "PENDING_MANAGER" } : r
@@ -188,7 +202,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                     {report.status === "DRAFT" && (
                                         <div className="flex gap-2">
                                             <button
-                                                onClick={() => handleSubmit(report.id)}
+                                                onClick={() => handleSubmitClick(report.id)}
                                                 disabled={isPending}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium disabled:opacity-50"
                                                 title={language === "zh" ? "提交審核" : "Submit for approval"}
@@ -208,6 +222,26 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                     )}
                                 </div>
                             </div>
+
+                            {/* Bank Account Info - 顯示在已提交的報帳單上 */}
+                            {report.status !== "DRAFT" && report.bankAccount && (
+                                <div className="px-4 py-2 bg-muted/30 border-b flex items-center gap-2 text-sm">
+                                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">{language === "zh" ? "收款帳戶" : "Bank Account"}:</span>
+                                    <span className="font-medium">{report.bankAccount.bankName}</span>
+                                    {report.bankAccount.branchName && (
+                                        <span className="text-muted-foreground">- {report.bankAccount.branchName}</span>
+                                    )}
+                                    <span className="text-muted-foreground">
+                                        ({maskAccountNumber(report.bankAccount.accountNumber)})
+                                    </span>
+                                    {!report.bankAccount.isActive && (
+                                        <span className="text-xs text-destructive">
+                                            ({language === "zh" ? "已停用" : "Inactive"})
+                                        </span>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Expense Items */}
                             {report.items.length > 0 && (
@@ -242,6 +276,16 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                     ))
                 )}
             </div>
+
+            {/* Bank Account Select Dialog */}
+            {submitDialogReportId && (
+                <BankAccountSelectDialog
+                    accounts={bankAccounts}
+                    onConfirm={(bankAccountId) => handleSubmitConfirm(submitDialogReportId, bankAccountId)}
+                    onCancel={() => setSubmitDialogReportId(null)}
+                    isPending={isPending}
+                />
+            )}
         </div>
     )
 }

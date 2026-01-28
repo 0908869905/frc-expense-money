@@ -89,6 +89,7 @@ model User {
   expenseReports  ExpenseReport[]
   approvalActions ApprovalAction[]
   auditLogs       AuditLog[]
+  bankAccounts    BankAccount[]    // 收款帳戶
 }
 
 // 團隊組別
@@ -123,6 +124,8 @@ model ExpenseReport {
   submitterEmail String         @default("")        // 提交者 Email
   submitterId    String?        // 可選的外鍵，用於向後相容
   submitter      User?          @relation(fields: [submitterId], references: [id])
+  bankAccountId  String?        // 收款帳戶
+  bankAccount    BankAccount?   @relation(fields: [bankAccountId], references: [id])
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -134,7 +137,7 @@ model ExpenseReport {
   @@index([submitterEmail])        // 按 Email 查詢
   @@index([status])                // 按狀態篩選
   @@index([department])            // 按組別篩選
-  @@index([createdAt(sort: Desc)]) // 時間排序  
+  @@index([createdAt(sort: Desc)]) // 時間排序
   @@index([status, createdAt])     // 複合索引：狀態+時間
 }
 
@@ -290,4 +293,28 @@ model FundingRecord {
 
   @@index([date])
   @@index([type])
+}
+
+// ========== Bank Account Models ==========
+
+// 收款帳戶
+model BankAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bankName      String   // 銀行/郵局名稱
+  branchName    String?  // 分行名稱（選填）
+  accountNumber String   // 帳號
+  accountHolder String   // 戶名
+
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)   // 軟刪除：false = 停用
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  expenseReports ExpenseReport[]
+
+  @@index([userId])
+  @@index([userId, isActive])  // 查詢啟用中的帳戶
 }

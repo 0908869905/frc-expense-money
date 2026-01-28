@@ -215,8 +215,10 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
 
 /**
  * 提交草稿報帳單以進行審核
+ * @param reportId - 報帳單 ID
+ * @param bankAccountId - 收款帳戶 ID（可選）
  */
-export async function submitReport(reportId: string): Promise<State> {
+export async function submitReport(reportId: string, bankAccountId?: string): Promise<State> {
     const session = await auth();
 
     if (!session?.user) {
@@ -240,12 +242,30 @@ export async function submitReport(reportId: string): Promise<State> {
             return { success: false, message: "Only draft reports can be submitted" };
         }
 
+        // 驗證收款帳戶是否屬於當前用戶
+        if (bankAccountId) {
+            const bankAccount = await prisma.bankAccount.findUnique({
+                where: { id: bankAccountId },
+            });
+
+            if (!bankAccount || bankAccount.userId !== session.user.id) {
+                return { success: false, message: "Invalid bank account" };
+            }
+
+            if (!bankAccount.isActive) {
+                return { success: false, message: "Bank account is not active" };
+            }
+        }
+
         const { status: newStatus, skipMessage } = determineSubmitStatus(session.user.role || "");
 
         await prisma.$transaction(async (tx) => {
             await tx.expenseReport.update({
                 where: { id: reportId },
-                data: { status: newStatus as typeof report.status },
+                data: {
+                    status: newStatus as typeof report.status,
+                    ...(bankAccountId && { bankAccountId }),
+                },
             });
 
             if (session.user.id) {
@@ -256,7 +276,7 @@ export async function submitReport(reportId: string): Promise<State> {
                         action: "SUBMIT",
                         actorId: session.user.id,
                         oldData: { status: "DRAFT" },
-                        newData: { status: newStatus, skipMessage },
+                        newData: { status: newStatus, skipMessage, bankAccountId },
                     },
                 });
             }

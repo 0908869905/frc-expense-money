@@ -9,12 +9,12 @@ import { useFormState, useFormStatus } from "react-dom"
 import { changePassword, type ChangePasswordState } from "@/app/actions/password"
 import { uploadAvatar, removeAvatar } from "@/app/actions/avatar"
 import { updateNotificationFrequency, getNotificationFrequency } from "@/app/actions/notifications"
+import { BankAccountSettings } from "@/components/bank-account-settings"
+import type { BankAccountData } from "@/app/actions/bank-accounts"
+import { BUTTON_PRIMARY, BUTTON_MUTED, INPUT_CLASS } from "@/lib/ui-constants"
 
 type NotificationFrequency = "INSTANT" | "DAILY_DIGEST" | "OFF"
 type MessageState = { type: "success" | "error"; text: string } | null
-
-const BUTTON_PRIMARY = "inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
-const BUTTON_MUTED = "inline-flex items-center gap-2 px-4 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors text-sm font-medium disabled:opacity-50"
 
 function SubmitButton({ children }: { children: React.ReactNode }): React.ReactElement {
     const { pending } = useFormStatus()
@@ -27,10 +27,12 @@ function SubmitButton({ children }: { children: React.ReactNode }): React.ReactE
 }
 
 interface SettingsContentProps {
-    session: { user?: { name?: string | null; email?: string | null; image?: string | null } }
+    session: { user?: { name?: string | null; email?: string | null; image?: string | null; role?: string } }
+    bankAccounts?: BankAccountData[]
+    canManageBankAccounts?: boolean
 }
 
-export function SettingsContent({ session }: SettingsContentProps): React.ReactElement {
+export function SettingsContent({ session, bankAccounts = [], canManageBankAccounts = false }: SettingsContentProps): React.ReactElement {
     const { t, language, setLanguage } = useLanguage()
     const [notificationFrequency, setNotificationFrequency] = useState<NotificationFrequency>("INSTANT")
     const [avatar, setAvatar] = useState<string | null>(session?.user?.image || null)
@@ -268,6 +270,13 @@ export function SettingsContent({ session }: SettingsContentProps): React.ReactE
                 </div>
             </div>
 
+            {/* Bank Account Settings - 只對 VICE_LEADER 以上角色顯示 */}
+            {canManageBankAccounts && (
+                <div className="rounded-xl border bg-card p-6">
+                    <BankAccountSettings initialAccounts={bankAccounts} />
+                </div>
+            )}
+
             {/* Change Password */}
             <div className="rounded-xl border bg-card p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -322,8 +331,6 @@ export function SettingsContent({ session }: SettingsContentProps): React.ReactE
         </div>
     )
 }
-
-const INPUT_CLASS = "w-full px-3 py-2 rounded-md border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
 
 interface PasswordFieldProps {
     id: string

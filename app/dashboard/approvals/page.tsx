@@ -43,15 +43,20 @@ export default async function ApprovalsPage(): Promise<React.JSX.Element> {
             submitter: {
                 select: { name: true, email: true }
             },
-            items: true
+            items: true,
+            bankAccount: true  // 包含收款帳戶資訊
         },
         orderBy: { createdAt: "desc" }
     })
+
+    // FINANCE 和 ADMIN 可以查看完整帳號
+    const canViewFullBankAccount = role === "FINANCE" || role === "ADMIN"
 
     return (
         <ApprovalsContent
             reports={reports}
             userRole={role}
+            canViewFullBankAccount={canViewFullBankAccount}
         />
     )
 }
