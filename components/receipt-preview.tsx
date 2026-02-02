@@ -1,0 +1,68 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
+import { X, Image as ImageIcon } from "lucide-react"
+
+interface ReceiptPreviewProps {
+  src: string
+  alt?: string
+  size?: "sm" | "md"
+}
+
+export function ReceiptPreview({ src, alt = "收據", size = "sm" }: ReceiptPreviewProps) {
+  const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const sizeClasses = size === "sm"
+    ? "h-8 w-8"
+    : "h-12 w-12"
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`${sizeClasses} rounded border border-border overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all`}
+        title={`檢視${alt}`}
+      >
+        {src.startsWith("data:image") || src.startsWith("http") || src.startsWith("/") ? (
+          <img src={src} alt={alt} className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center bg-muted">
+            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+          </div>
+        )}
+      </button>
+
+      {open && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="relative max-w-[90vw] max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute -top-3 -right-3 z-10 rounded-full bg-white p-1 shadow-md hover:bg-gray-100"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img
+              src={src}
+              alt={alt}
+              className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain"
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}

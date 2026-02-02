@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Upload, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { Trash2, Plus, Upload, Loader2, AlertCircle, Sparkles, Building2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFormState } from "react-dom";
+import type { BankAccountData } from "@/app/actions/bank-accounts";
+import { maskAccountNumber } from "@/lib/utils/mask-account";
 // import { upload } from "@vercel/blob/client"; // Uncomment if package is available
 
 // --- Simple UI Wrappers (since they weren't in previous context) ---
@@ -30,9 +32,32 @@ interface OCRResult {
 }
 
 interface UploadButtonProps {
-  onUploadComplete: (url: string, base64?: string) => void;
+  onUploadComplete: (base64DataUrl: string) => void;
   onOCRComplete?: (data: OCRResult) => void;
   defaultUrl?: string | null;
+}
+
+/** 壓縮圖片：縮小到 maxWidth 並以 JPEG 品質 quality 輸出 base64 */
+function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas not supported")); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => reject(new Error("圖片載入失敗"));
+    img.src = URL.createObjectURL(file);
+  });
 }
 
 const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadButtonProps) => {
@@ -49,18 +74,25 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
     setUploading(true);
 
     try {
-      // Create preview URL
+      // Create preview URL (local display only)
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
 
-      // Convert to base64 for OCR (store for later use)
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setImageBase64(base64);
-        onUploadComplete(objectUrl, base64);
-      };
-      reader.readAsDataURL(file);
+      // 壓縮圖片後轉 base64 存入 DB
+      let base64: string;
+      if (file.type.startsWith("image/")) {
+        base64 = await compressImage(file);
+      } else {
+        // PDF 等非圖片檔案直接讀取
+        base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+      setImageBase64(base64);
+      onUploadComplete(base64);
     } catch (error) {
       console.error("Upload failed", error);
       alert("上傳失敗");
@@ -154,12 +186,22 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
   );
 };
 
-export function ExpenseForm() {
+interface ExpenseFormProps {
+  bankAccounts?: BankAccountData[];
+}
+
+export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
   const [isPending, startTransition] = useTransition();
   const [state, formAction] = useFormState(createExpense, {
     success: false,
     message: null,
   });
+
+  // 收款帳戶
+  const defaultAccount = bankAccounts.find((a) => a.isDefault);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>(
+    defaultAccount?.id || ""
+  );
 
   const {
     register,
@@ -235,12 +277,12 @@ export function ExpenseForm() {
   };
 
   const onSubmit = (data: ExpenseReportFormValues) => {
-    // We strictly use FormData for the server action to comply with Next.js patterns
-    // We serialize the complex data object to pass it cleanly.
     const formData = new FormData();
     formData.append("data", JSON.stringify(data));
+    if (selectedBankAccountId) {
+      formData.append("bankAccountId", selectedBankAccountId);
+    }
 
-    // Trigger the server action with transition for pending state
     startTransition(() => {
       formAction(formData);
     });
@@ -259,7 +301,7 @@ export function ExpenseForm() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">新增報帳單</h2>
-          <p className="text-muted-foreground">提交新的費用報銷申請。</p>
+          <p className="text-muted-foreground">填寫完成後將直接提交至上級審核。</p>
         </div>
       </div>
 
@@ -298,6 +340,70 @@ export function ExpenseForm() {
 
         </CardContent>
       </Card>
+
+      {/* 收款帳戶選擇 */}
+      {bankAccounts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              收款帳戶
+            </CardTitle>
+            <CardDescription>選擇報帳款項匯入的帳戶</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {bankAccounts.map((account) => (
+                <label
+                  key={account.id}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
+                    selectedBankAccountId === account.id
+                      ? "border-primary bg-primary/5"
+                      : "hover:bg-muted/50"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="bankAccountSelect"
+                    value={account.id}
+                    checked={selectedBankAccountId === account.id}
+                    onChange={() => setSelectedBankAccountId(account.id)}
+                    className="sr-only"
+                  />
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
+                    selectedBankAccountId === account.id
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground"
+                  )}>
+                    {selectedBankAccountId === account.id && (
+                      <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{account.bankName}</span>
+                      {account.branchName && (
+                        <span className="text-muted-foreground text-sm">- {account.branchName}</span>
+                      )}
+                      {account.isDefault && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
+                          <Star className="h-3 w-3" />
+                          預設
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {maskAccountNumber(account.accountNumber)} · {account.accountHolder}
+                    </p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">

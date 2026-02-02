@@ -40,13 +40,11 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
     const getStatusColor = (status: string) => {
         if (status === "PAID" || status === "APPROVED") return "text-green-600 bg-green-100"
         if (status === "REJECTED") return "text-red-600 bg-red-100"
-        if (status === "DRAFT") return "text-gray-600 bg-gray-100"
         return "text-yellow-600 bg-yellow-100"
     }
 
     const getStatusLabel = (status: string) => {
         const labels: Record<string, Record<string, string>> = {
-            DRAFT: { zh: "草稿", en: "Draft" },
             PENDING_MANAGER: { zh: "待主管審核", en: "Pending Manager" },
             PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
             RETURNED: { zh: "已退回", en: "Returned" },
@@ -199,7 +197,6 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
     })
 
     const statusOptions = [
-        { value: "DRAFT", label: language === "zh" ? "草稿" : "Draft" },
         { value: "PENDING_MANAGER", label: language === "zh" ? "待主管審核" : "Pending Manager" },
         { value: "PENDING_FINANCE", label: language === "zh" ? "待財務審核" : "Pending Finance" },
         { value: "RETURNED", label: language === "zh" ? "已退回" : "Returned" },

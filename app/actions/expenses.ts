@@ -74,8 +74,8 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         return { success: false, message: "Invalid form data submission" };
     }
 
-    // 驗證 JSON 大小（防止大型 payload 攻擊）
-    const MAX_JSON_SIZE = 1024 * 1024; // 1MB
+    // 驗證 JSON 大小（含 base64 收據圖片，需較大空間）
+    const MAX_JSON_SIZE = 10 * 1024 * 1024; // 10MB
     if (rawData.length > MAX_JSON_SIZE) {
         return { success: false, message: "資料過大，請減少項目數量" };
     }
@@ -109,6 +109,23 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         ? (userDepartmentStr as TeamDepartment)
         : undefined;
 
+    // 直接提交：根據角色決定狀態
+    const { status: submitStatus, skipMessage } = determineSubmitStatus(session.user.role || "");
+
+    // 收款帳戶
+    const bankAccountId = formData.get("bankAccountId") as string | null;
+    if (bankAccountId) {
+        const bankAccount = await prisma.bankAccount.findUnique({
+            where: { id: bankAccountId },
+        });
+        if (!bankAccount || bankAccount.userId !== session.user.id) {
+            return { success: false, message: "無效的收款帳戶" };
+        }
+        if (!bankAccount.isActive) {
+            return { success: false, message: "收款帳戶已停用" };
+        }
+    }
+
     try {
         await prisma.$transaction(async (tx) => {
             const report = await tx.expenseReport.create({
@@ -119,9 +136,10 @@ export async function createExpense(prevState: State, formData: FormData): Promi
                     submitterName,
                     submitterEmail,
                     submitterId,
-                    status: "DRAFT",
+                    status: submitStatus as "PENDING_MANAGER" | "PENDING_FINANCE" | "PAID",
                     totalAmount,
                     amountCents: totalAmountCents,
+                    ...(bankAccountId && { bankAccountId }),
                     items: {
                         create: items.map((item) => ({
                             date: parseItemDate(item.date),
@@ -149,7 +167,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         });
 
         revalidateExpenses();
-        return { success: true, message: "報帳單建立成功！" };
+        return { success: true, message: SUBMIT_MESSAGES[submitStatus] || "報帳單已提交！" };
     } catch (error) {
         console.error("Failed to create expense report:", error);
         return { success: false, message: "資料庫錯誤：建立報帳單失敗" };
@@ -214,84 +232,7 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
 }
 
 /**
- * 提交草稿報帳單以進行審核
- * @param reportId - 報帳單 ID
- * @param bankAccountId - 收款帳戶 ID（可選）
- */
-export async function submitReport(reportId: string, bankAccountId?: string): Promise<State> {
-    const session = await auth();
-
-    if (!session?.user) {
-        return { success: false, message: "Unauthorized" };
-    }
-
-    try {
-        const report = await prisma.expenseReport.findUnique({
-            where: { id: reportId },
-        });
-
-        if (!report) {
-            return { success: false, message: "Report not found" };
-        }
-
-        if (!canAccessReport(report, session.user.email || "", session.user.role || "")) {
-            return { success: false, message: "You can only submit your own reports" };
-        }
-
-        if (report.status !== "DRAFT") {
-            return { success: false, message: "Only draft reports can be submitted" };
-        }
-
-        // 驗證收款帳戶是否屬於當前用戶
-        if (bankAccountId) {
-            const bankAccount = await prisma.bankAccount.findUnique({
-                where: { id: bankAccountId },
-            });
-
-            if (!bankAccount || bankAccount.userId !== session.user.id) {
-                return { success: false, message: "Invalid bank account" };
-            }
-
-            if (!bankAccount.isActive) {
-                return { success: false, message: "Bank account is not active" };
-            }
-        }
-
-        const { status: newStatus, skipMessage } = determineSubmitStatus(session.user.role || "");
-
-        await prisma.$transaction(async (tx) => {
-            await tx.expenseReport.update({
-                where: { id: reportId },
-                data: {
-                    status: newStatus as typeof report.status,
-                    ...(bankAccountId && { bankAccountId }),
-                },
-            });
-
-            if (session.user.id) {
-                await tx.auditLog.create({
-                    data: {
-                        entityType: "ExpenseReport",
-                        entityId: reportId,
-                        action: "SUBMIT",
-                        actorId: session.user.id,
-                        oldData: { status: "DRAFT" },
-                        newData: { status: newStatus, skipMessage, bankAccountId },
-                    },
-                });
-            }
-        });
-
-        revalidateExpenses();
-        return { success: true, message: SUBMIT_MESSAGES[newStatus] || "Report submitted!" };
-    } catch (error) {
-        console.error("Failed to submit report:", error);
-        return { success: false, message: "Database error: Failed to submit report." };
-    }
-}
-
-/**
- * 刪除草稿報帳單
+ * 刪除報帳單（僅限 ADMIN）
  */
 export async function deleteReport(reportId: string): Promise<State> {
     const session = await auth();
@@ -309,12 +250,8 @@ export async function deleteReport(reportId: string): Promise<State> {
             return { success: false, message: "Report not found" };
         }
 
-        if (!canAccessReport(report, session.user.email || "", session.user.role || "")) {
-            return { success: false, message: "You can only delete your own reports" };
-        }
-
-        if (report.status !== "DRAFT" && session.user.role !== "ADMIN") {
-            return { success: false, message: "Only draft reports can be deleted" };
+        if (session.user.role !== "ADMIN") {
+            return { success: false, message: "只有管理員可以刪除報帳單" };
         }
 
         await prisma.$transaction(async (tx) => {

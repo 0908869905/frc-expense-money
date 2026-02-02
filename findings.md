@@ -582,3 +582,230 @@ const uniqueLocations = Array.from(new Set(items.map(i => i.location)))
 2. **Web 相機 API 限制** - 需要 HTTPS 或 localhost，桌機可能沒有攝像頭
 3. **分層安全** - Debug 端點應有多層檢查（環境 + 明確啟用 + 認證）
 4. **輸入驗證** - 所有用戶輸入都應驗證格式，防止注入攻擊
+
+---
+
+## Session: 2026-01-27 - Git 回退處理
+
+### 問題描述
+Vercel 部署的網站仍顯示舊的 SKU 驗證錯誤訊息（「料號只允許字母、數字、連字符和底線」），即使本地代碼已更新為允許任何字符。
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| 使用 `git reset --hard` | 需要完全回到特定 commit，包括工作目錄 |
+| 使用 `git push --force` | 遠端有更新的 commits 需要覆蓋 |
+| 回退到 merge commit | 該 commit 包含 experiment 分支的所有功能 |
+
+### Git 回退操作
+
+#### 操作步驟
+```bash
+# 1. 確認目標 commit
+git log --oneline -10
+
+# 2. 執行硬回退
+git reset --hard d9af3d5a0a511488fd31cfbef7561537f452a8c4
+
+# 3. 強制推送到遠端
+git push --force
+```
+
+#### 注意事項
+1. **`--hard` 會丟失本地未提交的變更** - 確保沒有重要的未提交工作
+2. **`--force` 會覆蓋遠端歷史** - 其他協作者需要 `git pull --rebase`
+3. **被移除的 commits 可以用 `git reflog` 恢復** - 在 GC 之前仍可恢復
+
+### Vercel 部署同步問題
+
+#### 可能原因
+1. **Vercel 快取** - 靜態資源可能被快取
+2. **部署延遲** - Git push 後 Vercel webhook 觸發需要時間
+3. **分支設定** - 確認 Vercel 監聽的是正確的分支
+
+#### 解決方案
+1. 等待 Vercel 自動重新部署（通常 1-2 分鐘）
+2. 到 Vercel Dashboard 手動觸發 Redeploy
+3. 使用 Vercel CLI：`vercel --prod` 強制部署
+
+### 經驗教訓
+
+5. **Git 回退前確認影響** - 使用 `git log` 列出會被移除的 commits
+6. **強制推送要謹慎** - 通知團隊成員同步更新
+7. **Vercel 部署有延遲** - 不要假設 push 後立即生效
+
+---
+
+## Session: 2026-01-28 - 收款帳戶功能
+
+### 功能需求
+- 用戶可以管理多個收款帳戶（銀行帳戶）
+- 提交報帳單時可選擇收款帳戶
+- 審核者可看到申請人的收款帳戶資訊
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| 使用獨立 BankAccount 模型 | 一個用戶可有多個帳戶，支援設定預設帳戶 |
+| 帳號遮罩顯示 | 保護敏感資訊，只顯示後 4 碼 |
+| 使用 createPortal 渲染對話框 | 避免 z-index 堆疊問題，確保對話框在最上層 |
+| 統一按鈕樣式常數 | 減少重複代碼，確保 UI 一致性 |
+| 帳號格式驗證 | 只允許數字和連字號，防止注入攻擊 |
+
+### 安全性修復
+
+| 問題 | 修復 |
+|------|------|
+| updateBankAccount 缺少角色檢查 | 新增檢查：只能更新自己的帳戶 |
+| deleteBankAccount 缺少角色檢查 | 新增檢查：只能刪除自己的帳戶 |
+| setDefaultBankAccount 缺少角色檢查 | 新增檢查：只能設定自己的預設帳戶 |
+| 帳號格式無驗證 | 新增正則驗證：只允許數字和連字號 |
+| 欄位長度無限制 | 新增長度限制：銀行代碼 3-10 碼、帳號 10-20 碼、戶名最多 50 字 |
+
+### 解決的技術問題
+
+#### 1. Prisma Client 未正確生成
+
+**問題**：執行 `npx prisma generate` 後，TypeScript 仍找不到新模型
+
+**原因**：在某些 Windows 環境下，prisma generate 可能未正確執行
+
+**解決方案**：
+```bash
+# 使用 node -e 執行
+node -e "require('child_process').execSync('npx prisma generate', {stdio: 'inherit'})"
+```
+
+#### 2. 對話框被父元素遮擋
+
+**問題**：Modal 對話框被其他 UI 元素遮擋，即使設定 z-index
+
+**原因**：CSS stacking context 問題，父元素的 z-index 影響子元素
+
+**解決方案**：
+```typescript
+import { createPortal } from "react-dom";
+
+// 使用 createPortal 渲染到 document.body
+return createPortal(
+  <div className="fixed inset-0 z-50">
+    {/* Modal 內容 */}
+  </div>,
+  document.body
+);
+```
+
+#### 3. 資料庫欄位不存在
+
+**問題**：查詢時報錯 column "bankAccountId" does not exist
+
+**原因**：Schema 修改後未同步到資料庫
+
+**解決方案**：
+```bash
+npx prisma db push
+```
+
+### 新增的 API 模式
+
+#### 收款帳戶 Server Actions
+```typescript
+// app/actions/bank-accounts.ts
+export async function createBankAccount(formData: FormData)
+export async function getBankAccounts()
+export async function updateBankAccount(id: string, formData: FormData)
+export async function deleteBankAccount(id: string)
+export async function setDefaultBankAccount(id: string)
+```
+
+### 程式碼簡化
+
+#### 統一按鈕樣式常數
+```typescript
+// lib/ui-constants.ts
+export const BUTTON_STYLES = {
+  primary: "bg-indigo-600 hover:bg-indigo-700 text-white ...",
+  secondary: "border border-gray-300 hover:bg-gray-50 ...",
+  danger: "bg-red-600 hover:bg-red-700 text-white ...",
+}
+```
+
+### 經驗教訓
+
+8. **createPortal 解決 z-index 問題** - Modal 組件應使用 Portal 渲染到 body
+9. **敏感資料遮罩** - 顯示銀行帳號時只顯示後 4 碼
+10. **Server Actions 必須檢查擁有權** - 不只檢查登入狀態，還要檢查資源屬於當前用戶
+
+---
+
+## Session: 2026-02-01 - BudgetFlow iOS App（Capacitor 整合）
+
+### 功能需求
+- 將現有 Next.js Web App 包裝為 iOS App 上架 App Store
+- 使用 Capacitor Remote WebView 模式（指向 Vercel 部署的 URL）
+- 支援 iOS Safe Area、相機權限、Native 狀態列等
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| 使用 Capacitor Remote WebView 模式 | 不需 SSG/export，直接載入 Vercel URL，維護成本最低 |
+| `CapacitorConfig` 從 `@capacitor/cli` 匯入 | `@capacitor/core` 不包含此型別，CLI 才有完整配置定義 |
+| 使用 interface 宣告 `window.Capacitor` | 比 `as Record<string, unknown>` 更型別安全 |
+| tsconfig.json 排除 `capacitor.config.ts` | 防止 Next.js build 編譯 Capacitor 配置檔（使用不同的 module 系統） |
+| CSP `camera=(self)` 而非 `camera=()` | WebView 內需要相機權限（QR Code 掃描功能） |
+| `mix-blend-screen` 解決貓咪動畫背景 | 讓 GIF 的黑色背景變透明，適配深色/淺色主題 |
+| Safe Area CSS 使用 `env()` 函數 | iOS WebView 標準方式處理劉海/Home Indicator 區域 |
+
+### Capacitor 架構設計
+
+#### Remote WebView 模式
+```
+iOS App (Capacitor Shell)
+    └── WKWebView
+         └── 載入 https://your-app.vercel.app
+              └── lib/capacitor.ts 偵測環境
+                   ├── Native → 使用 Capacitor API
+                   └── Web → 使用標準 Web API
+```
+
+#### 環境偵測模式
+```typescript
+// lib/capacitor.ts
+export function isNativeApp(): boolean    // 是否在 Capacitor 容器內
+export function isIOSApp(): boolean       // 是否在 iOS 原生 App
+export function isWebBrowser(): boolean   // 是否在一般瀏覽器
+```
+
+### 問題與解決
+
+#### 1. CapacitorConfig 型別來源
+- **問題**：從 `@capacitor/core` 匯入 `CapacitorConfig` 找不到
+- **原因**：Capacitor 將配置型別放在 CLI 套件中
+- **解決**：`import type { CapacitorConfig } from '@capacitor/cli'`
+
+#### 2. capacitor.config.ts 與 Next.js build 衝突
+- **問題**：`npm run build` 嘗試編譯 `capacitor.config.ts`，但它使用不同的 module 格式
+- **原因**：Next.js build 掃描專案根目錄所有 .ts 檔
+- **解決**：在 `tsconfig.json` 的 `exclude` 中加入 `"capacitor.config.ts"`
+
+#### 3. window 型別擴展
+- **問題**：`(window as Record<string, unknown>).Capacitor` 無法通過 TypeScript strict 模式
+- **原因**：TypeScript 不允許直接將 `Window` 斷言為 `Record<string, unknown>`
+- **解決**：使用 interface 宣告擴展 window
+```typescript
+declare global {
+  interface Window {
+    Capacitor?: { isNativePlatform?: () => boolean; getPlatform?: () => string }
+  }
+}
+```
+
+### 經驗教訓
+
+11. **Capacitor 型別在 CLI 套件** - 配置相關型別在 `@capacitor/cli`，運行時 API 在 `@capacitor/core`
+12. **Next.js build 掃描根目錄** - 非 Next.js 的 .ts 配置檔需要在 tsconfig exclude 排除
+13. **window 擴展用 interface** - 比 type assertion 更安全，且支援 TypeScript 聲明合併
+14. **Remote WebView 需要 CSP 配合** - 相機等權限需要在 Permissions-Policy 中允許 self

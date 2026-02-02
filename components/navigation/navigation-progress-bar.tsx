@@ -42,7 +42,7 @@ export function NavigationProgressBar(): JSX.Element | null {
                     loop
                     muted
                     playsInline
-                    className="w-80 h-80 object-contain"
+                    className="w-80 h-80 object-contain mix-blend-screen"
                 />
             </div>
         </>

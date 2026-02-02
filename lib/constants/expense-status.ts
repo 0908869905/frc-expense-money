@@ -2,7 +2,7 @@
  * 報帳狀態與組別常數
  */
 
-export type ExpenseStatus = "DRAFT" | "PENDING_MANAGER" | "PENDING_FINANCE" | "PAID" | "REJECTED" | "RETURNED";
+export type ExpenseStatus = "PENDING_MANAGER" | "PENDING_FINANCE" | "PAID" | "REJECTED" | "RETURNED";
 
 // Import and re-export Language from central location
 import type { Language } from "@/lib/language-context";
@@ -24,7 +24,6 @@ interface DepartmentConfig extends LocalizedLabel {
 const DEFAULT_STATUS_COLOR = "bg-gray-100 text-gray-700";
 
 export const STATUS_CONFIG: Record<ExpenseStatus, StatusConfig> = {
-    DRAFT: { colorClass: DEFAULT_STATUS_COLOR, labelZh: "草稿", labelEn: "Draft" },
     PENDING_MANAGER: { colorClass: "bg-yellow-100 text-yellow-700", labelZh: "待主管審核", labelEn: "Pending Manager" },
     PENDING_FINANCE: { colorClass: "bg-blue-100 text-blue-700", labelZh: "待財務審核", labelEn: "Pending Finance" },
     PAID: { colorClass: "bg-green-100 text-green-700", labelZh: "已付款", labelEn: "Paid" },

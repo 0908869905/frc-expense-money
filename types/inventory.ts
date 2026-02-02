@@ -59,3 +59,41 @@ export function getTransactionTypeLabel(type: string, language: Language): strin
 export function isLowStock(item: InventoryItem): boolean {
     return item.currentQuantity <= item.safetyStockLevel
 }
+
+// ========== 批量操作介面 ==========
+
+export interface BatchItemRow {
+    id: string
+    name: string
+    sku: string
+    category: string
+    storageLocation: string
+    currentQuantity: number
+    safetyStockLevel: number
+    vendorLink: string
+    error?: string
+}
+
+export interface BatchAdjustRow {
+    id: string
+    itemId: string
+    itemName?: string
+    amount: number
+    transactionType: string
+    projectId: string
+    error?: string
+}
+
+export interface BatchResult {
+    success: boolean
+    message: string
+    totalCount: number
+    successCount: number
+    failedCount: number
+    results: Array<{
+        index: number
+        success: boolean
+        message: string
+        sku?: string
+    }>
+}

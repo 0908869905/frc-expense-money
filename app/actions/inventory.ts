@@ -11,6 +11,7 @@ import {
   errorState,
   type ActionState
 } from "@/lib/actions/helpers";
+import type { BatchResult } from "@/types/inventory";
 
 // ========== 類型定義 ==========
 
@@ -318,6 +319,234 @@ function validateSku(sku: string): { valid: boolean; error?: string } {
   }
 
   return { valid: true };
+}
+
+// ========== 批量操作 ==========
+
+const MAX_BATCH_SIZE = 50;
+
+/**
+ * 批量新增零件
+ */
+export async function batchCreateItems(
+  items: Array<{
+    name: string;
+    sku: string;
+    category: string;
+    storageLocation: string;
+    currentQuantity?: number;
+    safetyStockLevel?: number;
+    vendorLink?: string;
+  }>
+): Promise<BatchResult> {
+  const userId = await getAuthenticatedUserId();
+  if (!userId) {
+    return {
+      success: false,
+      message: "未授權",
+      totalCount: 0,
+      successCount: 0,
+      failedCount: 0,
+      results: [],
+    };
+  }
+
+  if (items.length === 0 || items.length > MAX_BATCH_SIZE) {
+    return {
+      success: false,
+      message: `批量數量須介於 1-${MAX_BATCH_SIZE} 之間`,
+      totalCount: items.length,
+      successCount: 0,
+      failedCount: items.length,
+      results: [],
+    };
+  }
+
+  // 行內 SKU 重複預檢
+  const skus = items.map((i) => i.sku.trim());
+  const skuSet = new Set<string>();
+  const duplicateSkus = new Set<string>();
+  for (const sku of skus) {
+    if (skuSet.has(sku)) {
+      duplicateSkus.add(sku);
+    }
+    skuSet.add(sku);
+  }
+
+  // 資料庫 SKU 唯一性預檢
+  const existingItems = await prisma.inventoryItem.findMany({
+    where: { sku: { in: Array.from(skuSet) } },
+    select: { sku: true },
+  });
+  const existingSkuSet = new Set(existingItems.map((i) => i.sku));
+
+  const results: BatchResult["results"] = [];
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const sku = item.sku.trim();
+
+    // 檢查行內重複
+    if (duplicateSkus.has(sku)) {
+      results.push({ index: i, success: false, message: `料號 ${sku} 在批次內重複`, sku });
+      failedCount++;
+      continue;
+    }
+
+    // 檢查資料庫重複
+    if (existingSkuSet.has(sku)) {
+      results.push({ index: i, success: false, message: `料號 ${sku} 已存在`, sku });
+      failedCount++;
+      continue;
+    }
+
+    try {
+      await prisma.inventoryItem.create({
+        data: {
+          name: item.name.trim(),
+          sku,
+          category: item.category as ItemCategory,
+          storageLocation: item.storageLocation.trim(),
+          currentQuantity: item.currentQuantity ?? 0,
+          safetyStockLevel: item.safetyStockLevel ?? 0,
+          vendorLink: item.vendorLink?.trim() || null,
+        },
+      });
+      // 成功後加入 existingSkuSet 避免後續行再次建立同 SKU
+      existingSkuSet.add(sku);
+      results.push({ index: i, success: true, message: "新增成功", sku });
+      successCount++;
+    } catch (error: unknown) {
+      // 捕獲 P2002 唯一約束衝突
+      const prismaError = error as { code?: string };
+      if (prismaError.code === "P2002") {
+        results.push({ index: i, success: false, message: `料號 ${sku} 已存在`, sku });
+      } else {
+        results.push({ index: i, success: false, message: "資料庫錯誤", sku });
+      }
+      failedCount++;
+    }
+  }
+
+  revalidateInventory();
+
+  const allSuccess = failedCount === 0;
+  return {
+    success: allSuccess,
+    message: allSuccess
+      ? `全部 ${successCount} 筆新增成功`
+      : `${successCount} 筆成功，${failedCount} 筆失敗`,
+    totalCount: items.length,
+    successCount,
+    failedCount,
+    results,
+  };
+}
+
+/**
+ * 批量庫存調整
+ */
+export async function batchAdjustStock(
+  adjustments: Array<{
+    itemId: string;
+    amount: number;
+    transactionType: string;
+    projectId?: string;
+  }>
+): Promise<BatchResult> {
+  let ctx;
+  try {
+    ctx = await requireAuth();
+  } catch {
+    return {
+      success: false,
+      message: "未授權",
+      totalCount: 0,
+      successCount: 0,
+      failedCount: 0,
+      results: [],
+    };
+  }
+
+  if (adjustments.length === 0 || adjustments.length > MAX_BATCH_SIZE) {
+    return {
+      success: false,
+      message: `批量數量須介於 1-${MAX_BATCH_SIZE} 之間`,
+      totalCount: adjustments.length,
+      successCount: 0,
+      failedCount: adjustments.length,
+      results: [],
+    };
+  }
+
+  const results: BatchResult["results"] = [];
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (let i = 0; i < adjustments.length; i++) {
+    const adj = adjustments[i];
+
+    try {
+      await prisma.$transaction(async (tx) => {
+        const item = await tx.inventoryItem.findUnique({
+          where: { id: adj.itemId },
+        });
+
+        if (!item) {
+          throw new Error("找不到指定的零件");
+        }
+
+        const newQuantity = item.currentQuantity + adj.amount;
+
+        if (newQuantity < 0) {
+          throw new InsufficientStockError(item.name, adj.amount, item.currentQuantity);
+        }
+
+        await tx.inventoryItem.update({
+          where: { id: adj.itemId },
+          data: { currentQuantity: newQuantity },
+        });
+
+        await tx.inventoryTransaction.create({
+          data: {
+            itemId: adj.itemId,
+            changeAmount: adj.amount,
+            transactionType: adj.transactionType as TransactionType,
+            relatedProjectId: adj.projectId || null,
+            performedBy: ctx.userName,
+          },
+        });
+      });
+
+      results.push({ index: i, success: true, message: "調整成功" });
+      successCount++;
+    } catch (error) {
+      const msg =
+        error instanceof InsufficientStockError
+          ? error.message
+          : error instanceof Error && error.message === "找不到指定的零件"
+          ? error.message
+          : "庫存調整失敗";
+      results.push({ index: i, success: false, message: msg });
+      failedCount++;
+    }
+  }
+
+  revalidateInventory();
+
+  const allSuccess = failedCount === 0;
+  return {
+    success: allSuccess,
+    message: allSuccess
+      ? `全部 ${successCount} 筆調整成功`
+      : `${successCount} 筆成功，${failedCount} 筆失敗`,
+    totalCount: adjustments.length,
+    successCount,
+    failedCount,
+    results,
+  };
 }
 
 /**

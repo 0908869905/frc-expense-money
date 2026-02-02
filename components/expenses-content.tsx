@@ -3,32 +3,26 @@
 import { useLanguage } from "@/lib/language-context"
 import Link from "next/link"
 import { useState, useTransition } from "react"
-import { submitReport, deleteReport } from "@/app/actions/expenses"
-import { Send, Trash2, Clock, CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
+import { Clock, CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
 import { ReceiptAuditButton } from "@/components/receipt-audit-button"
+import { ReceiptPreview } from "@/components/receipt-preview"
 import { BatchAuditButton } from "@/components/batch-audit-button"
-import { BankAccountSelectDialog } from "@/components/bank-account-select-dialog"
 import { getStatusColor, getStatusLabel, getDepartmentLabel, type Language } from "@/lib/constants/expense-status"
 import { useMessage } from "@/hooks/useMessage"
 import { formatDate } from "@/lib/utils"
 import { maskAccountNumber } from "@/lib/utils/mask-account"
 import type { AuditResult } from "@/types/audit"
-import type { BankAccountData } from "@/app/actions/bank-accounts"
-
 interface ExpensesContentProps {
     reports: any[]
     totalReports: number
     totalItems: number
     totalAmount: number
-    bankAccounts?: BankAccountData[]
 }
 
-export function ExpensesContent({ reports, totalReports, totalItems, totalAmount, bankAccounts = [] }: ExpensesContentProps) {
+export function ExpensesContent({ reports, totalReports, totalItems, totalAmount }: ExpensesContentProps) {
     const { t, language } = useLanguage()
-    const [isPending, startTransition] = useTransition()
     const [localReports, setLocalReports] = useState(reports)
     const { message, showMessage } = useMessage()
-    const [submitDialogReportId, setSubmitDialogReportId] = useState<string | null>(null)
 
     // 更新特定項目的審核狀態
     const handleAuditComplete = (reportId: string, itemId: string, result: AuditResult) => {
@@ -55,60 +49,12 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case "DRAFT": return <FileText className="h-4 w-4" />
             case "PENDING_MANAGER":
             case "PENDING_FINANCE": return <Clock className="h-4 w-4" />
             case "PAID": return <CheckCircle className="h-4 w-4" />
             case "REJECTED": return <XCircle className="h-4 w-4" />
             default: return <FileText className="h-4 w-4" />
         }
-    }
-
-    const handleSubmitClick = (reportId: string) => {
-        // 如果有收款帳戶，顯示選擇對話框
-        if (bankAccounts.length > 0) {
-            setSubmitDialogReportId(reportId)
-        } else {
-            // 沒有帳戶，直接確認提交
-            if (confirm(language === "zh"
-                ? "確定要提交此報帳單嗎？提交後將無法編輯。\n\n提示：您尚未設定收款帳戶，可在設定頁面新增。"
-                : "Are you sure you want to submit this report? It cannot be edited after submission.\n\nTip: You haven't set up a bank account. You can add one in Settings.")) {
-                handleSubmitConfirm(reportId, undefined)
-            }
-        }
-    }
-
-    const handleSubmitConfirm = (reportId: string, bankAccountId: string | undefined) => {
-        setSubmitDialogReportId(null)
-        startTransition(async () => {
-            const result = await submitReport(reportId, bankAccountId)
-            if (result.success) {
-                setLocalReports(prev => prev.map(r =>
-                    r.id === reportId ? { ...r, status: "PENDING_MANAGER" } : r
-                ))
-                showMessage("success", result.message || (language === "zh" ? "報帳單已提交" : "Report submitted"))
-            } else {
-                showMessage("error", result.message || (language === "zh" ? "提交失敗" : "Failed to submit"))
-            }
-        })
-    }
-
-    const handleDelete = async (reportId: string) => {
-        if (!confirm(language === "zh"
-            ? "確定要刪除此報帳單嗎？此操作無法復原。"
-            : "Are you sure you want to delete this report? This action cannot be undone.")) {
-            return
-        }
-
-        startTransition(async () => {
-            const result = await deleteReport(reportId)
-            if (result.success) {
-                setLocalReports(prev => prev.filter(r => r.id !== reportId))
-                showMessage("success", result.message || (language === "zh" ? "報帳單已刪除" : "Report deleted"))
-            } else {
-                showMessage("error", result.message || (language === "zh" ? "刪除失敗" : "Failed to delete"))
-            }
-        })
     }
 
     return (
@@ -136,19 +82,19 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                 </div>
             )}
 
-            {/* Stats Cards */}
+            {/* Stats Cards — 排除已拒絕的報帳單 */}
             <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-sm font-medium text-muted-foreground">{t("total_reports")}</h3>
-                    <p className="text-2xl font-bold">{localReports.length}</p>
+                    <p className="text-2xl font-bold">{localReports.filter(r => r.status !== "REJECTED").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-sm font-medium text-muted-foreground">{t("total_items")}</h3>
-                    <p className="text-2xl font-bold">{localReports.reduce((acc, r) => acc + r.items.length, 0)}</p>
+                    <p className="text-2xl font-bold">{localReports.filter(r => r.status !== "REJECTED").reduce((acc, r) => acc + r.items.length, 0)}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-sm font-medium text-muted-foreground">{t("total_amount")}</h3>
-                    <p className="text-2xl font-bold">${localReports.reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
+                    <p className="text-2xl font-bold">${localReports.filter(r => r.status !== "REJECTED").reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
                 </div>
             </div>
 
@@ -198,33 +144,11 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                         reportTitle={report.title}
                                         onAuditComplete={(res) => handleBatchAuditComplete(report.id, res)}
                                     />
-                                    {/* Action Buttons for Draft */}
-                                    {report.status === "DRAFT" && (
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleSubmitClick(report.id)}
-                                                disabled={isPending}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium disabled:opacity-50"
-                                                title={language === "zh" ? "提交審核" : "Submit for approval"}
-                                            >
-                                                <Send className="h-4 w-4" />
-                                                {language === "zh" ? "提交" : "Submit"}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(report.id)}
-                                                disabled={isPending}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-destructive text-destructive hover:bg-destructive/10 text-sm font-medium disabled:opacity-50"
-                                                title={language === "zh" ? "刪除" : "Delete"}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
-                            {/* Bank Account Info - 顯示在已提交的報帳單上 */}
-                            {report.status !== "DRAFT" && report.bankAccount && (
+                            {/* Bank Account Info */}
+                            {report.bankAccount && (
                                 <div className="px-4 py-2 bg-muted/30 border-b flex items-center gap-2 text-sm">
                                     <Building2 className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-muted-foreground">{language === "zh" ? "收款帳戶" : "Bank Account"}:</span>
@@ -248,13 +172,18 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                                 <div className="divide-y">
                                     {report.items.map((item: any) => (
                                         <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted/20">
-                                            <div className="flex-1">
-                                                <p className="font-medium">{item.description}</p>
-                                                <div className="flex gap-3 text-sm text-muted-foreground mt-1">
-                                                    <span className="px-2 py-0.5 bg-muted rounded-full text-xs">
-                                                        {item.category}
-                                                    </span>
-                                                    <span>{formatDate(item.date, language as Language)}</span>
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                {item.receiptUrl && (
+                                                    <ReceiptPreview src={item.receiptUrl} alt={item.description} size="sm" />
+                                                )}
+                                                <div className="min-w-0">
+                                                    <p className="font-medium">{item.description}</p>
+                                                    <div className="flex gap-3 text-sm text-muted-foreground mt-1">
+                                                        <span className="px-2 py-0.5 bg-muted rounded-full text-xs">
+                                                            {item.category}
+                                                        </span>
+                                                        <span>{formatDate(item.date, language as Language)}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
@@ -277,15 +206,6 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                 )}
             </div>
 
-            {/* Bank Account Select Dialog */}
-            {submitDialogReportId && (
-                <BankAccountSelectDialog
-                    accounts={bankAccounts}
-                    onConfirm={(bankAccountId) => handleSubmitConfirm(submitDialogReportId, bankAccountId)}
-                    onCancel={() => setSubmitDialogReportId(null)}
-                    isPending={isPending}
-                />
-            )}
         </div>
     )
 }

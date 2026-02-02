@@ -2,10 +2,11 @@
 
 import { useLanguage } from "@/lib/language-context"
 import { useState, useTransition } from "react"
-import { Package, AlertTriangle, Plus, Edit2, Trash2, ArrowUpDown, ExternalLink, Search, ArrowDownToLine, ArrowUpFromLine, QrCode, ScanLine } from "lucide-react"
+import { Package, AlertTriangle, Plus, Edit2, Trash2, ArrowUpDown, ExternalLink, Search, ArrowDownToLine, ArrowUpFromLine, QrCode, ScanLine, Layers, ArrowLeftRight } from "lucide-react"
 import { adjustStock, createItem, updateItem, deleteItem } from "@/app/actions/inventory"
 import { ItemCategory, TransactionType } from "@prisma/client"
 import { InventoryQRModal } from "./inventory-qr-modal"
+import { BatchInventoryModal } from "./batch-inventory-modal"
 import { useMessage } from "@/hooks/useMessage"
 import Link from "next/link"
 import type { Language } from "@/lib/constants/expense-status"
@@ -22,7 +23,7 @@ interface InventoryContentProps {
     userRole: string
 }
 
-type ModalType = "add" | "edit" | "adjust" | "stockIn" | "stockOut" | "qr" | null
+type ModalType = "add" | "edit" | "adjust" | "stockIn" | "stockOut" | "qr" | "batchCreate" | "batchAdjust" | null
 
 interface FormData {
     name: string
@@ -201,7 +202,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         {language === "zh" ? "管理 FRC 零件庫存" : "Manage FRC parts inventory"}
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                     <Link
                         href="/dashboard/inventory/scan"
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-md border hover:bg-muted transition-colors"
@@ -209,6 +210,20 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         <ScanLine className="h-4 w-4" />
                         {language === "zh" ? "掃描" : "Scan"}
                     </Link>
+                    <button
+                        onClick={() => openModal("batchCreate")}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border hover:bg-muted transition-colors"
+                    >
+                        <Layers className="h-4 w-4" />
+                        {language === "zh" ? "批量新增" : "Batch Add"}
+                    </button>
+                    <button
+                        onClick={() => openModal("batchAdjust")}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border hover:bg-muted transition-colors"
+                    >
+                        <ArrowLeftRight className="h-4 w-4" />
+                        {language === "zh" ? "批量調整" : "Batch Adjust"}
+                    </button>
                     <button
                         onClick={() => openModal("add")}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
@@ -719,6 +734,29 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 <InventoryQRModal
                     item={selectedItem}
                     onClose={closeModal}
+                />
+            )}
+
+            {/* Batch Create Modal */}
+            {activeModal === "batchCreate" && (
+                <BatchInventoryModal
+                    mode="create"
+                    isOpen={true}
+                    onClose={closeModal}
+                    language={language}
+                    onSuccess={() => window.location.reload()}
+                />
+            )}
+
+            {/* Batch Adjust Modal */}
+            {activeModal === "batchAdjust" && (
+                <BatchInventoryModal
+                    mode="adjust"
+                    isOpen={true}
+                    onClose={closeModal}
+                    items={localItems}
+                    language={language}
+                    onSuccess={() => window.location.reload()}
                 />
             )}
         </div>

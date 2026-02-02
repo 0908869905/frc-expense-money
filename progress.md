@@ -731,10 +731,155 @@
 
 ---
 
+## Session: 2026-01-27 - Git 回退修復部署問題
+
+### Phase 1: 問題診斷
+- **Status:** complete
+- **Started:** 2026-01-27
+- **Reported Issue:** Vercel 部署的網站仍顯示舊的 SKU 驗證錯誤訊息
+  - 錯誤訊息：「料號只允許字母、數字、連字符和底線」
+  - 本地代碼已更新（validateSku 允許任何字符）
+- Actions taken:
+  - 檢查本地 `inventory.ts` 確認 validateSku 函數已正確更新
+  - 發現本地代碼與 Vercel 部署不一致
+
+### Phase 2: Git 回退執行
+- **Status:** complete
+- Actions taken:
+  - 查看 git log 確認提交歷史
+  - 執行 `git reset --hard d9af3d5a0a511488fd31cfbef7561537f452a8c4`
+  - 回退到 "Merge branch 'experiment' into main" 提交
+  - 執行 `git push --force` 強制推送到遠端
+- Commits removed:
+  - `1816f48` fix: 移除 object-fit cover，恢復掃描功能
+  - `6db150e` fix: 用 CSS 強制讓相機畫面填滿掃描框
+  - `38e2a54` fix: 移除 aspectRatio 限制，修復手機黑屏問題
+
+### Phase 3: 驗證
+- **Status:** complete
+- Actions taken:
+  - 使用 GitHub API 確認 main 分支已回到 d9af3d5
+  - 確認 commit message：「Merge branch 'experiment' into main」
+
+### Phase 4: Vercel 部署確認
+- **Status:** pending
+- Notes:
+  - 用戶報告 Vercel 部署可能有快取延遲
+  - 需要等待 Vercel 重新部署並確認
+
+## Git 操作紀錄 (2026-01-27)
+| 操作 | 命令 | 說明 |
+|------|------|------|
+| 回退 | `git reset --hard d9af3d5` | 回到 experiment 合併點 |
+| 強推 | `git push --force` | 覆蓋遠端 main 分支 |
+
+## 被移除的 Commits
+| Commit | Message | 影響 |
+|--------|---------|------|
+| `1816f48` | fix: 移除 object-fit cover，恢復掃描功能 | QR 掃描相機樣式 |
+| `6db150e` | fix: 用 CSS 強制讓相機畫面填滿掃描框 | QR 掃描相機樣式 |
+| `38e2a54` | fix: 移除 aspectRatio 限制，修復手機黑屏問題 | QR 掃描相機樣式 |
+
+## 5-Question Reboot Check
+1. **做什麼？** 回退 main 分支到 d9af3d5，修復 Vercel 部署顯示舊代碼問題
+2. **進度？** Git 回退完成，等待 Vercel 重新部署確認
+3. **下一步？** 確認 Vercel 部署後網站顯示正確的 SKU 驗證行為
+4. **阻礙？** Vercel 可能有快取延遲，需要等待或手動觸發重新部署
+5. **檔案？** 無需查看特定檔案，主要監控 Vercel 部署狀態
+
+---
+
+## Session: 2026-01-28 - 收款帳戶功能
+
+### 完成項目
+- [x] 新增 BankAccount 資料模型（prisma/schema.prisma）
+- [x] 新增收款帳戶管理 Server Actions（app/actions/bank-accounts.ts）
+- [x] 新增帳號遮罩工具（lib/utils/mask-account.ts）
+- [x] 新增台灣銀行常數（lib/constants/banks.ts）
+- [x] 新增收款帳戶管理 UI 組件（components/bank-account-settings.tsx）
+- [x] 新增帳戶選擇對話框（components/bank-account-select-dialog.tsx）
+- [x] 整合到設定頁面、報帳單提交、審核頁面
+- [x] 安全性修復：新增角色檢查到 updateBankAccount, deleteBankAccount, setDefaultBankAccount
+- [x] 安全性修復：新增帳號格式驗證（只允許數字和連字號）
+- [x] 安全性修復：新增欄位長度限制
+- [x] 程式碼簡化：新增 lib/ui-constants.ts 統一按鈕樣式常數
+- [x] 程式碼簡化：移除未使用的函數和常數
+
+### 修改檔案
+- `prisma/schema.prisma` - 新增 BankAccount 模型
+- `app/actions/bank-accounts.ts` - 新增 CRUD Server Actions
+- `lib/utils/mask-account.ts` - 帳號遮罩工具
+- `lib/constants/banks.ts` - 台灣銀行代碼常數
+- `lib/ui-constants.ts` - 統一按鈕樣式常數
+- `components/bank-account-settings.tsx` - 收款帳戶管理 UI
+- `components/bank-account-select-dialog.tsx` - 帳戶選擇對話框
+- `app/dashboard/settings/page.tsx` - 整合帳戶設定
+- `components/expense-form.tsx` - 整合帳戶選擇
+- `app/dashboard/approvals/page.tsx` - 顯示收款帳戶資訊
+
+### 解決的技術問題
+| 問題 | 原因 | 解決方案 |
+|------|------|----------|
+| Prisma client 未正確生成 | generate 命令執行環境問題 | 使用 `node -e` 執行 prisma generate |
+| 對話框被父元素遮擋 | z-index 堆疊問題 | 使用 createPortal 渲染到 document.body |
+| 資料庫欄位不存在 | Schema 未同步 | 執行 prisma db push 同步 schema |
+
+### 5-Question Reboot Check
+1. **做什麼？** 實作收款帳戶管理功能
+2. **進度？** 功能完成，已整合到設定、報帳單提交、審核頁面
+3. **下一步？** 測試線上環境、確認 Vercel 部署
+4. **阻礙？** 無
+5. **檔案？** `app/actions/bank-accounts.ts`, `components/bank-account-settings.tsx`, `components/bank-account-select-dialog.tsx`
+
+---
+
+## Session: 2026-02-01 - BudgetFlow iOS App 上架計劃（階段 1-2）
+
+### 完成項目
+- [x] 修復 CSP Permissions-Policy camera 設定：`camera=()` -> `camera=(self)`
+- [x] 修復貓咪載入動畫背景：添加 `mix-blend-screen`
+- [x] 新增 Capacitor 環境偵測工具：`lib/capacitor.ts`
+- [x] WebView 行為控制 + Safe Area CSS：`app/globals.css`
+- [x] 更新 layout.tsx metadata：title, viewport-fit, apple-mobile-web-app tags
+- [x] 安裝 Capacitor 套件（core, ios, splash-screen, status-bar, network, cli）
+- [x] 建立 `capacitor.config.ts`（Remote WebView 模式，指向 Vercel URL placeholder）
+- [x] `npx cap add ios` 成功，`ios/` 目錄已生成
+- [x] 更新 `.gitignore` 添加 `ios/App/Pods/` 等排除規則
+- [x] 更新 `tsconfig.json` 排除 `capacitor.config.ts` 和 `ios/`
+- [x] `npm run build` 驗證通過（24 個頁面全部正常生成）
+
+### 修改檔案
+- `next.config.mjs` - CSP Permissions-Policy camera=(self)
+- `components/navigation/navigation-progress-bar.tsx` - 貓咪動畫 mix-blend-screen
+- `lib/capacitor.ts` - **新增** Capacitor 環境偵測工具（isNativeApp, isIOSApp, isWebBrowser）
+- `app/globals.css` - 新增 `.capacitor-app` 樣式和 safe-area padding
+- `app/layout.tsx` - metadata title -> "BudgetFlow"、viewport-fit=cover、apple-mobile-web-app tags
+- `capacitor.config.ts` - **新增** Capacitor 配置檔（Remote WebView 模式）
+- `package.json` - 新增 Capacitor 依賴
+- `.gitignore` - 新增 ios/App/Pods/ 等排除
+- `tsconfig.json` - exclude capacitor.config.ts 和 ios/
+
+### 解決的技術問題
+| 問題 | 原因 | 解決方案 |
+|------|------|----------|
+| `CapacitorConfig` 型別找不到 | 需從 `@capacitor/cli` 匯入，非 `@capacitor/core` | 修正 import 來源 |
+| `capacitor.config.ts` 被 Next.js build 編譯 | Next.js build 會掃描專案根目錄的 .ts 檔 | tsconfig.json exclude 排除 |
+| `window as Record<string, unknown>` 型別轉換不通過 | TypeScript 不允許直接 type assertion | 改用 interface 宣告 `window.Capacitor` |
+
+### 5-Question Reboot Check
+1. **做什麼？** BudgetFlow iOS App 上架計劃 - 階段 1（Web App 端調整）和階段 2（Capacitor 初始化）
+2. **進度？** 階段 1-2 完成，階段 3-7 待續（需要 Mac 環境）
+3. **下一步？** 在 Mac 上繼續階段 3（Xcode 專案配置）、階段 4（Native 功能橋接）、階段 5-7（TestFlight/App Store 上架）
+4. **阻礙？** 階段 3+ 需要 Mac + Xcode 環境，用戶明天用 Mac 繼續
+5. **檔案？** `capacitor.config.ts`（需更新 Vercel URL）、`lib/capacitor.ts`（環境偵測）、`ios/` 目錄（Xcode 專案）
+
+---
+
 ## 下一步建議
 1. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
 2. 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）
 3. 考慮使用外部儲存服務存放 Avatar（S3/Vercel Blob）
 4. 推送前永遠執行 `npm run build`
 5. 檢查 Upstash Redis 配置是否正確（或創建新實例）
-6. 執行 `npx prisma db push` 更新線上資料庫 schema（新增 MENTOR）
+6. 執行 `npx prisma db push` 更新線上資料庫 schema（新增 BankAccount 模型）
+7. **iOS App 上架**：在 Mac 上繼續階段 3-7（Xcode 配置、Native 功能、TestFlight、App Store）

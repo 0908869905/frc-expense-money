@@ -49,7 +49,6 @@ interface InventoryExportRow {
 
 // --- Label Mappings ---
 const STATUS_LABELS: Record<string, string> = {
-    DRAFT: "草稿",
     PENDING_MANAGER: "待主管審核",
     PENDING_FINANCE: "待財務審核",
     RETURNED: "已退回",

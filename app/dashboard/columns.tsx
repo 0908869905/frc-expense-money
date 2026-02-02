@@ -14,8 +14,6 @@ function getStatusVariant(status: string): "success" | "destructive" | "secondar
       return "success"
     case "REJECTED":
       return "destructive"
-    case "DRAFT":
-      return "secondary"
     default:
       return "default"
   }

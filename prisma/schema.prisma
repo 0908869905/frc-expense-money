@@ -104,7 +104,6 @@ enum TeamDepartment {
 }
 
 enum ReportStatus {
-  DRAFT
   PENDING_MANAGER
   PENDING_FINANCE
   RETURNED        // 退回修改
@@ -117,7 +116,7 @@ model ExpenseReport {
   title          String
   description    String         @default("")
   department     TeamDepartment @default(ELECTRICAL) // 組別
-  status         ReportStatus   @default(DRAFT)
+  status         ReportStatus   @default(PENDING_MANAGER)
   totalAmount    Float          @default(0)
   amountCents    Int
   submitterName  String         @default("Unknown") // 提交者名稱

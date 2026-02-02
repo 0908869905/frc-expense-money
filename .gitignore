@@ -27,6 +27,11 @@ rugged-sentry-*.json
 *.pem
 *.key
 
+# Capacitor iOS
+ios/App/Pods/
+ios/App/App/public/
+ios/App/output/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

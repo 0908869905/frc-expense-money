@@ -43,7 +43,6 @@ const CATEGORY_LABELS: Record<string, { zh: string; en: string }> = {
 }
 
 const STATUS_LABELS: Record<string, { zh: string; en: string }> = {
-    DRAFT: { zh: "草稿", en: "Draft" },
     PENDING_MANAGER: { zh: "待主管審核", en: "Pending Manager" },
     PENDING_FINANCE: { zh: "待財務審核", en: "Pending Finance" },
     PAID: { zh: "已付款", en: "Paid" },

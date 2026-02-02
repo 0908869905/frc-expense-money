@@ -1,7 +1,8 @@
 "use client"
 
 import { useLanguage } from "@/lib/language-context"
-import { Check, X, Clock, Building2 } from "lucide-react"
+import { Check, X, Clock, Building2, Paperclip } from "lucide-react"
+import { ReceiptPreview } from "@/components/receipt-preview"
 import { useState, useTransition } from "react"
 import { approveReport, rejectReport } from "@/app/actions/approvals"
 import { formatDate } from "@/lib/utils"
@@ -133,9 +134,17 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
                                 </p>
                                 <div className="space-y-1">
                                     {report.items.slice(0, 3).map((item: any) => (
-                                        <div key={item.id} className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">{item.description}</span>
-                                            <span>${Number(item.amount).toFixed(2)}</span>
+                                        <div key={item.id} className="flex items-center justify-between text-sm gap-2">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                {item.receiptUrl && (
+                                                    <ReceiptPreview src={item.receiptUrl} alt={item.description} size="sm" />
+                                                )}
+                                                <span className="text-muted-foreground truncate">{item.description}</span>
+                                                {item.receiptUrl && (
+                                                    <Paperclip className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                                )}
+                                            </div>
+                                            <span className="flex-shrink-0">${Number(item.amount).toFixed(2)}</span>
                                         </div>
                                     ))}
                                     {report.items.length > 3 && (

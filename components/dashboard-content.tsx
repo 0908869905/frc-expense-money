@@ -35,11 +35,6 @@ interface DashboardContentProps {
 
 // Dashboard 專用的狀態樣式（包含圖示和深色模式支援）
 const DASHBOARD_STATUS_STYLES: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
-    DRAFT: {
-        bg: "bg-slate-500/20 dark:bg-slate-500/10",
-        text: "text-slate-600 dark:text-slate-400",
-        icon: <Clock className="h-3 w-3" />
-    },
     PENDING_MANAGER: {
         bg: "bg-amber-500/20 dark:bg-amber-500/10",
         text: "text-amber-600 dark:text-amber-400",
@@ -82,7 +77,7 @@ export function DashboardContent({
     ).length
     const paidCount = reports.filter(r => r.status === "PAID").length
 
-    const getStatusStyle = (status: string) => DASHBOARD_STATUS_STYLES[status] || DASHBOARD_STATUS_STYLES.DRAFT
+    const getStatusStyle = (status: string) => DASHBOARD_STATUS_STYLES[status] || DASHBOARD_STATUS_STYLES.PENDING_MANAGER
 
     return (
         <div className="flex flex-col gap-6">
