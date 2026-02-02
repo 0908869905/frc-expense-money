@@ -9,6 +9,7 @@ import { InventoryQRModal } from "./inventory-qr-modal"
 import { BatchInventoryModal } from "./batch-inventory-modal"
 import { useMessage } from "@/hooks/useMessage"
 import Link from "next/link"
+import { isSafeUrl } from "@/lib/utils"
 import type { Language } from "@/lib/constants/expense-status"
 import {
     type InventoryItem,
@@ -387,7 +388,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
-                                            {item.vendorLink && (
+                                            {item.vendorLink && isSafeUrl(item.vendorLink) && (
                                                 <a
                                                     href={item.vendorLink}
                                                     target="_blank"

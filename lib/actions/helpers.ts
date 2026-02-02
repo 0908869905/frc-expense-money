@@ -72,6 +72,21 @@ export async function requireFinanceAccess(): Promise<AuthContext> {
 
 const FINANCE_ROLES = ["FINANCE", "ADMIN"] as const;
 
+export const INVENTORY_WRITE_ROLES = ["VICE_LEADER", "LEADER", "FINANCE", "ADMIN"] as const;
+
+/**
+ * 要求使用者具有庫存寫入權限
+ */
+export async function requireInventoryWrite(): Promise<AuthContext> {
+    const ctx = await requireAuth();
+
+    if (!INVENTORY_WRITE_ROLES.includes(ctx.userRole as typeof INVENTORY_WRITE_ROLES[number])) {
+        throw new Error("InsufficientPermission");
+    }
+
+    return ctx;
+}
+
 /**
  * 檢查使用者是否具有財務權限（不拋錯，回傳 boolean）
  */

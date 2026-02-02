@@ -4,10 +4,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { expenseReportSchema } from "@/lib/schemas";
 import { toStorageUnit } from "@/lib/money";
-import { TeamDepartment } from "@prisma/client";
+import { TeamDepartment, ReportStatus } from "@prisma/client";
 import { revalidateExpenses, revalidateDashboard } from "@/lib/actions/helpers";
 
-// --- Types ---
 export type State = {
     success: boolean;
     message: string | null;
@@ -22,7 +21,6 @@ interface UpdateReportData {
     status?: string;
 }
 
-// --- Constants ---
 const SUBMIT_MESSAGES: Record<string, string> = {
     PAID: "報帳單已直接核准付款！",
     PENDING_FINANCE: "報帳單已提交至財務審核！",
@@ -35,23 +33,17 @@ function parseItemDate(dateInput: Date | string): Date {
     return isInvalidDate ? new Date() : date;
 }
 
-function determineSubmitStatus(role: string): { status: string; skipMessage: string } {
+function determineSubmitStatus(role: string): string {
     switch (role) {
         case "ADMIN":
         case "FINANCE":
-            return { status: "PAID", skipMessage: "（管理員/財務直接付款）" };
+            return "PAID";
         case "LEADER":
-            return { status: "PENDING_FINANCE", skipMessage: "（組長跳過組長審核）" };
+            return "PENDING_FINANCE";
         default:
-            return { status: "PENDING_MANAGER", skipMessage: "" };
+            return "PENDING_MANAGER";
     }
 }
-
-function canAccessReport(report: { submitterEmail: string }, userEmail: string, userRole: string): boolean {
-    return report.submitterEmail === userEmail || userRole === "ADMIN";
-}
-
-// --- Server Actions ---
 
 /**
  * 建立新的報帳單
@@ -109,8 +101,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
         ? (userDepartmentStr as TeamDepartment)
         : undefined;
 
-    // 直接提交：根據角色決定狀態
-    const { status: submitStatus, skipMessage } = determineSubmitStatus(session.user.role || "");
+    const submitStatus = determineSubmitStatus(session.user.role || "");
 
     // 收款帳戶
     const bankAccountId = formData.get("bankAccountId") as string | null;
@@ -188,6 +179,10 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
         return { success: false, message: "Only admins can edit reports" };
     }
 
+    if (data.status && !Object.values(ReportStatus).includes(data.status as ReportStatus)) {
+        return { success: false, message: "Invalid status value" };
+    }
+
     try {
         const report = await prisma.expenseReport.findUnique({
             where: { id: reportId },
@@ -203,7 +198,7 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
                 data: {
                     ...(data.title && { title: data.title }),
                     ...(data.description !== undefined && { description: data.description }),
-                    ...(data.status && { status: data.status as typeof report.status }),
+                    ...(data.status && { status: data.status as ReportStatus }),
                 },
             });
 
@@ -241,6 +236,10 @@ export async function deleteReport(reportId: string): Promise<State> {
         return { success: false, message: "Unauthorized" };
     }
 
+    if (session.user.role !== "ADMIN") {
+        return { success: false, message: "只有管理員可以刪除報帳單" };
+    }
+
     try {
         const report = await prisma.expenseReport.findUnique({
             where: { id: reportId },
@@ -250,11 +249,16 @@ export async function deleteReport(reportId: string): Promise<State> {
             return { success: false, message: "Report not found" };
         }
 
-        if (session.user.role !== "ADMIN") {
-            return { success: false, message: "只有管理員可以刪除報帳單" };
-        }
-
         await prisma.$transaction(async (tx) => {
+            await tx.auditLog.create({
+                data: {
+                    entityType: "ExpenseReport",
+                    entityId: reportId,
+                    action: "DELETE",
+                    actorId: session.user.id!,
+                    oldData: JSON.parse(JSON.stringify(report)),
+                },
+            });
             await tx.expenseItem.deleteMany({ where: { reportId } });
             await tx.expenseReport.delete({ where: { id: reportId } });
         });

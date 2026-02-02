@@ -22,17 +22,7 @@ export default async function ExpensesPage(): Promise<React.JSX.Element> {
         orderBy: { createdAt: "desc" }
     })
 
-    const activeReports = reports.filter(r => r.status !== "REJECTED")
-    const totalReports = activeReports.length
-    const totalItems = activeReports.reduce((sum, report) => sum + report.items.length, 0)
-    const totalAmount = activeReports.reduce((sum, report) => sum + Number(report.totalAmount), 0)
-
     return (
-        <ExpensesContent
-            reports={reports}
-            totalReports={totalReports}
-            totalItems={totalItems}
-            totalAmount={totalAmount}
-        />
+        <ExpensesContent reports={reports} />
     )
 }

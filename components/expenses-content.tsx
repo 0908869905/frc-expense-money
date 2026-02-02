@@ -2,7 +2,7 @@
 
 import { useLanguage } from "@/lib/language-context"
 import Link from "next/link"
-import { useState, useTransition } from "react"
+import { useMemo, useState } from "react"
 import { Clock, CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
 import { ReceiptAuditButton } from "@/components/receipt-audit-button"
 import { ReceiptPreview } from "@/components/receipt-preview"
@@ -11,24 +11,36 @@ import { getStatusColor, getStatusLabel, getDepartmentLabel, type Language } fro
 import { useMessage } from "@/hooks/useMessage"
 import { formatDate } from "@/lib/utils"
 import { maskAccountNumber } from "@/lib/utils/mask-account"
-import type { AuditResult } from "@/types/audit"
+import type { AuditResult, BatchAuditResult } from "@/types/audit"
+import type { ExpenseReportView, ExpenseItemView } from "@/types/expense"
+
 interface ExpensesContentProps {
-    reports: any[]
-    totalReports: number
-    totalItems: number
-    totalAmount: number
+    reports: ExpenseReportView[]
 }
 
-export function ExpensesContent({ reports, totalReports, totalItems, totalAmount }: ExpensesContentProps) {
+export function ExpensesContent({ reports }: ExpensesContentProps): JSX.Element {
     const { t, language } = useLanguage()
     const [localReports, setLocalReports] = useState(reports)
     const { message, showMessage } = useMessage()
+
+    const activeReports = useMemo(
+        () => localReports.filter(r => r.status !== "REJECTED"),
+        [localReports]
+    )
+    const activeItemCount = useMemo(
+        () => activeReports.reduce((acc: number, r: ExpenseReportView) => acc + r.items.length, 0),
+        [activeReports]
+    )
+    const activeTotal = useMemo(
+        () => activeReports.reduce((acc: number, r: ExpenseReportView) => acc + Number(r.totalAmount), 0),
+        [activeReports]
+    )
 
     // 更新特定項目的審核狀態
     const handleAuditComplete = (reportId: string, itemId: string, result: AuditResult) => {
         setLocalReports(prev => prev.map(report => {
             if (report.id !== reportId) return report;
-            const updatedItems = report.items.map((item: any) => {
+            const updatedItems = report.items.map((item: ExpenseItemView) => {
                 if (item.id !== itemId) return item;
                 return { ...item, audit: { ...result } };
             });
@@ -36,24 +48,28 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
         }));
     };
 
-    // 更新整張報表的批次審核結果
-    const handleBatchAuditComplete = (reportId: string, result: any) => {
-        // 重新整理頁面以獲取最新資料，或者只顯示通知
-        // 這裡選擇簡單刷新頁面或通知
-        if (result.success) {
-            showMessage("success", language === 'zh' ? `批次審核完成，通過率: ${Math.round(result.passedItems / result.auditedItems * 100)}%` : "Batch audit completed");
-            // 實際上也可以更新 local state，但需要處理較多資料，簡單起見可不更新或 reload
-            window.location.reload();
-        }
+    const handleBatchAuditComplete = (_reportId: string, result: BatchAuditResult) => {
+        if (!result.success) return;
+
+        const passRate = Math.round(result.passedItems / result.auditedItems * 100);
+        const msg = language === "zh"
+            ? `批次審核完成，通過率: ${passRate}%`
+            : "Batch audit completed";
+        showMessage("success", msg);
+        window.location.reload();
     };
 
-    const getStatusIcon = (status: string) => {
+    function getStatusIcon(status: string): JSX.Element {
         switch (status) {
             case "PENDING_MANAGER":
-            case "PENDING_FINANCE": return <Clock className="h-4 w-4" />
-            case "PAID": return <CheckCircle className="h-4 w-4" />
-            case "REJECTED": return <XCircle className="h-4 w-4" />
-            default: return <FileText className="h-4 w-4" />
+            case "PENDING_FINANCE":
+                return <Clock className="h-4 w-4" />
+            case "PAID":
+                return <CheckCircle className="h-4 w-4" />
+            case "REJECTED":
+                return <XCircle className="h-4 w-4" />
+            default:
+                return <FileText className="h-4 w-4" />
         }
     }
 
@@ -82,19 +98,18 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                 </div>
             )}
 
-            {/* Stats Cards — 排除已拒絕的報帳單 */}
             <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-sm font-medium text-muted-foreground">{t("total_reports")}</h3>
-                    <p className="text-2xl font-bold">{localReports.filter(r => r.status !== "REJECTED").length}</p>
+                    <p className="text-2xl font-bold">{activeReports.length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-sm font-medium text-muted-foreground">{t("total_items")}</h3>
-                    <p className="text-2xl font-bold">{localReports.filter(r => r.status !== "REJECTED").reduce((acc, r) => acc + r.items.length, 0)}</p>
+                    <p className="text-2xl font-bold">{activeItemCount}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-6">
                     <h3 className="text-sm font-medium text-muted-foreground">{t("total_amount")}</h3>
-                    <p className="text-2xl font-bold">${localReports.filter(r => r.status !== "REJECTED").reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
+                    <p className="text-2xl font-bold">${activeTotal.toFixed(2)}</p>
                 </div>
             </div>
 
@@ -170,7 +185,7 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                             {/* Expense Items */}
                             {report.items.length > 0 && (
                                 <div className="divide-y">
-                                    {report.items.map((item: any) => (
+                                    {report.items.map((item: ExpenseItemView) => (
                                         <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted/20">
                                             <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 {item.receiptUrl && (
@@ -205,7 +220,6 @@ export function ExpensesContent({ reports, totalReports, totalItems, totalAmount
                     ))
                 )}
             </div>
-
         </div>
     )
 }

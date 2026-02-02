@@ -694,5 +694,92 @@ const cap = window.Capacitor;
 
 ---
 
-*最後更新：2026-02-01*
-*新增：CapacitorConfig 匯入、capacitor.config.ts build 衝突、window 型別斷言問題*
+---
+
+## 收據附件顯示為空白/損壞圖片
+
+### 問題：2026-02-02
+
+**症狀**：
+收據附件在審核頁面和報帳頁面顯示為空白或損壞的圖片，圖片無法載入。
+
+**原因**：
+`receiptUrl` 欄位存的是 `blob:http://localhost:3000/...` 格式的 URL。Blob URL 是瀏覽器內存中的臨時引用，只在建立它的 session 內有效。頁面重新載入或其他用戶存取時，該 URL 已失效。
+
+**解決方案**：
+1. 上傳時改用客戶端壓縮 base64 data URL 存入 DB：
+```typescript
+// components/expense-form.tsx
+async function compressImage(file: File): Promise<string> {
+  // Canvas resize → max 1200px → JPEG 70% → base64
+}
+```
+2. 清除 DB 中已有的無效 blob URL：
+```sql
+UPDATE "ExpenseItem" SET "receiptUrl" = NULL WHERE "receiptUrl" LIKE 'blob:%';
+```
+
+**預防措施**：
+- 永遠不要將 `URL.createObjectURL()` 的結果存入資料庫
+- 需要持久化的檔案使用 base64 data URL 或外部存儲服務（S3/Vercel Blob）
+
+---
+
+## 已拒絕報帳單計入統計總金額
+
+### 問題：2026-02-02
+
+**症狀**：
+Dashboard 的 Stats Cards 顯示的「總金額」包含已被拒絕（REJECTED）的報帳單金額，導致數字不準確。
+
+**原因**：
+`app/dashboard/expenses/page.tsx` 中的 `activeReports` 查詢沒有排除 `REJECTED` 狀態的報帳單。
+
+**解決方案**：
+在查詢中加入狀態過濾：
+```typescript
+const activeReports = await prisma.expenseReport.findMany({
+  where: {
+    userId: session.user.id,
+    NOT: { status: "REJECTED" },
+  },
+});
+```
+
+**預防措施**：
+統計查詢應明確定義「有效」資料的範圍，排除已取消/拒絕/刪除等終態記錄。
+
+---
+
+## Server Action Payload Too Large
+
+### 問題：2026-02-02
+
+**症狀**：
+```
+Error: Body exceeded 1mb limit
+```
+或提交含有收據圖片的報帳單時靜默失敗。
+
+**原因**：
+Next.js server actions 預設 body 大小限制為 1MB。壓縮後的 base64 圖片加上其他表單資料可能超過此限制。
+
+**解決方案**：
+1. 調整 `next.config.mjs` 的 server actions body 限制：
+```javascript
+experimental: {
+  serverActions: {
+    bodySizeLimit: "10mb",
+  },
+},
+```
+2. 調整 `app/actions/expenses.ts` 的 JSON 大小限制常數為 10MB。
+
+**預防措施**：
+- 上傳含大檔案的 server action 需要確認 body 限制足夠
+- 客戶端壓縮可有效減小上傳大小（1200px/JPEG 70% 通常 100-300KB）
+
+---
+
+*最後更新：2026-02-02*
+*新增：收據 blob URL 問題、REJECTED 統計問題、Server Action payload 過大*

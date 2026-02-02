@@ -875,11 +875,111 @@
 
 ---
 
-## 下一步建議
-1. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
-2. 到 Google Cloud Console 撤銷外洩的服務帳戶金鑰（如尚未完成）
-3. 考慮使用外部儲存服務存放 Avatar（S3/Vercel Blob）
-4. 推送前永遠執行 `npm run build`
-5. 檢查 Upstash Redis 配置是否正確（或創建新實例）
-6. 執行 `npx prisma db push` 更新線上資料庫 schema（新增 BankAccount 模型）
-7. **iOS App 上架**：在 Mac 上繼續階段 3-7（Xcode 配置、Native 功能、TestFlight、App Store）
+## Session: 2026-02-02 - 庫存批量輸入 + 移除 DRAFT 階段 + 安全掃描 + 程式碼簡化
+
+### 完成項目
+- [x] 庫存管理批量輸入功能（批量新增零件 + 批量調整庫存）
+- [x] 移除 DRAFT 報帳單階段，預設改為 PENDING_MANAGER
+- [x] 安全掃描（0 CRITICAL, 3 HIGH, 5 MEDIUM, 3 LOW, 5 INFO）
+- [x] 程式碼簡化（inventory.ts, batch-inventory-modal.tsx, expenses.ts, expenses-content.tsx, expenses/page.tsx）
+
+### 功能 1：庫存管理批量輸入
+- 新增 `BatchItemRow`, `BatchAdjustRow`, `BatchResult` 介面到 `types/inventory.ts`
+- 新增 `batchCreateItems` 和 `batchAdjustStock` Server Actions 到 `app/actions/inventory.ts`
+- 擴展 Modal size 支援 "2xl" 在 `components/ui/modal.tsx`
+- 新建 `components/batch-inventory-modal.tsx` 批量操作 Modal 組件
+- 整合批量操作按鈕到 `components/inventory-content.tsx`
+
+### 功能 2：移除 DRAFT 階段
+- 從 Prisma schema 移除 DRAFT enum，預設改為 PENDING_MANAGER
+- 修改 `createExpense()` 直接提交（使用 `determineSubmitStatus()`），移除 `submitReport()`
+- 將銀行帳戶選擇從提交步驟移到建立表單
+- 從所有 UI 檔案移除 DRAFT 相關程式碼（12+ 個檔案）
+
+### 安全掃描結果
+- 0 CRITICAL, 3 HIGH, 5 MEDIUM, 3 LOW, 5 INFO
+- HIGH: 批量操作缺 Zod 驗證、單筆 CRUD 缺 Zod 驗證、npm 依賴漏洞
+- MEDIUM: vendorLink URL 協議未驗證、USER 角色可寫入庫存、data 直傳 Prisma、any 型別、Race Condition
+
+### 程式碼簡化
+- `inventory.ts`: 新增 ItemNotFoundError 類別、提取 3 個批量輔助函式、簡化巢狀三元
+- `batch-inventory-modal.tsx`: 提取 handleBatchResult 泛型函式、移除空白分支
+- `expenses.ts`: 移除未使用的 canAccessReport 死碼
+- `expenses-content.tsx`: 移除未使用的 useTransition、冗餘 props 改用 useMemo
+- `expenses/page.tsx`: 移除不再需要的伺服器端統計計算
+
+### 修改檔案
+- `prisma/schema.prisma` - 移除 DRAFT enum，預設改為 PENDING_MANAGER
+- `types/inventory.ts` - 新增 BatchItemRow, BatchAdjustRow, BatchResult 介面
+- `app/actions/inventory.ts` - 新增 batchCreateItems, batchAdjustStock；新增 ItemNotFoundError；提取批量輔助函式
+- `app/actions/expenses.ts` - 修改 createExpense 直接提交；移除 submitReport, canAccessReport 死碼
+- `components/ui/modal.tsx` - Modal size 支援 "2xl"
+- `components/batch-inventory-modal.tsx` - **新增** 批量操作 Modal 組件
+- `components/inventory-content.tsx` - 整合批量操作按鈕
+- `components/expenses-content.tsx` - 移除 DRAFT 相關程式碼、移除未使用 useTransition、useMemo 優化
+- `app/dashboard/expenses/page.tsx` - 移除 DRAFT 統計、簡化伺服器端邏輯
+- 12+ 個 UI 檔案 - 移除 DRAFT 狀態相關程式碼
+
+### 5-Question Reboot Check
+1. **做什麼？** 庫存批量輸入功能 + 移除 DRAFT 報帳單階段 + 安全掃描 + 程式碼簡化
+2. **進度？** 功能開發和程式碼簡化完成，安全掃描已識別待處理項目
+3. **下一步？** 資料庫遷移（SQL 更新 DRAFT 記錄 → prisma db push）、npm 依賴漏洞修復、Zod 驗證補全
+4. **阻礙？** 資料庫遷移需先用 SQL 將現有 DRAFT 記錄更新為 PENDING_MANAGER 再推送 schema
+5. **檔案？** `prisma/schema.prisma`（遷移）、`app/actions/inventory.ts`（Zod 驗證）、`app/actions/expenses.ts`（Zod 驗證）
+
+---
+
+## Session: 2026-02-02 (續) - 附件存儲修復 + 收據預覽 + Stats 修正 + 安全掃描
+
+### 完成項目
+- [x] 修復附件存儲問題：上傳收據從 blob URL 改為壓縮 base64 存入 DB
+- [x] 新增 receipt-preview.tsx 組件：附件縮圖 + 點擊放大 modal（createPortal）
+- [x] 審核頁面顯示附件：approvals-content.tsx 加入 ReceiptPreview 縮圖
+- [x] 報帳頁面顯示附件：expenses-content.tsx 加入 ReceiptPreview 縮圖
+- [x] 修復已拒絕報帳單仍計入總金額：Stats Cards 排除 REJECTED 狀態
+- [x] 加大 payload 限制：server action body 10MB、JSON limit 10MB
+- [x] 客戶端圖片壓縮：compressImage() 壓縮至 1200px/JPEG 70%
+- [x] 清除 DB 無效 blob URL：11 筆 blob: URL 清為 null
+- [x] 安全掃描完成：1 HIGH、4 MEDIUM、6 LOW
+- [x] 程式碼簡化：receipt-preview 提取常數/helper、expenses-content 用 useMemo、next.config CSP 結構化
+
+### 修改檔案
+- `components/expense-form.tsx` - 新增 compressImage()，UploadButton 存 base64
+- `components/approvals-content.tsx` - 費用明細加 ReceiptPreview + Paperclip icon
+- `components/expenses-content.tsx` - 費用項目加 ReceiptPreview，useMemo 優化統計
+- `components/receipt-preview.tsx` - **新增**：縮圖 + 點擊放大 modal（createPortal）
+- `app/actions/expenses.ts` - MAX_JSON_SIZE 改 10MB
+- `app/dashboard/expenses/page.tsx` - activeReports 排除 REJECTED
+- `next.config.mjs` - bodySizeLimit 10mb，CSP 結構化重構
+
+### 安全掃描結果（待處理）
+| 嚴重度 | 問題 | 檔案 |
+|--------|------|------|
+| HIGH | deleteReport 缺少 audit log | app/actions/expenses.ts |
+| MEDIUM | receiptUrl 缺 server-side 格式驗證 | app/actions/expenses.ts |
+| MEDIUM | CSP 用 unsafe-inline | next.config.mjs |
+| MEDIUM | 非圖片檔無 client-side size limit | components/expense-form.tsx |
+| MEDIUM | receipt-preview 未驗證 data URL MIME type | components/receipt-preview.tsx |
+
+### 5-Question Reboot Check
+1. **做什麼？** 修復附件存儲（blob URL→base64）、新增收據預覽、修正 Stats 排除 REJECTED
+2. **進度？** 全部完成，安全掃描發現 11 項待處理
+3. **下一步？** 處理安全掃描發現的問題（deleteReport audit log、receiptUrl 驗證、CSP nonce-based 等）
+4. **阻礙？** 無
+5. **檔案？** `components/receipt-preview.tsx`、`components/expense-form.tsx`、`app/actions/expenses.ts`、`app/dashboard/expenses/page.tsx`
+
+---
+
+## 待處理項目（2026-02-02 onwards）
+1. **資料庫遷移**：先用 SQL 更新現有 DRAFT 記錄為 PENDING_MANAGER，再 `prisma db push`
+2. **npm 依賴漏洞修復**：next DoS 漏洞、xlsx Prototype Pollution
+3. **Zod 驗證補全**：批量操作和單筆 CRUD 的 Server Actions
+4. **角色檢查強化**：USER 角色不應能寫入庫存
+5. **vendorLink URL 驗證**：限制 http/https 協議
+6. **Race Condition 防護**：庫存操作使用 Prisma transaction
+7. 替換 `.env` 中的弱密碼（AUTH_SECRET, CRON_SECRET_KEY）
+8. 考慮使用外部儲存服務存放 Avatar（S3/Vercel Blob）
+9. 推送前永遠執行 `npm run build`
+10. 檢查 Upstash Redis 配置是否正確（或創建新實例）
+11. **iOS App 上架**：在 Mac 上繼續階段 3-7（Xcode 配置、Native 功能、TestFlight、App Store）
+12. **安全掃描修復**：處理 2026-02-02 附件相關安全掃描發現的 1 HIGH + 4 MEDIUM 問題

@@ -740,6 +740,102 @@ export const BUTTON_STYLES = {
 
 ---
 
+## Session: 2026-02-02 - 庫存批量輸入 + 移除 DRAFT 階段
+
+### 功能需求
+1. 庫存管理支援批量新增零件和批量調整庫存
+2. 移除報帳單 DRAFT 階段，建立即提交
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| 批量操作使用 `Promise.allSettled` | 部分失敗不影響其他項目，逐筆返回成功/失敗結果 |
+| 提取 `handleBatchResult` 泛型函式 | 批量新增和批量調整共用相同的結果處理邏輯，減少重複 |
+| 新增 `ItemNotFoundError` 自定義錯誤類別 | 區分「零件不存在」和其他未預期錯誤，提供更精確的錯誤訊息 |
+| 移除 DRAFT enum 而非保留但不使用 | 減少概念複雜度，避免未來維護混淆 |
+| `createExpense` 使用 `determineSubmitStatus()` | 根據用戶角色自動決定提交狀態（PENDING_MANAGER 或 PENDING_FINANCE），統一邏輯 |
+| 銀行帳戶選擇移到建立表單 | 移除 DRAFT 後不再有「提交」步驟，帳戶選擇必須在建立時完成 |
+| Modal size 擴展支援 "2xl" | 批量操作表格需要更大空間顯示多行輸入 |
+| 移除 `submitReport()` 函式 | DRAFT 階段移除後不再需要獨立的提交動作 |
+| 移除 `canAccessReport` 死碼 | 該函式未被任何地方調用，屬於未使用的死碼 |
+
+### 架構變更：報帳單流程
+
+#### 變更前
+```
+DRAFT → PENDING_MANAGER → PENDING_FINANCE → PAID / REJECTED / RETURNED
+```
+
+#### 變更後
+```
+PENDING_MANAGER → PENDING_FINANCE → PAID / REJECTED / RETURNED
+```
+
+- 建立報帳單時直接使用 `determineSubmitStatus()` 計算初始狀態
+- LEADER 角色自動跳過 PENDING_MANAGER 進入 PENDING_FINANCE
+- 其他角色預設為 PENDING_MANAGER
+
+### 安全掃描結果（第三次完整掃描）
+
+#### 掃描結果統計
+| 嚴重度 | 數量 |
+|--------|------|
+| CRITICAL | 0 |
+| HIGH | 3 |
+| MEDIUM | 5 |
+| LOW | 3 |
+| INFO | 5 |
+
+#### HIGH 風險項目
+| 問題 | 檔案 | 建議修復 |
+|------|------|----------|
+| 批量操作缺 Zod 驗證 | `app/actions/inventory.ts` | 新增 Zod schema 驗證 batchCreateItems/batchAdjustStock 輸入 |
+| 單筆 CRUD 缺 Zod 驗證 | `app/actions/inventory.ts` | 新增 Zod schema 驗證 createItem/updateItem 輸入 |
+| npm 依賴漏洞 | package.json | `next` DoS 漏洞、`xlsx` Prototype Pollution |
+
+#### MEDIUM 風險項目
+| 問題 | 檔案 | 建議修復 |
+|------|------|----------|
+| vendorLink URL 協議未驗證 | `app/actions/expenses.ts` | 限制 http/https 協議 |
+| USER 角色可寫入庫存 | `app/actions/inventory.ts` | 新增角色檢查 |
+| data 直傳 Prisma | `app/actions/inventory.ts` | 明確提取欄位而非整個物件傳入 |
+| any 型別 | 多個檔案 | 替換為具體類型 |
+| Race Condition | `app/actions/inventory.ts` | 使用 Prisma transaction |
+
+### 程式碼簡化改進
+
+| 檔案 | 改進 |
+|------|------|
+| `app/actions/inventory.ts` | 新增 `ItemNotFoundError` 類別；提取 `processBatchItem`, `processBatchAdjust`, `formatBatchResults` 輔助函式；簡化巢狀三元運算 |
+| `components/batch-inventory-modal.tsx` | 提取 `handleBatchResult<T>` 泛型函式處理共用結果邏輯；移除空白分支 |
+| `app/actions/expenses.ts` | 移除未使用的 `canAccessReport` 死碼 |
+| `components/expenses-content.tsx` | 移除未使用的 `useTransition`；冗餘 props 改用 `useMemo` |
+| `app/dashboard/expenses/page.tsx` | 移除不再需要的伺服器端 DRAFT 統計計算 |
+
+### 資料庫遷移注意事項
+
+#### 移除 DRAFT enum 的遷移步驟（尚未執行）
+```sql
+-- 步驟 1：將現有 DRAFT 記錄更新為 PENDING_MANAGER
+UPDATE "ExpenseReport" SET status = 'PENDING_MANAGER' WHERE status = 'DRAFT';
+
+-- 步驟 2：確認無剩餘 DRAFT 記錄
+SELECT COUNT(*) FROM "ExpenseReport" WHERE status = 'DRAFT';
+
+-- 步驟 3：執行 prisma db push 移除 DRAFT enum 值
+```
+
+### 經驗教訓
+
+15. **移除 enum 值需要先遷移資料** - 不能直接 db push，需先用 SQL 更新現有記錄
+16. **批量操作用 `Promise.allSettled`** - 比 `Promise.all` 更適合部分失敗場景
+17. **自定義 Error 類別** - 比字串錯誤更容易區分和處理不同類型的失敗
+18. **死碼要及時清理** - 未使用的函式增加維護負擔和理解成本
+19. **移除功能要全面搜尋** - 12+ 個檔案涉及 DRAFT 相關程式碼，需要逐一清理
+
+---
+
 ## Session: 2026-02-01 - BudgetFlow iOS App（Capacitor 整合）
 
 ### 功能需求
@@ -809,3 +905,94 @@ declare global {
 12. **Next.js build 掃描根目錄** - 非 Next.js 的 .ts 配置檔需要在 tsconfig exclude 排除
 13. **window 擴展用 interface** - 比 type assertion 更安全，且支援 TypeScript 聲明合併
 14. **Remote WebView 需要 CSP 配合** - 相機等權限需要在 Permissions-Policy 中允許 self
+
+---
+
+## Session: 2026-02-02 (續) - 附件存儲修復 + 收據預覽 + Stats 修正
+
+### 問題 1：Blob URL 不適合持久化存儲
+
+**問題**：上傳收據圖片時使用 `URL.createObjectURL()` 產生 blob URL 存入 DB，但 blob URL 只在當前瀏覽器 session 有效，重新載入或其他用戶無法存取。
+
+**原因**：blob URL（`blob:http://localhost:3000/...`）是瀏覽器內存中的臨時引用，不是可持久化的資源位址。
+
+**解決方案**：改用客戶端壓縮後的 base64 data URL 存入 DB。
+
+| 方案 | 優點 | 缺點 | 選擇 |
+|------|------|------|------|
+| Blob URL | 快速、不佔記憶體 | 臨時、跨 session 無效 | ❌ |
+| 原始 base64 | 持久化、無需額外服務 | 檔案過大（原圖可能 5-10MB） | ❌ |
+| 壓縮 base64 | 持久化、大小可控（~100-300KB） | 需客戶端壓縮邏輯 | **✅ 選用** |
+| 外部存儲（S3/Vercel Blob） | 最佳效能、無 DB 負擔 | 需額外服務和成本 | 未來考慮 |
+
+### 問題 2：客戶端圖片壓縮策略
+
+**方案**：使用 Canvas API 在客戶端壓縮圖片再轉為 base64。
+
+```
+原始圖片 → Canvas resize (max 1200px) → JPEG 70% quality → base64 data URL → 存入 DB
+```
+
+**參數選擇理由**：
+- **max 1200px**：收據圖片不需要超高解析度，1200px 足以閱讀文字
+- **JPEG 70%**：壓縮比好，視覺品質可接受，收據不需要 PNG 無損
+- **結果大小**：壓縮後通常 100-300KB，適合存入 DB
+
+### 問題 3：REJECTED 報帳單不應計入總金額
+
+**問題**：Dashboard Stats Cards 的「總金額」包含已被拒絕的報帳單。
+
+**原因**：`activeReports` 查詢沒有排除 `REJECTED` 狀態。
+
+**解決方案**：在 `app/dashboard/expenses/page.tsx` 的 `activeReports` 查詢加入 `NOT: { status: "REJECTED" }` 過濾。
+
+### 問題 4：Server Action Payload 過大
+
+**問題**：上傳含 base64 圖片的報帳單時，server action body 超過預設限制。
+
+**解決方案**：
+- `next.config.mjs` 的 `serverActions.bodySizeLimit` 設為 `"10mb"`
+- `app/actions/expenses.ts` 的 `MAX_JSON_SIZE` 設為 10MB
+
+### 問題 5：DB 中殘留的無效 Blob URL
+
+**問題**：資料庫中有 11 筆 `receiptUrl` 欄位存的是 `blob:` 開頭的 URL，永遠無法顯示。
+
+**解決方案**：直接用 SQL 清除為 null：
+```sql
+UPDATE "ExpenseItem" SET "receiptUrl" = NULL WHERE "receiptUrl" LIKE 'blob:%';
+```
+
+### 安全掃描結果
+
+| 嚴重度 | 數量 | 說明 |
+|--------|------|------|
+| HIGH | 1 | deleteReport 缺 audit log |
+| MEDIUM | 4 | receiptUrl 格式驗證、CSP unsafe-inline、檔案大小限制、MIME type 驗證 |
+| LOW | 6 | 各項小改善 |
+
+### 程式碼簡化改進
+
+| 檔案 | 改進 |
+|------|------|
+| `components/receipt-preview.tsx` | 提取 `THUMBNAIL_SIZE`, `MODAL_MAX_SIZE` 常數；提取 `getImageStyle()` helper |
+| `components/expenses-content.tsx` | 統計計算改用 `useMemo`，避免每次 render 重算 |
+| `next.config.mjs` | CSP 指令從單行字串重構為結構化物件，提升可讀性和維護性 |
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| base64 存 DB 而非外部存儲 | 目前規模小（FRC 團隊），避免額外服務成本和複雜度 |
+| 客戶端壓縮而非伺服器端 | 減少上傳流量和 server 負載，圖片不需到達 server 再處理 |
+| createPortal 用於收據放大 | 避免 stacking context 問題，確保 modal 在最上層 |
+| useMemo 優化統計計算 | reports 資料不變時不需重算，改善 render 效能 |
+| CSP 結構化重構 | 原本一長串 CSP 字串難以維護，改為物件逐項合成更清晰 |
+
+### 經驗教訓
+
+20. **Blob URL 不可持久化** - `URL.createObjectURL()` 只在當前 session 有效，不適合存入 DB
+21. **Canvas API 壓縮圖片** - 客戶端壓縮比上傳原圖再伺服器端處理更高效
+22. **Stats 查詢要排除無效狀態** - 被拒絕的報帳單不應計入統計
+23. **Server Action body 有預設限制** - 上傳大檔案需調整 `bodySizeLimit`
+24. **定期清理 DB 髒資料** - 無效的 blob URL 應該被清除，避免 UI 顯示錯誤

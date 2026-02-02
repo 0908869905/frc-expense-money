@@ -15,7 +15,7 @@ interface ApprovalsContentProps {
     canViewFullBankAccount?: boolean
 }
 
-export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = false }: ApprovalsContentProps) {
+export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = false }: ApprovalsContentProps): JSX.Element {
     const { language } = useLanguage()
     const [isPending, startTransition] = useTransition()
     const [processingId, setProcessingId] = useState<string | null>(null)

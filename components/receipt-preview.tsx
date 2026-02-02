@@ -10,7 +10,16 @@ interface ReceiptPreviewProps {
   size?: "sm" | "md"
 }
 
-export function ReceiptPreview({ src, alt = "收據", size = "sm" }: ReceiptPreviewProps) {
+const SIZE_CLASSES: Record<NonNullable<ReceiptPreviewProps["size"]>, string> = {
+  sm: "h-8 w-8",
+  md: "h-12 w-12",
+}
+
+function isDisplayableImageSrc(src: string): boolean {
+  return src.startsWith("data:image") || src.startsWith("http") || src.startsWith("/")
+}
+
+export function ReceiptPreview({ src, alt = "收據", size = "sm" }: ReceiptPreviewProps): JSX.Element {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -18,19 +27,15 @@ export function ReceiptPreview({ src, alt = "收據", size = "sm" }: ReceiptPrev
     setMounted(true)
   }, [])
 
-  const sizeClasses = size === "sm"
-    ? "h-8 w-8"
-    : "h-12 w-12"
-
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`${sizeClasses} rounded border border-border overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all`}
+        className={`${SIZE_CLASSES[size]} rounded border border-border overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all`}
         title={`檢視${alt}`}
       >
-        {src.startsWith("data:image") || src.startsWith("http") || src.startsWith("/") ? (
+        {isDisplayableImageSrc(src) ? (
           <img src={src} alt={alt} className="h-full w-full object-cover" />
         ) : (
           <div className="h-full w-full flex items-center justify-center bg-muted">

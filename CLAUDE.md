@@ -86,10 +86,11 @@ Dashboard layout (`app/dashboard/layout.tsx`) protects all `/dashboard/*` routes
 
 ### Expense Report Flow
 
-1. **DRAFT** → User creates report
-2. **PENDING_MANAGER** → Awaiting team leader approval
-3. **PENDING_FINANCE** → Awaiting finance review
-4. **PAID** / **REJECTED** / **RETURNED** → Final states
+1. **PENDING_MANAGER** → User creates report (auto-submitted via `determineSubmitStatus()`)
+2. **PENDING_FINANCE** → Awaiting finance review (LEADER role skips step 1)
+3. **PAID** / **REJECTED** / **RETURNED** → Final states
+
+> Note: DRAFT stage was removed on 2026-02-02. Reports are now submitted directly upon creation.
 
 ### Server Actions Pattern
 
@@ -224,6 +225,37 @@ return createPortal(
 );
 ```
 
+### 批量操作模式（Batch Operations）
+
+批量 Server Actions 使用 `Promise.allSettled` 逐筆處理，返回統一結果格式：
+```typescript
+// types/inventory.ts
+interface BatchResult {
+  total: number;
+  success: number;
+  failed: number;
+  errors: string[];
+}
+
+// 使用 Promise.allSettled 確保部分失敗不影響其他項目
+const results = await Promise.allSettled(items.map(item => processItem(item)));
+```
+
+### 收據附件存儲（base64 data URL）
+
+收據圖片在客戶端壓縮後以 base64 data URL 存入 DB。**不要**使用 `URL.createObjectURL()`（blob URL 是臨時的，跨 session 失效）。
+
+```typescript
+// components/expense-form.tsx - 客戶端壓縮
+async function compressImage(file: File): Promise<string> {
+  // Canvas resize → max 1200px → JPEG 70% → base64 data URL
+}
+```
+
+收據預覽使用 `components/receipt-preview.tsx`（縮圖 + 點擊放大 modal，使用 createPortal）。
+
+Server action body 限制已設為 10MB（`next.config.mjs` bodySizeLimit）。
+
 ### UI 按鈕樣式常數
 
 使用 `lib/ui-constants.ts` 統一按鈕樣式：
@@ -279,6 +311,19 @@ npm run build  # Always run before pushing
 - `PROGRESS.md` - Development session logs
 - `FINDINGS.md` - Technical discoveries and decisions
 - `ERROR.md` - Error troubleshooting guide
+
+## Pending Tasks (2026-02-02)
+
+- **DB Migration**: Update existing DRAFT records to PENDING_MANAGER via SQL, then `prisma db push`
+- **Zod Validation**: Add Zod schemas to batch and single CRUD inventory Server Actions
+- **npm Vulnerabilities**: Fix `next` DoS and `xlsx` Prototype Pollution
+- **Role Check**: USER role should not have inventory write access
+- **vendorLink Validation**: Restrict to http/https protocols
+- **Race Condition**: Use Prisma transactions for inventory operations
+- **Audit Log**: Add audit log to `deleteReport` (HIGH priority)
+- **Receipt Validation**: Add server-side `receiptUrl` format validation + client-side MIME type check
+- **CSP Enhancement**: Consider nonce-based CSP instead of `unsafe-inline`
+- **File Size Limit**: Add client-side size limit for non-image file uploads
 
 ## iOS App Status (BudgetFlow)
 

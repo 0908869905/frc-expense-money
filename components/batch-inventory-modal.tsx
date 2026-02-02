@@ -154,6 +154,46 @@ export function BatchInventoryModal({
         return valid
     }
 
+    function handleBatchResult<T extends { id: string; error?: string }>(
+        result: BatchResult,
+        currentRows: T[],
+        setRows: (rows: T[]) => void,
+        createEmptyRow: () => T,
+    ) {
+        setBatchResult(result)
+
+        if (result.success) {
+            onSuccess()
+            setTimeout(handleClose, 1500)
+            return
+        }
+
+        if (result.successCount > 0) {
+            const failedIndices = new Set(
+                result.results.filter((r) => !r.success).map((r) => r.index)
+            )
+            const failedRows = currentRows
+                .filter((_, idx) => failedIndices.has(idx))
+                .map((row) => {
+                    const resultEntry = result.results.find(
+                        (r) => !r.success && r.index === currentRows.indexOf(row)
+                    )
+                    return { ...row, error: resultEntry?.message }
+                })
+            setRows(failedRows.length > 0 ? failedRows : [createEmptyRow()])
+            onSuccess()
+            return
+        }
+
+        // 全部失敗：標記每行錯誤
+        setRows(
+            currentRows.map((row, idx) => {
+                const resultEntry = result.results.find((r) => r.index === idx)
+                return { ...row, error: resultEntry?.message }
+            })
+        )
+    }
+
     function handleSubmitCreate() {
         if (!validateCreateRows()) return
 
@@ -169,37 +209,7 @@ export function BatchInventoryModal({
             }))
 
             const result = await batchCreateItems(payload)
-            setBatchResult(result)
-
-            if (result.success) {
-                // 全部成功
-                onSuccess()
-                setTimeout(handleClose, 1500)
-            } else if (result.successCount > 0) {
-                // 部分成功：移除成功行，保留失敗行
-                const failedIndices = new Set(
-                    result.results.filter((r) => !r.success).map((r) => r.index)
-                )
-                const failedRows = createRows
-                    .filter((_, idx) => failedIndices.has(idx))
-                    .map((row, idx) => {
-                        const resultEntry = result.results.find(
-                            (r) => !r.success && r.index === createRows.indexOf(row)
-                        )
-                        return { ...row, error: resultEntry?.message }
-                    })
-                setCreateRows(failedRows.length > 0 ? failedRows : [createEmptyItemRow()])
-                onSuccess()
-            }
-            // 全部失敗：標記每行錯誤
-            else {
-                setCreateRows(
-                    createRows.map((row, idx) => {
-                        const resultEntry = result.results.find((r) => r.index === idx)
-                        return { ...row, error: resultEntry?.message }
-                    })
-                )
-            }
+            handleBatchResult(result, createRows, setCreateRows, createEmptyItemRow)
         })
     }
 
@@ -241,9 +251,6 @@ export function BatchInventoryModal({
             let error = ""
             if (!row.itemId) error = zh ? "請選擇零件" : "Select an item"
             else if (row.amount === 0) error = zh ? "數量不能為 0" : "Amount cannot be 0"
-            else if (row.transactionType === "PROJECT_USE" && !row.projectId.trim()) {
-                // 專案領用時 projectId 非必填，但建議填寫
-            }
 
             if (error) {
                 valid = false
@@ -275,33 +282,7 @@ export function BatchInventoryModal({
             })
 
             const result = await batchAdjustStock(payload)
-            setBatchResult(result)
-
-            if (result.success) {
-                onSuccess()
-                setTimeout(handleClose, 1500)
-            } else if (result.successCount > 0) {
-                const failedIndices = new Set(
-                    result.results.filter((r) => !r.success).map((r) => r.index)
-                )
-                const failedRows = adjustRows
-                    .filter((_, idx) => failedIndices.has(idx))
-                    .map((row) => {
-                        const resultEntry = result.results.find(
-                            (r) => !r.success && r.index === adjustRows.indexOf(row)
-                        )
-                        return { ...row, error: resultEntry?.message }
-                    })
-                setAdjustRows(failedRows.length > 0 ? failedRows : [createEmptyAdjustRow()])
-                onSuccess()
-            } else {
-                setAdjustRows(
-                    adjustRows.map((row, idx) => {
-                        const resultEntry = result.results.find((r) => r.index === idx)
-                        return { ...row, error: resultEntry?.message }
-                    })
-                )
-            }
+            handleBatchResult(result, adjustRows, setAdjustRows, createEmptyAdjustRow)
         })
     }
 
@@ -663,9 +644,7 @@ export function BatchInventoryModal({
                     >
                         {isPending
                             ? (zh ? "處理中..." : "Processing...")
-                            : (zh
-                                ? `提交 (${rowCount} 筆)`
-                                : `Submit (${rowCount})`)}
+                            : (zh ? `提交 (${rowCount} 筆)` : `Submit (${rowCount})`)}
                     </button>
                 </div>
             </div>

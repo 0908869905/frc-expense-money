@@ -2,8 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { ItemCategory, TransactionType } from "@prisma/client";
+import { z } from "zod";
 import {
-  requireAuth,
+  requireInventoryWrite,
   getAuthenticatedUserId,
   revalidateInventory,
   unauthorizedState,
@@ -11,13 +12,21 @@ import {
   errorState,
   type ActionState
 } from "@/lib/actions/helpers";
+import { inventoryItemSchema, TransactionTypeEnum } from "@/lib/schemas";
 import type { BatchResult } from "@/types/inventory";
 
 // ========== 類型定義 ==========
 
 export type InventoryState = ActionState;
 
-// 自定義例外：庫存不足
+// 自定義例外
+class ItemNotFoundError extends Error {
+  constructor() {
+    super("找不到指定的零件");
+    this.name = "ItemNotFoundError";
+  }
+}
+
 class InsufficientStockError extends Error {
   constructor(itemName: string, requested: number, available: number) {
     super(`庫存不足：${itemName} 目前只有 ${available}，無法扣除 ${Math.abs(requested)}`);
@@ -48,7 +57,7 @@ export async function adjustStock(
 ): Promise<InventoryState> {
   let ctx;
   try {
-    ctx = await requireAuth();
+    ctx = await requireInventoryWrite();
   } catch {
     return unauthorizedState();
   }
@@ -62,7 +71,7 @@ export async function adjustStock(
       });
 
       if (!item) {
-        throw new Error("找不到指定的零件");
+        throw new ItemNotFoundError();
       }
 
       // 步驟 2：計算新數量
@@ -94,16 +103,11 @@ export async function adjustStock(
     revalidateInventory();
     return successState("庫存調整成功");
   } catch (error) {
-    console.error("庫存調整失敗:", error);
+    console.error("庫存調整失敗:", error instanceof Error ? error.message : "Unknown error");
 
-    // 只有自定義錯誤才返回詳細訊息，其他錯誤返回通用訊息
-    if (error instanceof InsufficientStockError) {
+    if (error instanceof InsufficientStockError || error instanceof ItemNotFoundError) {
       return errorState(error.message);
     }
-    if (error instanceof Error && error.message === "找不到指定的零件") {
-      return errorState(error.message);
-    }
-
     return errorState("庫存調整失敗，請稍後再試");
   }
 }
@@ -127,7 +131,7 @@ export async function getRestockList() {
 
     return allItems.filter((item) => item.currentQuantity <= item.safetyStockLevel);
   } catch (error) {
-    console.error("取得補貨清單失敗:", error);
+    console.error("取得補貨清單失敗:", error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }
@@ -154,7 +158,7 @@ export async function getAllItems() {
       orderBy: { name: "asc" },
     });
   } catch (error) {
-    console.error("取得零件清單失敗:", error);
+    console.error("取得零件清單失敗:", error instanceof Error ? error.message : "Unknown error");
     return [];
   }
 }
@@ -178,7 +182,7 @@ export async function getItemWithTransactions(itemId: string) {
       },
     });
   } catch (error) {
-    console.error("取得零件詳情失敗:", error);
+    console.error("取得零件詳情失敗:", error instanceof Error ? error.message : "Unknown error");
     return null;
   }
 }
@@ -195,37 +199,42 @@ export async function createItem(data: {
   safetyStockLevel?: number;
   vendorLink?: string;
 }): Promise<InventoryState> {
-  const userId = await getAuthenticatedUserId();
-  if (!userId) {
+  try {
+    await requireInventoryWrite();
+  } catch {
     return unauthorizedState();
   }
 
+  const parsed = inventoryItemSchema.safeParse(data);
+  if (!parsed.success) {
+    return errorState("輸入資料驗證失敗", parsed.error.flatten().fieldErrors as Record<string, string[]>);
+  }
+
   try {
-    // 檢查 SKU 是否已存在
     const existing = await prisma.inventoryItem.findUnique({
-      where: { sku: data.sku },
+      where: { sku: parsed.data.sku },
     });
 
     if (existing) {
-      return errorState(`料號 ${data.sku} 已存在`);
+      return errorState(`料號 ${parsed.data.sku} 已存在`);
     }
 
     await prisma.inventoryItem.create({
       data: {
-        name: data.name,
-        sku: data.sku,
-        category: data.category,
-        storageLocation: data.storageLocation,
-        currentQuantity: data.currentQuantity || 0,
-        safetyStockLevel: data.safetyStockLevel || 0,
-        vendorLink: data.vendorLink || null,
+        name: parsed.data.name,
+        sku: parsed.data.sku,
+        category: parsed.data.category as ItemCategory,
+        storageLocation: parsed.data.storageLocation,
+        currentQuantity: parsed.data.currentQuantity ?? 0,
+        safetyStockLevel: parsed.data.safetyStockLevel ?? 0,
+        vendorLink: parsed.data.vendorLink || null,
       },
     });
 
     revalidateInventory();
     return successState("零件新增成功");
   } catch (error) {
-    console.error("新增零件失敗:", error);
+    console.error("新增零件失敗:", error instanceof Error ? error.message : "Unknown error");
     return errorState("資料庫錯誤");
   }
 }
@@ -244,31 +253,46 @@ export async function updateItem(
     vendorLink?: string;
   }
 ): Promise<InventoryState> {
-  const userId = await getAuthenticatedUserId();
-  if (!userId) {
+  try {
+    await requireInventoryWrite();
+  } catch {
     return unauthorizedState();
   }
 
+  const parsed = inventoryItemSchema.partial().safeParse(data);
+  if (!parsed.success) {
+    return errorState("輸入資料驗證失敗", parsed.error.flatten().fieldErrors as Record<string, string[]>);
+  }
+
   try {
-    if (data.sku) {
+    if (parsed.data.sku) {
       const existing = await prisma.inventoryItem.findFirst({
-        where: { sku: data.sku, NOT: { id: itemId } },
+        where: { sku: parsed.data.sku, NOT: { id: itemId } },
       });
 
       if (existing) {
-        return errorState(`料號 ${data.sku} 已被其他零件使用`);
+        return errorState(`料號 ${parsed.data.sku} 已被其他零件使用`);
       }
     }
 
+    // 明確挑選允許更新的欄位，避免 mass assignment
+    const updateData: Record<string, unknown> = {};
+    if (parsed.data.name !== undefined) updateData.name = parsed.data.name;
+    if (parsed.data.sku !== undefined) updateData.sku = parsed.data.sku;
+    if (parsed.data.category !== undefined) updateData.category = parsed.data.category;
+    if (parsed.data.storageLocation !== undefined) updateData.storageLocation = parsed.data.storageLocation;
+    if (parsed.data.safetyStockLevel !== undefined) updateData.safetyStockLevel = parsed.data.safetyStockLevel;
+    if (parsed.data.vendorLink !== undefined) updateData.vendorLink = parsed.data.vendorLink || null;
+
     await prisma.inventoryItem.update({
       where: { id: itemId },
-      data,
+      data: updateData,
     });
 
     revalidateInventory();
     return successState("零件更新成功");
   } catch (error) {
-    console.error("更新零件失敗:", error);
+    console.error("更新零件失敗:", error instanceof Error ? error.message : "Unknown error");
     return errorState("資料庫錯誤");
   }
 }
@@ -279,7 +303,7 @@ export async function updateItem(
 export async function deleteItem(itemId: string): Promise<InventoryState> {
   let ctx;
   try {
-    ctx = await requireAuth();
+    ctx = await requireInventoryWrite();
   } catch {
     return unauthorizedState();
   }
@@ -297,7 +321,7 @@ export async function deleteItem(itemId: string): Promise<InventoryState> {
     revalidateInventory();
     return successState("零件已刪除");
   } catch (error) {
-    console.error("刪除零件失敗:", error);
+    console.error("刪除零件失敗:", error instanceof Error ? error.message : "Unknown error");
     return errorState("資料庫錯誤");
   }
 }
@@ -325,6 +349,29 @@ function validateSku(sku: string): { valid: boolean; error?: string } {
 
 const MAX_BATCH_SIZE = 50;
 
+function unauthorizedBatchResult(): BatchResult {
+  return { success: false, message: "未授權", totalCount: 0, successCount: 0, failedCount: 0, results: [] };
+}
+
+function invalidBatchSizeResult(count: number): BatchResult {
+  return {
+    success: false,
+    message: `批量數量須介於 1-${MAX_BATCH_SIZE} 之間`,
+    totalCount: count,
+    successCount: 0,
+    failedCount: count,
+    results: [],
+  };
+}
+
+function buildBatchResult(totalCount: number, successCount: number, failedCount: number, results: BatchResult["results"], verb = "處理"): BatchResult {
+  const allSuccess = failedCount === 0;
+  const message = allSuccess
+    ? `全部 ${successCount} 筆${verb}成功`
+    : `${successCount} 筆成功，${failedCount} 筆失敗`;
+  return { success: allSuccess, message, totalCount, successCount, failedCount, results };
+}
+
 /**
  * 批量新增零件
  */
@@ -339,29 +386,20 @@ export async function batchCreateItems(
     vendorLink?: string;
   }>
 ): Promise<BatchResult> {
-  const userId = await getAuthenticatedUserId();
-  if (!userId) {
-    return {
-      success: false,
-      message: "未授權",
-      totalCount: 0,
-      successCount: 0,
-      failedCount: 0,
-      results: [],
-    };
+  try {
+    await requireInventoryWrite();
+  } catch {
+    return unauthorizedBatchResult();
   }
 
-  if (items.length === 0 || items.length > MAX_BATCH_SIZE) {
-    return {
-      success: false,
-      message: `批量數量須介於 1-${MAX_BATCH_SIZE} 之間`,
-      totalCount: items.length,
-      successCount: 0,
-      failedCount: items.length,
-      results: [],
-    };
+  const batchSchema = z.array(inventoryItemSchema).min(1).max(MAX_BATCH_SIZE);
+  const parsed = batchSchema.safeParse(items);
+  if (!parsed.success) {
+    return invalidBatchSizeResult(items.length);
   }
 
+  // 設計決策：使用逐筆 create + P2002 catch 而非 createMany，
+  // 以支援部分成功語義（前面成功的不回滾，後面失敗的個別報錯）。
   // 行內 SKU 重複預檢
   const skus = items.map((i) => i.sku.trim());
   const skuSet = new Set<string>();
@@ -431,23 +469,19 @@ export async function batchCreateItems(
   }
 
   revalidateInventory();
-
-  const allSuccess = failedCount === 0;
-  return {
-    success: allSuccess,
-    message: allSuccess
-      ? `全部 ${successCount} 筆新增成功`
-      : `${successCount} 筆成功，${failedCount} 筆失敗`,
-    totalCount: items.length,
-    successCount,
-    failedCount,
-    results,
-  };
+  return buildBatchResult(items.length, successCount, failedCount, results, "新增");
 }
 
 /**
  * 批量庫存調整
  */
+const batchAdjustItemSchema = z.object({
+  itemId: z.string().min(1),
+  amount: z.number().int().refine((val) => val !== 0, "數量不能為 0"),
+  transactionType: TransactionTypeEnum,
+  projectId: z.string().optional(),
+});
+
 export async function batchAdjustStock(
   adjustments: Array<{
     itemId: string;
@@ -458,27 +492,15 @@ export async function batchAdjustStock(
 ): Promise<BatchResult> {
   let ctx;
   try {
-    ctx = await requireAuth();
+    ctx = await requireInventoryWrite();
   } catch {
-    return {
-      success: false,
-      message: "未授權",
-      totalCount: 0,
-      successCount: 0,
-      failedCount: 0,
-      results: [],
-    };
+    return unauthorizedBatchResult();
   }
 
-  if (adjustments.length === 0 || adjustments.length > MAX_BATCH_SIZE) {
-    return {
-      success: false,
-      message: `批量數量須介於 1-${MAX_BATCH_SIZE} 之間`,
-      totalCount: adjustments.length,
-      successCount: 0,
-      failedCount: adjustments.length,
-      results: [],
-    };
+  const batchSchema = z.array(batchAdjustItemSchema).min(1).max(MAX_BATCH_SIZE);
+  const parsed = batchSchema.safeParse(adjustments);
+  if (!parsed.success) {
+    return invalidBatchSizeResult(adjustments.length);
   }
 
   const results: BatchResult["results"] = [];
@@ -495,7 +517,7 @@ export async function batchAdjustStock(
         });
 
         if (!item) {
-          throw new Error("找不到指定的零件");
+          throw new ItemNotFoundError();
         }
 
         const newQuantity = item.currentQuantity + adj.amount;
@@ -523,30 +545,15 @@ export async function batchAdjustStock(
       results.push({ index: i, success: true, message: "調整成功" });
       successCount++;
     } catch (error) {
-      const msg =
-        error instanceof InsufficientStockError
-          ? error.message
-          : error instanceof Error && error.message === "找不到指定的零件"
-          ? error.message
-          : "庫存調整失敗";
+      const isKnownError = error instanceof InsufficientStockError || error instanceof ItemNotFoundError;
+      const msg = isKnownError ? (error as Error).message : "庫存調整失敗";
       results.push({ index: i, success: false, message: msg });
       failedCount++;
     }
   }
 
   revalidateInventory();
-
-  const allSuccess = failedCount === 0;
-  return {
-    success: allSuccess,
-    message: allSuccess
-      ? `全部 ${successCount} 筆調整成功`
-      : `${successCount} 筆成功，${failedCount} 筆失敗`,
-    totalCount: adjustments.length,
-    successCount,
-    failedCount,
-    results,
-  };
+  return buildBatchResult(adjustments.length, successCount, failedCount, results, "調整");
 }
 
 /**
@@ -592,7 +599,7 @@ export async function getItemBySku(sku: string): Promise<{
     });
 
     if (!item) {
-      return { success: false, message: `找不到料號: ${sanitizedSku}` };
+      return { success: false, message: "找不到指定的料號" };
     }
 
     return {
@@ -609,7 +616,7 @@ export async function getItemBySku(sku: string): Promise<{
       },
     };
   } catch (error) {
-    console.error("查詢零件失敗:", error);
+    console.error("查詢零件失敗:", error instanceof Error ? error.message : "Unknown error");
     return { success: false, message: "資料庫錯誤" };
   }
 }

@@ -3,24 +3,20 @@
 import React, { useTransition, useRef, useState, useEffect } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ExpenseReportFormValues, expenseReportSchema, ExpenseCategoryEnum, TeamGroupEnum } from "@/lib/schemas";
+import { ExpenseReportFormValues, expenseReportSchema, ExpenseCategoryEnum } from "@/lib/schemas";
 import { createExpense } from "@/app/actions/expenses";
 import { scanInvoice } from "@/app/actions/ocr";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Trash2, Plus, Upload, Loader2, AlertCircle, Sparkles, Building2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFormState } from "react-dom";
 import type { BankAccountData } from "@/app/actions/bank-accounts";
 import { maskAccountNumber } from "@/lib/utils/mask-account";
-// import { upload } from "@vercel/blob/client"; // Uncomment if package is available
 
-// --- Simple UI Wrappers (since they weren't in previous context) ---
-const FormItem = ({ className, children }: { className?: string, children?: React.ReactNode }) => (
-  <div className={cn("space-y-2", className)}>{children}</div>
-);
+function FormItem({ className, children }: { className?: string; children?: React.ReactNode }): React.JSX.Element {
+  return <div className={cn("space-y-2", className)}>{children}</div>;
+}
 
 // --- Upload Component with OCR ---
 interface OCRResult {
@@ -60,16 +56,29 @@ function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<stri
   });
 }
 
-const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadButtonProps) => {
+function getUploadLabel(uploading: boolean, hasPreview: boolean): string {
+  if (uploading) return "上傳中";
+  if (hasPreview) return "更換";
+  return "上傳";
+}
+
+function UploadButton({ onUploadComplete, onOCRComplete, defaultUrl }: UploadButtonProps): React.JSX.Element {
   const [uploading, setUploading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [preview, setPreview] = useState<string | null>(defaultUrl || null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      alert("檔案過大，上限為 10MB");
+      return;
+    }
 
     setUploading(true);
 
@@ -154,7 +163,7 @@ const UploadButton = ({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        {uploading ? "上傳中" : preview ? "更換" : "上傳"}
+        {getUploadLabel(uploading, !!preview)}
       </Button>
 
       {/* 獨立的 OCR 智慧擷取按鈕 */}
@@ -210,6 +219,7 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
     formState: { errors },
     reset,
     watch,
+    setValue,
   } = useForm<ExpenseReportFormValues>({
     resolver: zodResolver(expenseReportSchema),
     defaultValues: {
@@ -236,19 +246,15 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
   // 處理 OCR 結果，自動填入表單欄位
   const handleOCRResult = (index: number, data: OCRResult) => {
     if (data.date) {
-      // 轉換日期格式為 input date 格式 (YYYY-MM-DD)
       try {
         const dateStr = data.date;
-        // 嘗試解析常見的日期格式
         let dateObj: Date | null = null;
         if (dateStr.includes('/')) {
           const parts = dateStr.split('/');
           if (parts.length === 3) {
-            // 可能是 YYYY/MM/DD 或 MM/DD/YYYY 或 DD/MM/YYYY
             if (parts[0].length === 4) {
               dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             } else {
-              // 假設 MM/DD/YYYY
               dateObj = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
             }
           }
@@ -257,23 +263,18 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
         }
         if (dateObj && !isNaN(dateObj.getTime())) {
           const formattedDate = dateObj.toISOString().split('T')[0];
-          // @ts-ignore - setValue works with string path
-          control._formValues.items[index].date = formattedDate;
+          setValue(`items.${index}.date`, formattedDate as unknown as Date);
         }
       } catch (e) {
         console.warn('Date parsing failed:', e);
       }
     }
     if (data.amount && data.amount > 0) {
-      // @ts-ignore
-      control._formValues.items[index].amount = data.amount;
+      setValue(`items.${index}.amount`, data.amount);
     }
     if (data.vendor) {
-      // @ts-ignore
-      control._formValues.items[index].description = data.vendor;
+      setValue(`items.${index}.description`, data.vendor);
     }
-    // 觸發重新渲染
-    reset(control._formValues);
   };
 
   const onSubmit = (data: ExpenseReportFormValues) => {
@@ -288,11 +289,9 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
     });
   };
 
-  // Reset form on success
-  React.useEffect(() => {
+  useEffect(() => {
     if (state.success) {
       reset();
-      // Optional: Redirect or show toast
     }
   }, [state.success, reset]);
 
@@ -336,8 +335,6 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
               placeholder="詳細說明費用內容..."
             />
           </FormItem>
-
-
         </CardContent>
       </Card>
 
