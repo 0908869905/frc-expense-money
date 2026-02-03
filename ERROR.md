@@ -781,5 +781,55 @@ experimental: {
 
 ---
 
+---
+
+## Prisma Enum 值已從 Schema 移除但資料庫仍有記錄
+
+### 問題：2026-02-02
+
+**症狀**：
+```
+PrismaClientKnownRequestError:
+Value 'DRAFT' not found in enum 'ReportStatus'
+```
+Vercel 部署後，任何涉及 ExpenseReport 查詢的頁面都會報錯。
+
+**原因**：
+1. Prisma schema 已移除 `DRAFT` enum 值（在先前 session 中）
+2. `prisma db push` 同步了 schema，但資料庫中仍有 1 筆 `status = 'DRAFT'` 的記錄
+3. Prisma 查詢在反序列化結果時，遇到不在 enum 定義中的值，拋出錯誤
+
+**解決方案**：
+
+```bash
+# 步驟 1：用 SQL 將 DRAFT 記錄更新為有效的 enum 值
+# 可透過 Supabase SQL Editor 或 psql 執行
+UPDATE "ExpenseReport" SET status = 'PENDING_MANAGER' WHERE status = 'DRAFT';
+
+# 步驟 2：確認無剩餘 DRAFT 記錄
+SELECT COUNT(*) FROM "ExpenseReport" WHERE status = 'DRAFT';
+
+# 步驟 3：同步 schema 移除 DRAFT enum（如果尚未執行）
+npx prisma db push --accept-data-loss
+```
+
+也可使用遷移腳本：
+```bash
+npx tsx scripts/migrate-draft.ts
+```
+
+**預防措施**：
+1. **移除 enum 值前必須先遷移資料** - 順序：SQL 更新記錄 -> prisma db push
+2. **建立遷移腳本** - 不要手動執行 SQL，建立可重複執行的腳本
+3. **在 staging 環境測試** - 先在測試環境確認遷移成功再推到生產
+4. **`--accept-data-loss` 旗標** - 移除 enum 值會被 Prisma 視為破壞性變更，需要此旗標確認
+
+**相關檔案**：
+- `prisma/schema.prisma` - ReportStatus enum 定義
+- `scripts/migrate-draft.ts` - DRAFT 遷移腳本
+- `app/actions/expenses.ts` - createExpense() 已改為直接使用 PENDING_MANAGER
+
+---
+
 *最後更新：2026-02-02*
-*新增：收據 blob URL 問題、REJECTED 統計問題、Server Action payload 過大*
+*新增：Prisma enum 值移除但資料庫仍有記錄的遷移問題*

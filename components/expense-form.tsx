@@ -39,9 +39,15 @@ function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<stri
     const img = new Image();
     img.onload = () => {
       let { width, height } = img;
+      const MAX_PIXELS = 16_000_000;
       if (width > maxWidth) {
         height = Math.round((height * maxWidth) / width);
         width = maxWidth;
+      }
+      if (width * height > MAX_PIXELS) {
+        const scale = Math.sqrt(MAX_PIXELS / (width * height));
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
       }
       const canvas = document.createElement("canvas");
       canvas.width = width;
@@ -69,12 +75,11 @@ function UploadButton({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     if (file.size > MAX_FILE_SIZE) {
       alert("檔案過大，上限為 10MB");
       return;

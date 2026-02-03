@@ -15,8 +15,13 @@ const SIZE_CLASSES: Record<NonNullable<ReceiptPreviewProps["size"]>, string> = {
   md: "h-12 w-12",
 }
 
+const SAFE_DATA_PREFIXES = ["data:image/jpeg", "data:image/png", "data:image/webp", "data:image/gif"]
+
 function isDisplayableImageSrc(src: string): boolean {
-  return src.startsWith("data:image") || src.startsWith("http") || src.startsWith("/")
+  if (src.startsWith("data:")) {
+    return SAFE_DATA_PREFIXES.some(prefix => src.startsWith(prefix))
+  }
+  return src.startsWith("https://") || src.startsWith("/")
 }
 
 export function ReceiptPreview({ src, alt = "收據", size = "sm" }: ReceiptPreviewProps): JSX.Element {

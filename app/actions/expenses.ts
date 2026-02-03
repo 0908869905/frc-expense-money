@@ -4,8 +4,16 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { expenseReportSchema } from "@/lib/schemas";
 import { toStorageUnit } from "@/lib/money";
-import { TeamDepartment, ReportStatus } from "@prisma/client";
+import { TeamDepartment } from "@prisma/client";
 import { revalidateExpenses, revalidateDashboard } from "@/lib/actions/helpers";
+
+const ALLOWED_RECEIPT_PREFIXES = ["data:image/jpeg", "data:image/png", "data:image/webp"];
+const MAX_RECEIPT_LENGTH = 5 * 1024 * 1024; // ~3.75MB raw image
+
+function isValidReceiptUrl(url: string): boolean {
+    if (url.length > MAX_RECEIPT_LENGTH) return false;
+    return ALLOWED_RECEIPT_PREFIXES.some(prefix => url.startsWith(prefix));
+}
 
 export type State = {
     success: boolean;
@@ -138,7 +146,7 @@ export async function createExpense(prevState: State, formData: FormData): Promi
                             description: item.description,
                             amount: item.amount,
                             amountCents: toStorageUnit(item.amount),
-                            receiptUrl: item.receiptUrl,
+                            receiptUrl: item.receiptUrl && isValidReceiptUrl(item.receiptUrl) ? item.receiptUrl : null,
                         })),
                     },
                 },
@@ -179,10 +187,6 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
         return { success: false, message: "Only admins can edit reports" };
     }
 
-    if (data.status && !Object.values(ReportStatus).includes(data.status as ReportStatus)) {
-        return { success: false, message: "Invalid status value" };
-    }
-
     try {
         const report = await prisma.expenseReport.findUnique({
             where: { id: reportId },
@@ -198,7 +202,7 @@ export async function updateReport(reportId: string, data: UpdateReportData): Pr
                 data: {
                     ...(data.title && { title: data.title }),
                     ...(data.description !== undefined && { description: data.description }),
-                    ...(data.status && { status: data.status as ReportStatus }),
+                    ...(data.status && { status: data.status as typeof report.status }),
                 },
             });
 
@@ -250,15 +254,17 @@ export async function deleteReport(reportId: string): Promise<State> {
         }
 
         await prisma.$transaction(async (tx) => {
-            await tx.auditLog.create({
-                data: {
-                    entityType: "ExpenseReport",
-                    entityId: reportId,
-                    action: "DELETE",
-                    actorId: session.user.id!,
-                    oldData: JSON.parse(JSON.stringify(report)),
-                },
-            });
+            if (session.user.id) {
+                await tx.auditLog.create({
+                    data: {
+                        entityType: "ExpenseReport",
+                        entityId: reportId,
+                        action: "DELETE",
+                        actorId: session.user.id,
+                        oldData: JSON.parse(JSON.stringify(report)),
+                    },
+                });
+            }
             await tx.expenseItem.deleteMany({ where: { reportId } });
             await tx.expenseReport.delete({ where: { id: reportId } });
         });

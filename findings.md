@@ -996,3 +996,244 @@ UPDATE "ExpenseItem" SET "receiptUrl" = NULL WHERE "receiptUrl" LIKE 'blob:%';
 22. **Stats 查詢要排除無效狀態** - 被拒絕的報帳單不應計入統計
 23. **Server Action body 有預設限制** - 上傳大檔案需調整 `bodySizeLimit`
 24. **定期清理 DB 髒資料** - 無效的 blob URL 應該被清除，避免 UI 顯示錯誤
+
+---
+
+## Session: 2026-02-02 (續) - 安全掃描漏洞全面修復 + DRAFT 遷移
+
+### 安全掃描修復策略
+
+#### URL 協議驗證（isSafeUrl）
+
+**問題**：vendorLink 可能包含 `javascript:` 或 `data:` 協議，導致 XSS。
+
+**解決方案**：在 `lib/utils.ts` 新增通用的 `isSafeUrl()` 函式，在前端渲染連結前驗證。
+
+```typescript
+export function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ["http:", "https:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+```
+
+**決策理由**：
+- 前端驗證搭配 UI 層阻擋，比在 Server Action 拒絕更友善
+- 使用 `URL` 構造函式解析，比正則更可靠（處理邊界情況如 `javascript:alert(1)//http://`）
+- 只允許 http/https 白名單，比黑名單（阻擋 javascript:）更安全
+
+#### 庫存寫入角色檢查（requireInventoryWrite）
+
+**問題**：任何登入用戶（包括 USER 角色）都能執行庫存寫入操作。
+
+**解決方案**：在 `lib/actions/helpers.ts` 新增 `requireInventoryWrite()` 檢查。
+
+```typescript
+const INVENTORY_WRITE_ROLES = ["VICE_LEADER", "LEADER", "FINANCE", "ADMIN"];
+
+export async function requireInventoryWrite() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  if (!INVENTORY_WRITE_ROLES.includes(session.user.role)) {
+    throw new Error("Insufficient permissions for inventory operations");
+  }
+  return session;
+}
+```
+
+**決策理由**：
+- VICE_LEADER 以上才有庫存管理權限，符合 FRC 團隊組織結構
+- 集中管理角色常數，未來修改只需改一處
+- 拋出 Error 而非返回 `{ success: false }`，讓調用方統一用 try-catch 處理
+
+#### 費用報表型別定義
+
+**問題**：`expenses-content.tsx` 大量使用 `any` 型別，缺乏型別安全。
+
+**解決方案**：新建 `types/expense.ts`，定義 `ExpenseReportView`、`ExpenseItemView`、`BankAccountView` 等視圖型別。
+
+**決策理由**：
+- 視圖型別（View types）與 Prisma 模型型別分離，前端只引用視圖型別
+- 避免前端直接依賴 Prisma 生成的型別（減少耦合）
+- 統一管理費用相關的型別定義
+
+#### Zod 驗證策略
+
+**問題**：庫存 Server Actions（createItem, updateItem, batchCreateItems, batchAdjustStock）缺少輸入驗證。
+
+**解決方案**：為每個操作新增 Zod schema。
+
+**決策理由**：
+- Zod 驗證在 Server Action 入口處執行，確保所有進入業務邏輯的資料都是乾淨的
+- 搭配 `requireInventoryWrite()` 形成雙重防護（認證 + 驗證）
+- 錯誤訊息不回顯用戶輸入（防止 reflected XSS）
+
+#### Mass Assignment 防護
+
+**問題**：`data` 物件直接傳入 Prisma `create/update`，攻擊者可能注入額外欄位。
+
+**解決方案**：在 Prisma 操作前明確提取需要的欄位。
+
+```typescript
+// 之前：prisma.inventoryItem.create({ data })
+// 之後：prisma.inventoryItem.create({ data: { sku, name, quantity, ... } })
+```
+
+**決策理由**：
+- 即使 Zod 驗證了輸入，明確提取欄位提供額外的安全層
+- 防止未來 schema 變更時意外暴露新欄位
+
+#### Race Condition 設計決策
+
+**問題**：庫存調整操作（adjustStock, batchAdjustStock）存在 read-then-write race condition。
+
+**設計決策**：標記為「可接受風險」，加入註解說明。
+
+**理由**：
+- FRC 團隊規模小（< 50 人），併發庫存操作機率極低
+- 使用 Prisma transaction 會增加複雜度和效能開銷
+- 已在程式碼中加入註解，未來規模擴大時可升級為 transaction
+
+#### DRAFT Enum 遷移
+
+**問題**：Prisma schema 已移除 DRAFT enum，但資料庫仍有 1 筆 DRAFT 記錄。Vercel 部署時 Prisma 查詢遇到未知的 enum 值。
+
+**解決方案**：
+1. 新增 `scripts/migrate-draft.ts` 遷移腳本
+2. 用 SQL 更新 DRAFT 記錄為 PENDING_MANAGER
+3. `prisma db push --accept-data-loss` 同步移除 enum
+
+**決策理由**：
+- 先遷移資料再移除 enum，確保不會丟失資料
+- 使用獨立腳本而非 Prisma migration，因為這是一次性操作
+- `--accept-data-loss` 是必要的，因為移除 enum 值會被 Prisma 視為破壞性變更
+
+#### @ts-ignore 和私有 API 替代方案
+
+**問題**：`expense-form.tsx` 使用 3 個 `@ts-ignore` 和 `control._formValues` 私有 API 直接修改表單值。
+
+**解決方案**：改用 react-hook-form 的公開 API `setValue()`。
+
+```typescript
+// 之前：
+// @ts-ignore
+control._formValues.bankCode = account.bankCode;
+
+// 之後：
+setValue("bankCode", account.bankCode);
+```
+
+**決策理由**：
+- `setValue()` 是 react-hook-form 的官方 API，語義明確
+- 消除 `@ts-ignore` 提升型別安全
+- 私有 API（`_formValues`）在套件升級時可能被移除或改名
+
+### 未修復項目分析
+
+| 漏洞 | 為何未修復 | 風險評估 |
+|------|-----------|----------|
+| next 14.x DoS | Major 升級（14 -> 15），涉及 breaking changes | 中等：需要攻擊者主動發起 |
+| xlsx Prototype Pollution | 套件無修復版本，需替換為 exceljs | 低：僅在伺服器端使用，不直接暴露 |
+| eslint/glob | 開發工具漏洞，不影響生產環境 | 極低：僅在 lint 時使用 |
+
+### 經驗教訓
+
+25. **URL 驗證用白名單** - 只允許 http/https 比黑名單 javascript: 更安全
+26. **角色檢查要集中管理** - 建立 `requireXxxWrite()` 模式，一處定義多處使用
+27. **視圖型別與模型型別分離** - 前端不直接依賴 Prisma 型別，降低耦合
+28. **移除 enum 值要先遷移資料** - 必須 SQL 更新 + prisma db push，順序不能反
+29. **避免私有 API** - 使用官方公開 API（如 `setValue()`），確保升級兼容性
+30. **Mass assignment 防護** - 即使有 Zod 驗證，仍應明確提取欄位傳入 ORM
+31. **設計決策要加註解** - Race Condition 等可接受風險應在程式碼中記錄理由
+
+---
+
+## Session: 2026-02-02 (續) - 安全掃描修復（附件安全加固）
+
+### deleteReport Audit Log 模式
+
+**問題**：`deleteReport` 刪除報帳單時沒有留下任何記錄，無法追溯刪除操作。
+
+**解決方案**：在 Prisma transaction 內，先寫入 auditLog 再執行刪除。
+
+**決策理由**：
+- Audit log 必須在 transaction 內，確保刪除和記錄是原子操作
+- 記錄完整報帳單資料（金額、項目、狀態等），因為刪除後無法回查
+- 先寫 log 再刪除，若 log 寫入失敗則整個 transaction 回滾，不會出現「已刪除但無記錄」
+
+### Client-Side 檔案大小前置檢查
+
+**問題**：使用者可以選擇超大檔案上傳，壓縮後可能仍超過 server action body 限制。
+
+**解決方案**：在 `handleFileChange` 最前面檢查原始檔案大小（10MB 上限），不符合直接拒絕。
+
+**決策理由**：
+- 前置檢查比等待壓縮後再檢查更快，使用者體驗更好
+- 10MB 上限與 server action `bodySizeLimit` 一致
+- 即使壓縮後遠小於 10MB，原始檔過大也可能造成 Canvas 記憶體問題
+
+### Receipt Preview MIME 白名單
+
+**問題**：`receipt-preview.tsx` 接受任何 data URL 前綴，包括 SVG（可嵌入 JavaScript）和其他危險格式。
+
+**解決方案**：改為白名單模式，只允許 `data:image/jpeg`、`data:image/png`、`data:image/webp`、`data:image/gif`。HTTP URL 只允許 `https://`。
+
+**決策理由**：
+- 白名單比黑名單安全 -- 未知格式預設被拒絕
+- SVG 可嵌入 `<script>` 標籤，即使在 `<img>` 標籤中通常不會執行，仍是不必要的攻擊面
+- 收據圖片只需要 JPEG/PNG/WebP/GIF，無需支援其他格式
+- HTTP 強制升級為 HTTPS only，防止中間人攻擊
+
+### Server-Side receiptUrl 驗證（isValidReceiptUrl）
+
+**問題**：`receiptUrl` 在 server action 中只檢查是否存在，不驗證格式和大小。攻擊者可能提交惡意 data URL。
+
+**解決方案**：新增 `isValidReceiptUrl()` 函式，驗證 data URL 前綴（只允許 jpeg/png/webp）和長度（< 5MB）。
+
+**決策理由**：
+- Server-side 驗證是最後一道防線，不能只依賴 client-side
+- 長度限制 5MB 比 client-side 的 10MB 更嚴格（壓縮後應遠小於此值）
+- 前綴白名單與 receipt-preview 的白名單一致，確保存入 DB 的 URL 一定可以顯示
+
+### Canvas 像素上限防護
+
+**問題**：超大圖片（例如 8000x8000 像素的掃描件）載入 Canvas 時可能導致瀏覽器記憶體不足或崩潰。
+
+**解決方案**：`compressImage` 加入 16M 像素上限（相當於 4000x4000），超過時自動等比縮放。
+
+**決策理由**：
+- 16 百萬像素是大多數瀏覽器 Canvas 的安全上限
+- 超過上限時按比例縮放而非拒絕，使用者不需重新拍照
+- 與現有的 max 1200px 寬度限制互補（像素上限在寬高限制之前執行）
+
+### CSP Nonce-Based 跳過決策
+
+**問題**：目前使用 `unsafe-inline` 允許內聯腳本，安全性不如 nonce-based CSP。
+
+**跳過理由**：
+- Next.js App Router 的 CSP nonce 實作需要自訂 middleware 生成 nonce 並注入到每個 response
+- 涉及 `next.config.mjs`、`middleware.ts`、`app/layout.tsx` 多檔案改動
+- Next.js 15 對 CSP nonce 有更好的內建支援，建議隨升級一併處理
+- 目前的 CSP 仍提供其他保護（frame-ancestors、upgrade-insecure-requests 等）
+
+### 技術決策
+
+| 決策 | 理由 |
+|------|------|
+| Audit log 放在 transaction 內 | 確保原子性，避免「已刪除但無記錄」或「有記錄但未刪除」 |
+| 前置檔案大小檢查 | 比壓縮後檢查更快反饋，避免不必要的 Canvas 操作 |
+| MIME 白名單而非黑名單 | 未知格式預設拒絕，更安全 |
+| Server-side + Client-side 雙重驗證 | 防禦縱深，不依賴單一檢查點 |
+| Canvas 像素超限自動縮放而非拒絕 | 使用者體驗優先，不需重新拍照 |
+| 跳過 CSP nonce | 改動大，留待 Next.js 15 升級時處理 |
+
+### 經驗教訓
+
+32. **Audit log 要在 transaction 內** -- 刪除操作的記錄必須與刪除本身是原子的
+33. **防禦縱深（Defense in Depth）** -- 檔案驗證要在 client-side 和 server-side 都做
+34. **MIME 白名單優於黑名單** -- SVG 等格式可嵌入腳本，白名單更安全
+35. **Canvas 有像素上限** -- 超大圖片會導致瀏覽器崩潰，需要在載入前檢查
+36. **架構改動可以延後** -- CSP nonce 改動大但目前風險可控，留待大版本升級時一併處理

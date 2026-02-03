@@ -256,6 +256,37 @@ async function compressImage(file: File): Promise<string> {
 
 Server action body 限制已設為 10MB（`next.config.mjs` bodySizeLimit）。
 
+### URL 安全驗證
+
+在前端渲染外部連結前，使用 `isSafeUrl()` 驗證協議：
+```typescript
+import { isSafeUrl } from "@/lib/utils";
+
+// 只允許 http/https 協議，阻擋 javascript: 和 data: 等危險協議
+{isSafeUrl(item.vendorLink) && (
+  <a href={item.vendorLink} target="_blank" rel="noopener noreferrer">Link</a>
+)}
+```
+
+### 庫存寫入角色檢查
+
+庫存寫入操作（create, update, delete, batch）需要 VICE_LEADER 以上角色：
+```typescript
+import { requireInventoryWrite } from "@/lib/actions/helpers";
+
+export async function createItem(data: FormData) {
+  const session = await requireInventoryWrite(); // Throws if USER role
+  // ... business logic
+}
+```
+
+### 費用報表型別（View Types）
+
+前端元件使用 `types/expense.ts` 中的視圖型別，不直接依賴 Prisma 型別：
+```typescript
+import type { ExpenseReportView, ExpenseItemView, BankAccountView } from "@/types/expense";
+```
+
 ### UI 按鈕樣式常數
 
 使用 `lib/ui-constants.ts` 統一按鈕樣式：
@@ -314,16 +345,19 @@ npm run build  # Always run before pushing
 
 ## Pending Tasks (2026-02-02)
 
-- **DB Migration**: Update existing DRAFT records to PENDING_MANAGER via SQL, then `prisma db push`
-- **Zod Validation**: Add Zod schemas to batch and single CRUD inventory Server Actions
-- **npm Vulnerabilities**: Fix `next` DoS and `xlsx` Prototype Pollution
-- **Role Check**: USER role should not have inventory write access
-- **vendorLink Validation**: Restrict to http/https protocols
-- **Race Condition**: Use Prisma transactions for inventory operations
-- **Audit Log**: Add audit log to `deleteReport` (HIGH priority)
-- **Receipt Validation**: Add server-side `receiptUrl` format validation + client-side MIME type check
-- **CSP Enhancement**: Consider nonce-based CSP instead of `unsafe-inline`
-- **File Size Limit**: Add client-side size limit for non-image file uploads
+- ~~**DB Migration**: Update existing DRAFT records to PENDING_MANAGER via SQL, then `prisma db push`~~ DONE (62b1fc9)
+- ~~**Zod Validation**: Add Zod schemas to batch and single CRUD inventory Server Actions~~ DONE (ad62842)
+- **npm Vulnerabilities**: ~~lodash~~ FIXED; `next` DoS (needs 15.x), `xlsx` Prototype Pollution (replace with exceljs), `eslint/glob` (needs eslint-config-next 16.x)
+- ~~**Role Check**: USER role should not have inventory write access~~ DONE (ad62842) - `requireInventoryWrite()` added
+- ~~**vendorLink Validation**: Restrict to http/https protocols~~ DONE (ad62842) - `isSafeUrl()` added
+- **Race Condition**: Inventory operations use read-then-write (accepted risk for FRC team scale, documented in code comments)
+- ~~**Audit Log**: Add audit log to `deleteReport` (HIGH priority)~~ DONE
+- ~~**Receipt Validation**: Add server-side `receiptUrl` format validation + client-side MIME type check~~ DONE
+- **CSP Enhancement**: Consider nonce-based CSP instead of `unsafe-inline` (recommend handling with Next.js 15 upgrade)
+- ~~**File Size Limit**: Add client-side size limit for non-image file uploads~~ DONE
+- **Next.js Upgrade**: 14.x -> 15.5.10+ (fixes DoS vulnerability, major upgrade)
+- **xlsx Replacement**: Replace `xlsx` with `exceljs` (Prototype Pollution, no fix available)
+- **ESLint Upgrade**: eslint-config-next 16.x (handle alongside Next.js upgrade)
 
 ## iOS App Status (BudgetFlow)
 

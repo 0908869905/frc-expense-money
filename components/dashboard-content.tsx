@@ -241,7 +241,7 @@ export function DashboardContent({
                                     return (
                                         <Link
                                             key={report.id}
-                                            href={`/dashboard/expenses/${report.id}`}
+                                            href="/dashboard/expenses"
                                             className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 border border-transparent hover:border-border/50 transition-all group"
                                             style={{ animationDelay: `${index * 50}ms` }}
                                         >
