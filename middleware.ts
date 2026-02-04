@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { redis, isRedisAvailable, rateLimit } from "@/lib/redis"
+import { Redis } from "@upstash/redis"
+
+// Middleware 專用 Redis 實例（不從 lib/redis.ts import，避免 Edge Runtime side-effect 問題）
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN
+const edgeRedis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null
 
 // 安全標頭（與 next.config.mjs 同步，確保 middleware 回應也帶上）
 const isProduction = process.env.NODE_ENV === "production"
@@ -74,11 +79,18 @@ function fallbackRateLimit(ip: string): { allowed: boolean; remaining: number } 
 }
 
 async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
-    if (isRedisAvailable) {
+    if (edgeRedis) {
         try {
-            return await rateLimit(`middleware:${ip}`, GLOBAL_RATE_LIMIT, RATE_LIMIT_WINDOW_SECONDS)
+            const key = `middleware:${ip}`
+            const current = await edgeRedis.incr(key)
+            if (current === 1) {
+                await edgeRedis.expire(key, RATE_LIMIT_WINDOW_SECONDS)
+            }
+            return {
+                allowed: current <= GLOBAL_RATE_LIMIT,
+                remaining: Math.max(0, GLOBAL_RATE_LIMIT - current),
+            }
         } catch {
-            // Redis 故障時降級到 in-memory
             return fallbackRateLimit(ip)
         }
     }
