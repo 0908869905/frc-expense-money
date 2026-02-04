@@ -1,6 +1,42 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+// 安全標頭（與 next.config.mjs 同步，確保 middleware 回應也帶上）
+const isProduction = process.env.NODE_ENV === "production"
+const scriptSrc = isProduction
+    ? "script-src 'self' 'unsafe-inline'"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+
+const cspValue = [
+    "default-src 'self'",
+    scriptSrc,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.sentry.io https://*.googleapis.com wss://*.supabase.co",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    ...(isProduction ? ["upgrade-insecure-requests"] : []),
+].join("; ")
+
+const SECURITY_HEADERS: Record<string, string> = {
+    "Content-Security-Policy": cspValue,
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-XSS-Protection": "1; mode=block",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Permissions-Policy": "camera=(self), microphone=(), geolocation=()",
+}
+
+function applySecurityHeaders(response: NextResponse): NextResponse {
+    for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+        response.headers.set(key, value)
+    }
+    return response
+}
+
 // 全局速率限制配置（使用簡易 IP 追蹤）
 // 注意：生產環境中，IP 可能經過 proxy，需要檢查 X-Forwarded-For
 const GLOBAL_RATE_LIMIT = 100 // 每分鐘最多 100 次請求
@@ -57,13 +93,13 @@ setInterval(() => {
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
-    // 跳過靜態資源
+    // 跳過靜態資源（仍套用安全標頭）
     if (
         pathname.startsWith("/_next") ||
         pathname.startsWith("/favicon") ||
         pathname.includes(".")
     ) {
-        return NextResponse.next()
+        return applySecurityHeaders(NextResponse.next())
     }
 
     // 全局速率限制
@@ -81,10 +117,8 @@ export function middleware(request: NextRequest) {
         })
     }
 
-    // 添加安全標頭（補充 next.config.mjs 的配置）
-    const response = NextResponse.next()
-
-    // 添加速率限制資訊到回應標頭
+    // 添加安全標頭 + 速率限制資訊
+    const response = applySecurityHeaders(NextResponse.next())
     response.headers.set("X-RateLimit-Limit", GLOBAL_RATE_LIMIT.toString())
     response.headers.set("X-RateLimit-Remaining", rateLimit.remaining.toString())
 
