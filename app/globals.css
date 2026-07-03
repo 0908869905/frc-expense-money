@@ -8,11 +8,12 @@
    規範見 docs/redesign/DESIGN_SYSTEM.md
    ============================================================ */
 
-@layer base {
+/* 主題變數置於 @layer 之外：Tailwind 會 tree-shake @layer 內未被內容引用的
+   selector（.light 曾因此被整塊清除，導致淺色主題失效）。頂層 CSS 不受 purge 影響。 */
 
-  /* ---- 深色主題「石墨車間」（預設）---- */
-  :root,
-  .dark {
+/* ---- 深色主題「石墨車間」（預設）---- */
+:root,
+.dark {
     color-scheme: dark;
 
     --background: 220 8% 9%;
@@ -49,10 +50,10 @@
     --chart-4: 42 85% 39%;   /* 土黃 */
     --chart-5: 4 60% 55%;    /* 磚紅 */
     --chart-grid: 220 6% 20%;
-  }
+}
 
-  /* ---- 淺色主題「圖紙」---- */
-  .light {
+/* ---- 淺色主題「圖紙」---- */
+.light {
     color-scheme: light;
 
     --background: 45 30% 96%;
@@ -88,7 +89,6 @@
     --chart-4: 40 80% 42%;
     --chart-5: 4 60% 48%;
     --chart-grid: 220 14% 88%;
-  }
 }
 
 @layer base {
