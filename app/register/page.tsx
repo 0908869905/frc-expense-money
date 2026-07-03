@@ -12,11 +12,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/Button"
 
-// Shared input styling
-const INPUT_CLASS = "h-14 pl-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl transition-all text-base"
+// Shared input styling（token 驅動，圖標留位）
+const INPUT_CLASS = "h-12 pl-11 text-base"
 
 function getIconColor(isFocused: boolean): string {
-    return isFocused ? "text-purple-400" : "text-gray-500"
+    return isFocused ? "text-primary" : "text-muted-foreground"
 }
 
 const DEPARTMENTS = [
@@ -37,7 +37,7 @@ function SubmitButton() {
         <Button
             type="submit"
             disabled={pending}
-            className="w-full h-14 bg-white text-black hover:bg-gray-100 border-0 rounded-xl shadow-lg shadow-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-white/20 text-base font-medium"
+            className="w-full h-12 text-base font-medium"
         >
             {pending ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -68,18 +68,18 @@ function DepartmentSelector({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full h-14 px-4 bg-white/5 border rounded-xl text-left transition-all flex items-center justify-between ${
+                className={`w-full h-12 px-4 bg-card border rounded-md text-left transition-colors flex items-center justify-between ${
                     isOpen
-                        ? "border-purple-500/50 ring-2 ring-purple-500/20"
-                        : "border-white/10 hover:border-white/20"
-                } ${value ? "text-white" : "text-gray-500"}`}
+                        ? "border-ring ring-2 ring-ring/20"
+                        : "border-input hover:border-muted-foreground/50"
+                } ${value ? "text-foreground" : "text-muted-foreground"}`}
             >
                 <span className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-gray-400" />
+                    <Users className="h-5 w-5 text-muted-foreground" />
                     {selectedDept ? t(selectedDept.labelKey) : t("select_department")}
                 </span>
                 <svg
-                    className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    className={`w-5 h-5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -99,7 +99,7 @@ function DepartmentSelector({
                     />
                     {/* Menu - opens upward to avoid being cut off */}
                     <div
-                        className="absolute bottom-full mb-2 w-full py-2 bg-gray-900 border border-white/20 rounded-xl shadow-2xl shadow-black/50"
+                        className="absolute bottom-full mb-2 w-full py-1.5 bg-popover border border-border rounded-md shadow-[0_8px_24px_rgb(0_0_0_/_0.25)]"
                         style={{ zIndex: 100 }}
                     >
                         {DEPARTMENTS.map((dept) => (
@@ -110,13 +110,13 @@ function DepartmentSelector({
                                     onChange(dept.value)
                                     setIsOpen(false)
                                 }}
-                                className={`w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-white/10 ${
-                                    value === dept.value ? "bg-purple-500/20 text-purple-300" : "text-white"
+                                className={`w-full px-4 py-2.5 flex items-center justify-between transition-colors hover:bg-accent text-sm ${
+                                    value === dept.value ? "bg-primary/10 text-primary" : "text-foreground"
                                 }`}
                             >
                                 <span>{t(dept.labelKey)}</span>
                                 {value === dept.value && (
-                                    <Check className="h-4 w-4 text-purple-400" />
+                                    <Check className="h-4 w-4 text-primary" />
                                 )}
                             </button>
                         ))}
@@ -161,11 +161,11 @@ function FormField({
 }: FormFieldProps): React.ReactElement {
     return (
         <div className="space-y-2">
-            <Label htmlFor={id} className="text-sm font-medium text-gray-300">
+            <Label htmlFor={id} className="text-sm font-medium">
                 {label}
             </Label>
             <div className="relative">
-                <Icon className={`absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${getIconColor(isFocused)}`} />
+                <Icon className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors ${getIconColor(isFocused)}`} />
                 <Input
                     id={id}
                     name={id}
@@ -179,7 +179,7 @@ function FormField({
                     className={INPUT_CLASS}
                 />
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
         </div>
     )
 }
@@ -205,10 +205,10 @@ function RegisterForm() {
     return (
         <form action={formAction} className="space-y-5">
             {state.message && (
-                <div className={`p-4 rounded-xl text-sm backdrop-blur-sm ${
+                <div className={`p-3 rounded-md text-sm border ${
                     state.success
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                        : "bg-red-500/10 text-red-400 border border-red-500/20"
+                        ? "bg-ok/10 text-ok border-ok/30"
+                        : "bg-danger/10 text-danger border-danger/30"
                 }`}>
                     {state.message}
                 </div>
@@ -276,12 +276,12 @@ function RegisterForm() {
 
             {/* Department Field */}
             <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-300">
+                <Label className="text-sm font-medium">
                     {t("department")}
                 </Label>
                 <DepartmentSelector value={department} onChange={setDepartment} />
                 {state.errors?.department && (
-                    <p className="text-sm text-red-400">{state.errors.department[0]}</p>
+                    <p className="text-sm text-danger">{state.errors.department[0]}</p>
                 )}
             </div>
 
@@ -296,59 +296,60 @@ export default function RegisterPage() {
     const { t, language } = useLanguage()
 
     return (
-        <div className="min-h-screen flex bg-black text-white overflow-hidden">
-            {/* Left Side - Artistic Visual */}
-            <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center">
-                {/* Artistic Background */}
-                <div className="absolute inset-0">
-                    {/* Large gradient orbs */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/50 via-blue-600/40 to-cyan-500/30 blur-3xl animate-pulse" />
-                        <div className="absolute inset-[80px] rounded-full bg-gradient-to-tr from-pink-500/40 via-purple-500/30 to-transparent blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
-                    </div>
-                    {/* Accent lights */}
-                    <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-purple-500/40 blur-3xl" />
-                    <div className="absolute bottom-20 right-20 w-32 h-32 rounded-full bg-blue-500/30 blur-3xl" />
-                    {/* Floating geometric shapes */}
-                    <div className="absolute top-1/4 right-1/4 w-20 h-20 border border-white/10 rounded-lg rotate-45 animate-float" />
-                    <div className="absolute bottom-1/3 left-1/4 w-16 h-16 border border-purple-500/20 rounded-full animate-float" style={{ animationDelay: "2s" }} />
-                    {/* Noise texture */}
-                    <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
+        <div className="min-h-screen flex bg-background text-foreground overflow-hidden">
+            {/* Left Side - 工程圖框品牌面板 */}
+            <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between border-r border-border p-12">
+                {/* 藍圖網格背景 */}
+                <div
+                    aria-hidden
+                    className="absolute inset-0 opacity-60"
+                    style={{
+                        backgroundImage:
+                            "linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px)",
+                        backgroundSize: "24px 24px",
+                    }}
+                />
+
+                {/* 左上：系統代號 */}
+                <div className="relative z-10">
+                    <span className="ledger-label">BudgetFlow</span>
                 </div>
 
-                {/* Hero Text */}
-                <div className="relative z-10 text-center px-12">
-                    <h1 className="text-7xl font-black tracking-tighter leading-none mb-4">
-                        <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-                            FRC
-                        </span>
+                {/* 中央：隊伍識別 */}
+                <div className="relative z-10">
+                    <p className="font-mono text-sm text-primary mb-4 tracking-[0.2em] uppercase">
+                        FIRST Robotics Competition
+                    </p>
+                    <h1 className="text-7xl font-bold tracking-tight leading-none mb-2">
+                        FRC
                     </h1>
-                    <h1 className="text-7xl font-black tracking-tighter leading-none mb-8">
-                        <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                            6998
-                        </span>
+                    <h1 className="font-mono text-7xl font-semibold tracking-tight leading-none mb-6">
+                        6998
                     </h1>
-                    <p className="text-xl tracking-[0.3em] text-gray-400 uppercase font-light">
+                    <p className="font-mono text-xl tracking-[0.35em] text-muted-foreground uppercase">
                         UNIPARDS
                     </p>
-                    <div className="mt-8 flex items-center justify-center gap-3">
-                        <div className="h-px w-12 bg-gradient-to-r from-transparent to-purple-500/50" />
-                        <div className="w-2 h-2 rounded-full bg-purple-500" />
-                        <div className="h-px w-12 bg-gradient-to-l from-transparent to-purple-500/50" />
-                    </div>
-                    <p className="mt-8 text-gray-500 text-sm">
+                    <div className="mt-8 h-px w-24 bg-primary" />
+                    <p className="mt-6 text-sm text-muted-foreground">
                         {language === "zh" ? "加入我們的團隊" : "Join Our Team"}
                     </p>
+                </div>
+
+                {/* 左下：圖框 title block */}
+                <div className="relative z-10 border border-border bg-card/80 rounded-md overflow-hidden max-w-xs">
+                    <div className="grid grid-cols-[auto_1fr] text-xs font-mono">
+                        <span className="px-3 py-1.5 border-b border-r border-border text-muted-foreground uppercase tracking-wider">Team</span>
+                        <span className="px-3 py-1.5 border-b border-border">FRC 6998 UNIPARDS</span>
+                        <span className="px-3 py-1.5 border-b border-r border-border text-muted-foreground uppercase tracking-wider">System</span>
+                        <span className="px-3 py-1.5 border-b border-border">BudgetFlow</span>
+                        <span className="px-3 py-1.5 border-r border-border text-muted-foreground uppercase tracking-wider">Origin</span>
+                        <span className="px-3 py-1.5">Taiwan</span>
+                    </div>
                 </div>
             </div>
 
             {/* Right Side - Register Form */}
             <div className="w-full lg:w-1/2 flex flex-col relative">
-                {/* Background for mobile */}
-                <div className="absolute inset-0 lg:hidden">
-                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-purple-600/30 via-blue-600/20 to-transparent blur-3xl" />
-                </div>
-
                 {/* Language Switcher */}
                 <div className="absolute top-6 right-6 z-50">
                     <LanguageSwitcher />
@@ -360,19 +361,21 @@ export default function RegisterPage() {
                         {/* Mobile Logo */}
                         <div className="lg:hidden text-center mb-8">
                             <Link href="/">
-                                <h1 className="text-5xl font-black tracking-tighter">
-                                    <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">FRC </span>
-                                    <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">6998</span>
+                                <h1 className="text-4xl font-bold tracking-tight">
+                                    FRC <span className="font-mono text-primary">6998</span>
                                 </h1>
+                                <p className="mt-2 font-mono text-xs tracking-[0.3em] text-muted-foreground uppercase">
+                                    UNIPARDS
+                                </p>
                             </Link>
                         </div>
 
                         {/* Welcome Text */}
                         <div className="mb-8">
-                            <h2 className="text-3xl font-bold text-white mb-2">
+                            <h2 className="text-2xl font-semibold mb-2">
                                 {language === "zh" ? "建立帳號" : "Create Account"}
                             </h2>
-                            <p className="text-gray-400">
+                            <p className="text-sm text-muted-foreground">
                                 {t("register_desc")}
                             </p>
                         </div>
@@ -382,9 +385,9 @@ export default function RegisterPage() {
 
                         {/* Login Link */}
                         <div className="mt-8 text-center">
-                            <p className="text-gray-500">
+                            <p className="text-sm text-muted-foreground">
                                 {t("have_account")}{" "}
-                                <Link href="/login" className="text-white hover:text-purple-400 transition-colors font-medium">
+                                <Link href="/login" className="text-primary hover:underline font-medium">
                                     {t("login_now")}
                                 </Link>
                             </p>
@@ -394,24 +397,9 @@ export default function RegisterPage() {
 
                 {/* Footer */}
                 <div className="py-6 px-6 text-center">
-                    <p className="text-xs text-gray-600">{t("footer_rights")}</p>
+                    <p className="text-xs text-muted-foreground/70 font-mono">{t("footer_rights")}</p>
                 </div>
             </div>
-
-            {/* Custom Animations */}
-            <style jsx global>{`
-                @keyframes float {
-                    0%, 100% {
-                        transform: translateY(0) rotate(45deg);
-                    }
-                    50% {
-                        transform: translateY(-20px) rotate(45deg);
-                    }
-                }
-                .animate-float {
-                    animation: float 6s ease-in-out infinite;
-                }
-            `}</style>
         </div>
     )
 }

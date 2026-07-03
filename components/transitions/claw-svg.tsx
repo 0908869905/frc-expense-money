@@ -14,8 +14,8 @@ export function ClawSvg({ className, style }: ClawSvgProps) {
       className={className}
       style={style}
     >
-      {/* 豹爪剪影 - 四指向下抓 */}
-      <g fill="white" filter="url(#claw-glow)">
+      {/* 豹爪剪影 - 四指向下抓（currentColor：深色主題為米白、淺色主題為墨色） */}
+      <g fill="currentColor" filter="url(#claw-glow)">
         {/* 第一指（左） */}
         <path d="M40 0 Q35 60 25 120 Q20 150 30 180 Q35 160 45 130 Q55 80 50 20 Z" />
         {/* 第二指 */}

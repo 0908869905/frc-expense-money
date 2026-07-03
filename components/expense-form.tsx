@@ -8,7 +8,7 @@ import { createExpense } from "@/app/actions/expenses";
 import { scanInvoice } from "@/app/actions/ocr";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { Trash2, Plus, Upload, Loader2, AlertCircle, Sparkles, Building2, Star } from "lucide-react";
+import { Trash2, Plus, Upload, Loader2, AlertCircle, ScanLine, Building2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFormState } from "react-dom";
 import type { BankAccountData } from "@/app/actions/bank-accounts";
@@ -185,14 +185,14 @@ function UploadButton({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
           {scanning ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Sparkles className="h-4 w-4 text-yellow-500" />
+            <ScanLine className="h-4 w-4 text-primary" />
           )}
           {scanning ? "辨識中" : "擷取"}
         </Button>
       )}
 
       {preview && (
-        <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-blue-500 underline">
+        <a href={preview} target="_blank" rel="noreferrer" className="text-xs text-info underline">
           檢視
         </a>
       )}
@@ -304,13 +304,13 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto py-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">新增報帳單</h2>
-          <p className="text-muted-foreground">填寫完成後將直接提交至上級審核。</p>
+          <h2 className="text-2xl font-semibold tracking-tight">新增報帳單</h2>
+          <p className="text-sm text-muted-foreground">填寫完成後將直接提交至上級審核。</p>
         </div>
       </div>
 
       {state.message && (
-        <div className={cn("p-4 rounded-md flex items-center gap-2", state.success ? "bg-green-50 text-green-900 border border-green-200" : "bg-red-50 text-red-900 border border-red-200")}>
+        <div className={cn("p-3 rounded-md flex items-center gap-2 border text-sm", state.success ? "bg-ok/10 text-ok border-ok/30" : "bg-danger/10 text-danger border-danger/30")}>
           <AlertCircle className="h-4 w-4" />
           {state.message}
         </div>
@@ -425,7 +425,7 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
             <CardContent className="p-6">
               <div className="grid gap-6 md:grid-cols-12">
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">日期</label>
+                  <label className="ledger-label">日期</label>
                   <input
                     type="date"
                     {...register(`items.${index}.date` as const)}
@@ -434,7 +434,7 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
                 </div>
 
                 <div className={`${watch(`items.${index}.category`) === 'Other' ? 'md:col-span-1' : 'md:col-span-2'} space-y-2`}>
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">類別</label>
+                  <label className="ledger-label">類別</label>
                   <select
                     {...register(`items.${index}.category` as const)}
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
@@ -448,7 +448,7 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
                 {/* 自定義類別輸入框 - 當選擇 Other 時顯示 */}
                 {watch(`items.${index}.category`) === 'Other' && (
                   <div className="md:col-span-1 space-y-2">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase">自訂類別</label>
+                    <label className="ledger-label">自訂類別</label>
                     <input
                       {...register(`items.${index}.customCategory` as const)}
                       placeholder="輸入類別名稱"
@@ -458,7 +458,7 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
                 )}
 
                 <div className="md:col-span-4 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">說明</label>
+                  <label className="ledger-label">說明</label>
                   <input
                     {...register(`items.${index}.description` as const)}
                     placeholder="與客戶午餐"
@@ -470,14 +470,14 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
                 </div>
 
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">金額</label>
+                  <label className="ledger-label">金額</label>
                   <div className="relative">
-                    <span className="absolute left-2 top-2.5 text-xs text-muted-foreground">$</span>
+                    <span className="absolute left-2 top-2.5 font-mono text-xs text-muted-foreground">$</span>
                     <input
                       type="number"
                       step="0.01"
                       {...register(`items.${index}.amount` as const)}
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent pl-5 pr-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent pl-5 pr-3 py-1 font-mono text-sm tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
                   {errors.items?.[index]?.amount && (

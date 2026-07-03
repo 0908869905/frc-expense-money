@@ -34,9 +34,10 @@ export function FundingDialog(): React.ReactElement {
 
     if (!open) {
         return (
-            <Button 
-                onClick={() => setOpen(true)} 
-                className="gap-2 bg-amber-500 hover:bg-amber-600 text-black shadow-lg shadow-amber-500/30 transition-all duration-300 hover:shadow-amber-500/50 hover:-translate-y-0.5"
+            <Button
+                variant="outline"
+                onClick={() => setOpen(true)}
+                className="gap-2"
             >
                 <Plus className="h-4 w-4" />
                 新增資金
@@ -45,8 +46,8 @@ export function FundingDialog(): React.ReactElement {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-background rounded-xl border shadow-lg w-full max-w-md mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="bg-card rounded-lg border shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] w-full max-w-md mx-4">
                 <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="text-lg font-semibold flex items-center gap-2">
                         <DollarSign className="h-5 w-5" />
@@ -60,10 +61,10 @@ export function FundingDialog(): React.ReactElement {
                 <form action={handleSubmit} className="p-4 space-y-4">
                     {state.message && (
                         <div
-                            className={`p-3 rounded-lg text-sm ${
+                            className={`p-3 rounded-md text-sm border ${
                                 state.success
-                                    ? "bg-green-50 text-green-700 border border-green-200"
-                                    : "bg-red-50 text-red-700 border border-red-200"
+                                    ? "bg-ok/10 text-ok border-ok/30"
+                                    : "bg-danger/10 text-danger border-danger/30"
                             }`}
                         >
                             {state.message}
@@ -79,7 +80,7 @@ export function FundingDialog(): React.ReactElement {
                             required
                         />
                         {state.errors?.title && (
-                            <p className="text-sm text-red-500">{state.errors.title[0]}</p>
+                            <p className="text-sm text-danger">{state.errors.title[0]}</p>
                         )}
                     </div>
 
@@ -95,7 +96,7 @@ export function FundingDialog(): React.ReactElement {
                             required
                         />
                         {state.errors?.amount && (
-                            <p className="text-sm text-red-500">{state.errors.amount[0]}</p>
+                            <p className="text-sm text-danger">{state.errors.amount[0]}</p>
                         )}
                     </div>
 

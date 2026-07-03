@@ -7,6 +7,7 @@ import { approveReport, rejectReport, returnForRevision } from "@/app/actions/ap
 import { updateReport, deleteReport } from "@/app/actions/expenses"
 import { getReportsForExport, getItemsForExport } from "@/app/actions/export"
 import { exportToCSV, exportToExcel, exportToExcelMultiSheet } from "@/lib/export-utils"
+import { getStatusDotColor, getStatusTextColor, getDepartmentLabel as getDeptLabel } from "@/lib/constants/expense-status"
 
 interface ReportsContentProps {
     reports: any[]
@@ -37,11 +38,11 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
         return new Date(date).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US')
     }
 
-    const getStatusColor = (status: string) => {
-        if (status === "PAID" || status === "APPROVED") return "text-green-600 bg-green-100"
-        if (status === "REJECTED") return "text-red-600 bg-red-100"
-        return "text-yellow-600 bg-yellow-100"
-    }
+    // 狀態指示點（APPROVED 為舊資料相容值）
+    const statusDot = (status: string) =>
+        status === "APPROVED" ? "bg-ok" : getStatusDotColor(status)
+    const statusText = (status: string) =>
+        status === "APPROVED" ? "text-ok" : getStatusTextColor(status)
 
     const getStatusLabel = (status: string) => {
         const labels: Record<string, Record<string, string>> = {
@@ -60,18 +61,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
         setTimeout(() => setMessage(null), 3000)
     }
 
-    const getDepartmentLabel = (dept: string) => {
-        const labels: Record<string, { zh: string, en: string, icon: string }> = {
-            ELECTRICAL: { zh: "電資組", en: "Electrical", icon: "⚡" },
-            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
-            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
-            PR: { zh: "公關組", en: "PR", icon: "📣" },
-            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
-            DESIGN: { zh: "意象組", en: "Design", icon: "🎨" },
-        }
-        const found = labels[dept]
-        return found ? `${found.icon} ${found[language as "zh" | "en"]}` : dept
-    }
+    const getDepartmentLabel = (dept: string) => getDeptLabel(dept, language as "zh" | "en")
 
     // 匯出為 CSV
     const handleExportCSV = async () => {
@@ -226,10 +216,10 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
             {/* Header with Export Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="text-2xl font-semibold tracking-tight">
                         {language === "zh" ? "所有報表" : "All Reports"}
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         {language === "zh" ? "查看和管理所有報帳單" : "View and manage all expense reports"}
                     </p>
                 </div>
@@ -238,7 +228,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                         <button
                             onClick={handleExportCSV}
                             disabled={isExporting}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md border bg-background hover:bg-muted transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border bg-card hover:bg-accent transition-colors text-sm font-medium disabled:opacity-50"
                         >
                             <Download className="h-4 w-4" />
                             CSV
@@ -246,7 +236,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                         <button
                             onClick={handleExportExcel}
                             disabled={isExporting}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border bg-card hover:bg-accent transition-colors text-sm font-medium disabled:opacity-50"
                         >
                             <FileSpreadsheet className="h-4 w-4" />
                             Excel
@@ -257,7 +247,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
 
             {/* Message */}
             {message && (
-                <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                <div className={`p-3 rounded-md border text-sm ${message.type === "success" ? "bg-ok/10 text-ok border-ok/30" : "bg-danger/10 text-danger border-danger/30"}`}>
                     {message.text}
                 </div>
             )}
@@ -267,47 +257,47 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="ledger-label">
                             {language === "zh" ? "總計" : "Total"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{localReports.length}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localReports.length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-yellow-500" />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="status-dot bg-warn" />
+                        <span className="ledger-label">
                             {language === "zh" ? "待審核" : "Pending"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status.includes("PENDING")).length}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localReports.filter(r => r.status.includes("PENDING")).length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="status-dot bg-ok" />
+                        <span className="ledger-label">
                             {language === "zh" ? "已核准" : "Approved"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status === "PAID").length}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localReports.filter(r => r.status === "PAID").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-500" />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="status-dot bg-danger" />
+                        <span className="ledger-label">
                             {language === "zh" ? "已拒絕" : "Rejected"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">{localReports.filter(r => r.status === "REJECTED").length}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localReports.filter(r => r.status === "REJECTED").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
                     <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="ledger-label">
                             {language === "zh" ? "總金額" : "Total"}
                         </span>
                     </div>
-                    <p className="text-2xl font-bold mt-1">${localReports.reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">${localReports.reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
                 </div>
             </div>
 
@@ -337,13 +327,13 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "標題" : "Title"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "組別" : "Dept"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "提交者" : "Submitter"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "日期" : "Date"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "金額" : "Amount"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "狀態" : "Status"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "操作" : "Actions"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "標題" : "Title"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "組別" : "Dept"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "提交者" : "Submitter"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "日期" : "Date"}</th>
+                            <th className="text-right px-4 py-2.5 ledger-label">{language === "zh" ? "金額" : "Amount"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "狀態" : "Status"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "操作" : "Actions"}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -355,7 +345,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                             </tr>
                         ) : (
                             filteredReports.map((report) => (
-                                <tr key={report.id} className="hover:bg-muted/20">
+                                <tr key={report.id} className="hover:bg-accent/60 transition-colors">
                                     <td className="p-4">
                                         {editingId === report.id ? (
                                             <input
@@ -373,7 +363,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                     </td>
                                     <td className="p-4">
                                         {report.department && (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[11px] text-muted-foreground">
                                                 {getDepartmentLabel(report.department)}
                                             </span>
                                         )}
@@ -381,10 +371,10 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                     <td className="p-4 text-muted-foreground">
                                         {report.submitter?.name || report.submitter?.email}
                                     </td>
-                                    <td className="p-4 text-muted-foreground">
+                                    <td className="p-4 text-muted-foreground font-mono text-xs">
                                         {formatDate(report.createdAt)}
                                     </td>
-                                    <td className="p-4 font-medium">
+                                    <td className="p-4 font-medium font-mono tabular-nums text-right">
                                         ${Number(report.totalAmount).toFixed(2)}
                                     </td>
                                     <td className="p-4">
@@ -399,7 +389,8 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                 ))}
                                             </select>
                                         ) : (
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                                            <span className={`inline-flex items-center gap-1.5 font-mono text-xs font-medium ${statusText(report.status)}`}>
+                                                <span className={`status-dot ${statusDot(report.status)}`} />
                                                 {getStatusLabel(report.status)}
                                             </span>
                                         )}
@@ -411,13 +402,13 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                     <button
                                                         onClick={() => handleSaveEdit(report.id)}
                                                         disabled={isPending}
-                                                        className="p-1.5 rounded text-green-600 hover:bg-green-50"
+                                                        className="p-1.5 rounded text-ok hover:bg-ok/10 transition-colors"
                                                     >
                                                         <Check className="h-4 w-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => setEditingId(null)}
-                                                        className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                                                        className="p-1.5 rounded text-danger hover:bg-danger/10 transition-colors"
                                                     >
                                                         <X className="h-4 w-4" />
                                                     </button>
@@ -430,7 +421,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                             <button
                                                                 onClick={() => handleApprove(report.id)}
                                                                 disabled={isPending}
-                                                                className="p-1.5 rounded text-green-600 hover:bg-green-50"
+                                                                className="p-1.5 rounded text-ok hover:bg-ok/10 transition-colors"
                                                                 title={language === "zh" ? "批准" : "Approve"}
                                                             >
                                                                 <CheckCircle className="h-4 w-4" />
@@ -438,7 +429,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                             <button
                                                                 onClick={() => handleReject(report.id)}
                                                                 disabled={isPending}
-                                                                className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                                                                className="p-1.5 rounded text-danger hover:bg-danger/10 transition-colors"
                                                                 title={language === "zh" ? "拒絕" : "Reject"}
                                                             >
                                                                 <XCircle className="h-4 w-4" />
@@ -446,7 +437,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                             <button
                                                                 onClick={() => handleReturn(report.id)}
                                                                 disabled={isPending}
-                                                                className="p-1.5 rounded text-yellow-600 hover:bg-yellow-50"
+                                                                className="p-1.5 rounded text-warn hover:bg-warn/10 transition-colors"
                                                                 title={language === "zh" ? "退回修改" : "Return for Revision"}
                                                             >
                                                                 <RotateCcw className="h-4 w-4" />
@@ -466,7 +457,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                                                             <button
                                                                 onClick={() => handleDelete(report.id)}
                                                                 disabled={isPending}
-                                                                className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                                                                className="p-1.5 rounded text-danger hover:bg-danger/10 transition-colors"
                                                                 title={language === "zh" ? "刪除" : "Delete"}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />

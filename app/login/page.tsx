@@ -39,42 +39,42 @@ function LoginForm({ onLoginStart, error }: LoginFormProps) {
   return (
     <>
       {registered && (
-        <div className="mb-6 p-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-2xl text-sm backdrop-blur-sm">
+        <div className="mb-6 p-3 bg-ok/10 text-ok border border-ok/30 rounded-md text-sm">
           {t("register_success")}
         </div>
       )}
 
       {error && (
-        <div className="mb-6 p-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-2xl text-sm backdrop-blur-sm">
+        <div className="mb-6 p-3 bg-danger/10 text-danger border border-danger/30 rounded-md text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-300">{t("email")}</Label>
+          <Label htmlFor="email" className="text-sm font-medium">{t("email")}</Label>
           <Input
             id="email"
             name="email"
             type="email"
             placeholder={t("email_placeholder")}
             required
-            className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl transition-all text-base"
+            className="h-12 text-base"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium text-gray-300">{t("password")}</Label>
+          <Label htmlFor="password" className="text-sm font-medium">{t("password")}</Label>
           <Input
             id="password"
             name="password"
             type="password"
             placeholder={t("password_placeholder")}
             required
-            className="h-14 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 rounded-xl transition-all text-base"
+            className="h-12 text-base"
           />
         </div>
         <Button
-          className="w-full h-14 bg-white text-black hover:bg-gray-100 border-0 rounded-xl shadow-lg shadow-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-white/20 text-base font-medium"
+          className="w-full h-12 text-base font-medium"
           type="submit"
           disabled={loading}
         >
@@ -146,56 +146,60 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-black text-white overflow-hidden">
-      {/* Left Side - Artistic Visual */}
-      <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center">
-        {/* Artistic Background */}
-        <div className="absolute inset-0">
-          {/* Large gradient orbs */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/50 via-blue-600/40 to-cyan-500/30 blur-3xl animate-pulse" />
-            <div className="absolute inset-[80px] rounded-full bg-gradient-to-tr from-pink-500/40 via-purple-500/30 to-transparent blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
-          </div>
-          {/* Accent lights */}
-          <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-purple-500/40 blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-32 h-32 rounded-full bg-blue-500/30 blur-3xl" />
-          {/* Noise texture */}
-          <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
+    <div className="min-h-screen flex bg-background text-foreground overflow-hidden">
+      {/* Left Side - 工程圖框品牌面板 */}
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between border-r border-border p-12">
+        {/* 藍圖網格背景 */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-60"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+
+        {/* 左上：系統代號 */}
+        <div className="relative z-10">
+          <span className="ledger-label">BudgetFlow</span>
         </div>
 
-        {/* Hero Text */}
-        <div className="relative z-10 text-center px-12">
-          <h1 className="text-7xl font-black tracking-tighter leading-none mb-4">
-            <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-              FRC
-            </span>
+        {/* 中央：隊伍識別 */}
+        <div className="relative z-10">
+          <p className="font-mono text-sm text-primary mb-4 tracking-[0.2em] uppercase">
+            FIRST Robotics Competition
+          </p>
+          <h1 className="text-7xl font-bold tracking-tight leading-none mb-2">
+            FRC
           </h1>
-          <h1 className="text-7xl font-black tracking-tighter leading-none mb-8">
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-              6998
-            </span>
+          <h1 className="font-mono text-7xl font-semibold tracking-tight leading-none mb-6">
+            6998
           </h1>
-          <p className="text-xl tracking-[0.3em] text-gray-400 uppercase font-light">
+          <p className="font-mono text-xl tracking-[0.35em] text-muted-foreground uppercase">
             UNIPARDS
           </p>
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-purple-500/50" />
-            <div className="w-2 h-2 rounded-full bg-purple-500" />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-purple-500/50" />
-          </div>
-          <p className="mt-8 text-gray-500 text-sm">
+          <div className="mt-8 h-px w-24 bg-primary" />
+          <p className="mt-6 text-sm text-muted-foreground">
             {language === "zh" ? "團隊財務管理系統" : "Team Financial Management System"}
           </p>
+        </div>
+
+        {/* 左下：圖框 title block（工程圖標題欄） */}
+        <div className="relative z-10 border border-border bg-card/80 rounded-md overflow-hidden max-w-xs">
+          <div className="grid grid-cols-[auto_1fr] text-xs font-mono">
+            <span className="px-3 py-1.5 border-b border-r border-border text-muted-foreground uppercase tracking-wider">Team</span>
+            <span className="px-3 py-1.5 border-b border-border">{org.name} {org.subtitle}</span>
+            <span className="px-3 py-1.5 border-b border-r border-border text-muted-foreground uppercase tracking-wider">System</span>
+            <span className="px-3 py-1.5 border-b border-border">BudgetFlow</span>
+            <span className="px-3 py-1.5 border-r border-border text-muted-foreground uppercase tracking-wider">Origin</span>
+            <span className="px-3 py-1.5">Taiwan</span>
+          </div>
         </div>
       </div>
 
       {/* Right Side - Login Form */}
       <div className="w-full lg:w-1/2 flex flex-col relative">
-        {/* Background for mobile */}
-        <div className="absolute inset-0 lg:hidden">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-purple-600/30 via-blue-600/20 to-transparent blur-3xl" />
-        </div>
-
         {/* Language Switcher */}
         <div className="absolute top-6 right-6 z-50">
           <LanguageSwitcher />
@@ -207,33 +211,35 @@ export default function LoginPage() {
             {/* Mobile Logo */}
             <div className="lg:hidden text-center mb-12">
               <Link href="/">
-                <h1 className="text-5xl font-black tracking-tighter">
-                  <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">FRC </span>
-                  <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">6998</span>
+                <h1 className="text-4xl font-bold tracking-tight">
+                  FRC <span className="font-mono text-primary">6998</span>
                 </h1>
+                <p className="mt-2 font-mono text-xs tracking-[0.3em] text-muted-foreground uppercase">
+                  UNIPARDS
+                </p>
               </Link>
             </div>
 
             {/* Welcome Text */}
-            <div className="mb-10">
-              <h2 className="text-3xl font-bold text-white mb-2">
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold mb-2">
                 {language === "zh" ? "歡迎回來" : "Welcome back"}
               </h2>
-              <p className="text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {t("login_desc")}
               </p>
             </div>
 
             {/* Login Form */}
-            <Suspense fallback={<div className="animate-pulse h-64 bg-white/5 rounded-2xl" />}>
+            <Suspense fallback={<div className="animate-pulse h-64 bg-muted rounded-lg" />}>
               <LoginForm onLoginStart={handleLoginStart} error={loginError} />
             </Suspense>
 
             {/* Register Link */}
-            <div className="mt-10 text-center">
-              <p className="text-gray-500">
+            <div className="mt-8 text-center">
+              <p className="text-sm text-muted-foreground">
                 {t("no_account")}{" "}
-                <Link href="/register" className="text-white hover:text-purple-400 transition-colors font-medium">
+                <Link href="/register" className="text-primary hover:underline font-medium">
                   {t("register_now")}
                 </Link>
               </p>
@@ -243,7 +249,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="py-6 px-6 text-center">
-          <p className="text-xs text-gray-600">{t("footer_rights")}</p>
+          <p className="text-xs text-muted-foreground/70 font-mono">{t("footer_rights")}</p>
         </div>
       </div>
     </div>

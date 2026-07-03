@@ -55,10 +55,10 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
     return (
         <div className="flex flex-col gap-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">
+                <h1 className="text-2xl font-semibold tracking-tight">
                     {language === "zh" ? "審核報帳單" : "Approvals"}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                     {language === "zh"
                         ? `你有 ${localReports.length} 個待審核的報帳單`
                         : `You have ${localReports.length} pending expense report(s)`}
@@ -69,7 +69,7 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
             <div className="space-y-4">
                 {localReports.length === 0 ? (
                     <div className="rounded-xl border bg-card p-8 text-center">
-                        <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <Clock className="h-6 w-6 text-muted-foreground mx-auto mb-3" />
                         <p className="text-muted-foreground">
                             {language === "zh" ? "沒有待審核的報帳單" : "No pending expense reports"}
                         </p>
@@ -77,19 +77,20 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
                 ) : (
                     localReports.map((report) => (
                         <div key={report.id} className="rounded-xl border bg-card overflow-hidden">
-                            <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
+                            <div className="p-4 border-b bg-muted/40 flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-semibold text-lg">{report.title}</h3>
+                                    <h3 className="font-semibold text-base">{report.title}</h3>
                                     <p className="text-sm text-muted-foreground">
                                         {language === "zh" ? "提交者" : "Submitted by"}: {report.submitter?.name || report.submitter?.email}
                                     </p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground font-mono text-xs mt-0.5">
                                         {formatDate(report.createdAt, language as Language)} • {report.items.length} {language === "zh" ? "筆項目" : "items"}
                                     </p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-2xl font-bold">${Number(report.totalAmount).toFixed(2)}</p>
-                                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                                    <p className="text-xl font-semibold tech-number">${Number(report.totalAmount).toFixed(2)}</p>
+                                    <span className="inline-flex items-center gap-1.5 font-mono text-xs font-medium text-warn mt-1">
+                                        <span className="status-dot bg-warn" />
                                         {report.status.replace("_", " ")}
                                     </span>
                                 </div>
@@ -97,10 +98,10 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
 
                             {/* Bank Account Info */}
                             {report.bankAccount && (
-                                <div className="p-4 border-b bg-blue-50/50">
+                                <div className="p-4 border-b bg-muted/40">
                                     <div className="flex items-center gap-2 text-sm">
-                                        <Building2 className="h-4 w-4 text-blue-600" />
-                                        <span className="font-medium text-blue-700">
+                                        <Building2 className="h-4 w-4 text-info" />
+                                        <span className="font-medium text-info">
                                             {language === "zh" ? "收款帳戶" : "Bank Account"}:
                                         </span>
                                         <span>{report.bankAccount.bankName}</span>
@@ -144,7 +145,7 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
                                                     <Paperclip className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                                 )}
                                             </div>
-                                            <span className="flex-shrink-0">${Number(item.amount).toFixed(2)}</span>
+                                            <span className="flex-shrink-0 font-mono tabular-nums">${Number(item.amount).toFixed(2)}</span>
                                         </div>
                                     ))}
                                     {report.items.length > 3 && (
@@ -160,7 +161,7 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
                                 <button
                                     onClick={() => handleReject(report.id)}
                                     disabled={isPending && processingId === report.id}
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-destructive text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-danger/50 text-danger hover:bg-danger/10 transition-colors text-sm font-medium disabled:opacity-50"
                                 >
                                     <X className="h-4 w-4" />
                                     {language === "zh" ? "拒絕" : "Reject"}
@@ -168,7 +169,7 @@ export function ApprovalsContent({ reports, userRole, canViewFullBankAccount = f
                                 <button
                                     onClick={() => handleApprove(report.id)}
                                     disabled={isPending && processingId === report.id}
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
                                 >
                                     <Check className="h-4 w-4" />
                                     {language === "zh" ? "核准" : "Approve"}

@@ -3,11 +3,11 @@
 import { useLanguage } from "@/lib/language-context"
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { Clock, CheckCircle, XCircle, FileText, Building2 } from "lucide-react"
+import { Building2 } from "lucide-react"
 import { ReceiptAuditButton } from "@/components/receipt-audit-button"
 import { ReceiptPreview } from "@/components/receipt-preview"
 import { BatchAuditButton } from "@/components/batch-audit-button"
-import { getStatusColor, getStatusLabel, getDepartmentLabel, type Language } from "@/lib/constants/expense-status"
+import { getStatusDotColor, getStatusTextColor, getStatusLabel, getDepartmentLabel, type Language } from "@/lib/constants/expense-status"
 import { useMessage } from "@/hooks/useMessage"
 import { formatDate } from "@/lib/utils"
 import { maskAccountNumber } from "@/lib/utils/mask-account"
@@ -59,27 +59,13 @@ export function ExpensesContent({ reports }: ExpensesContentProps): JSX.Element 
         window.location.reload();
     };
 
-    function getStatusIcon(status: string): JSX.Element {
-        switch (status) {
-            case "PENDING_MANAGER":
-            case "PENDING_FINANCE":
-                return <Clock className="h-4 w-4" />
-            case "PAID":
-                return <CheckCircle className="h-4 w-4" />
-            case "REJECTED":
-                return <XCircle className="h-4 w-4" />
-            default:
-                return <FileText className="h-4 w-4" />
-        }
-    }
-
     return (
         <div className="flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{t("my_expenses")}</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-2xl font-semibold tracking-tight">{t("my_expenses")}</h1>
+                    <p className="text-sm text-muted-foreground">
                         {t("view_manage_expenses")}
                     </p>
                 </div>
@@ -93,23 +79,23 @@ export function ExpensesContent({ reports }: ExpensesContentProps): JSX.Element 
 
             {/* Message */}
             {message && (
-                <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                <div className={`p-3 rounded-md border text-sm ${message.type === "success" ? "bg-ok/10 text-ok border-ok/30" : "bg-danger/10 text-danger border-danger/30"}`}>
                     {message.text}
                 </div>
             )}
 
             <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border bg-card p-6">
-                    <h3 className="text-sm font-medium text-muted-foreground">{t("total_reports")}</h3>
-                    <p className="text-2xl font-bold">{activeReports.length}</p>
+                <div className="rounded-xl border bg-card p-5">
+                    <h3 className="ledger-label">{t("total_reports")}</h3>
+                    <p className="text-2xl font-semibold tech-number mt-2">{activeReports.length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-6">
-                    <h3 className="text-sm font-medium text-muted-foreground">{t("total_items")}</h3>
-                    <p className="text-2xl font-bold">{activeItemCount}</p>
+                <div className="rounded-xl border bg-card p-5">
+                    <h3 className="ledger-label">{t("total_items")}</h3>
+                    <p className="text-2xl font-semibold tech-number mt-2">{activeItemCount}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-6">
-                    <h3 className="text-sm font-medium text-muted-foreground">{t("total_amount")}</h3>
-                    <p className="text-2xl font-bold">${activeTotal.toFixed(2)}</p>
+                <div className="rounded-xl border bg-card p-5">
+                    <h3 className="ledger-label">{t("total_amount")}</h3>
+                    <p className="text-2xl font-semibold tech-number mt-2">${activeTotal.toFixed(2)}</p>
                 </div>
             </div>
 
@@ -129,29 +115,29 @@ export function ExpensesContent({ reports }: ExpensesContentProps): JSX.Element 
                     localReports.map((report) => (
                         <div key={report.id} className="rounded-xl border bg-card overflow-hidden">
                             {/* Report Header */}
-                            <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
+                            <div className="p-4 border-b bg-muted/40 flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-semibold text-lg">{report.title}</h3>
+                                    <h3 className="font-semibold text-base">{report.title}</h3>
                                     <div className="flex flex-wrap gap-2 text-sm text-muted-foreground mt-1 items-center">
                                         {report.department && (
                                             <>
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded border border-border bg-card font-mono text-[11px] text-muted-foreground">
                                                     {getDepartmentLabel(report.department, language as Language)}
                                                 </span>
                                                 <span>•</span>
                                             </>
                                         )}
-                                        <span>{t("created_on")}: {formatDate(report.createdAt, language as Language)}</span>
+                                        <span className="font-mono text-xs">{t("created_on")}: {formatDate(report.createdAt, language as Language)}</span>
                                         <span>•</span>
-                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
-                                            {getStatusIcon(report.status)}
+                                        <span className={`inline-flex items-center gap-1.5 font-mono text-xs font-medium ${getStatusTextColor(report.status)}`}>
+                                            <span className={`status-dot ${getStatusDotColor(report.status)}`} />
                                             {getStatusLabel(report.status, language as Language)}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="text-right flex items-center gap-4">
                                     <div>
-                                        <p className="text-2xl font-bold">${Number(report.totalAmount).toFixed(2)}</p>
+                                        <p className="text-xl font-semibold tech-number">${Number(report.totalAmount).toFixed(2)}</p>
                                         <p className="text-sm text-muted-foreground">{report.items.length} {t("items_count")}</p>
                                     </div>
                                     <BatchAuditButton
@@ -164,7 +150,7 @@ export function ExpensesContent({ reports }: ExpensesContentProps): JSX.Element 
 
                             {/* Bank Account Info */}
                             {report.bankAccount && (
-                                <div className="px-4 py-2 bg-muted/30 border-b flex items-center gap-2 text-sm">
+                                <div className="px-4 py-2 bg-muted/40 border-b flex items-center gap-2 text-sm">
                                     <Building2 className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-muted-foreground">{language === "zh" ? "收款帳戶" : "Bank Account"}:</span>
                                     <span className="font-medium">{report.bankAccount.bankName}</span>
@@ -186,23 +172,23 @@ export function ExpensesContent({ reports }: ExpensesContentProps): JSX.Element 
                             {report.items.length > 0 && (
                                 <div className="divide-y">
                                     {report.items.map((item: ExpenseItemView) => (
-                                        <div key={item.id} className="p-4 flex items-center justify-between hover:bg-muted/20">
+                                        <div key={item.id} className="p-4 flex items-center justify-between hover:bg-accent/60 transition-colors">
                                             <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 {item.receiptUrl && (
                                                     <ReceiptPreview src={item.receiptUrl} alt={item.description} size="sm" />
                                                 )}
                                                 <div className="min-w-0">
-                                                    <p className="font-medium">{item.description}</p>
-                                                    <div className="flex gap-3 text-sm text-muted-foreground mt-1">
-                                                        <span className="px-2 py-0.5 bg-muted rounded-full text-xs">
+                                                    <p className="text-sm font-medium">{item.description}</p>
+                                                    <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                                                        <span className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[11px]">
                                                             {item.category}
                                                         </span>
-                                                        <span>{formatDate(item.date, language as Language)}</span>
+                                                        <span className="font-mono text-xs">{formatDate(item.date, language as Language)}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <p className="font-semibold text-lg">${Number(item.amount).toFixed(2)}</p>
+                                                <p className="font-medium tech-number">${Number(item.amount).toFixed(2)}</p>
                                                 <ReceiptAuditButton
                                                     itemId={item.id}
                                                     itemDescription={item.description}

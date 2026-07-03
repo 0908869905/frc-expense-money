@@ -83,21 +83,15 @@ function generateJaggedDiagonalPath(
   const points: string[] = []
 
   // 撕裂線沿著反斜線方向生成鋸齒邊緣
-  // 從 (offset, 0) 往 (0, offset) 方向
   for (let i = 0; i <= segments; i++) {
     const t = i / segments
 
-    // 反斜線：x + y = offset
-    // 參數化：x = offset * (1-t), y = offset * t
-    // 但需要限制在畫面邊緣內
     let baseX = offset * (1 - t)
     let baseY = offset * t
 
-    // 使用改進的鋸齒生成函數
     const jaggedOffset = generateJaggedOffset(i, seed, jaggedDepth)
 
     // 鋸齒方向垂直於反斜線（45度）
-    // 反斜線方向是 (-1, 1)，垂直方向是 (1, 1) / sqrt(2)
     const perpX = jaggedOffset * 0.707
     const perpY = jaggedOffset * 0.707
 
@@ -108,7 +102,6 @@ function generateJaggedDiagonalPath(
   }
 
   // 閉合多邊形：覆蓋撕裂線右下方的區域
-  // 從撕裂線末端 -> 左下角 -> 右下角 -> 右上角 -> 撕裂線起點
   points.push("-10% 110%")
   points.push("110% 110%")
   points.push("110% -10%")
@@ -116,50 +109,133 @@ function generateJaggedDiagonalPath(
   return `polygon(${points.join(", ")})`
 }
 
-// 生成撕裂粒子
-interface TearParticle {
-  id: number
-  x: number
-  y: number
-  size: number
-  rotation: number
-  velocityX: number
-  velocityY: number
-  opacity: number
-  delay: number
+/** 撕開後露出的登入頁靜態預覽（與 app/login/page.tsx 視覺一致） */
+function LoginPreview({ language }: { language: string }) {
+  return (
+    <div className="absolute inset-0 flex bg-background text-foreground">
+      {/* 左半：工程圖框品牌面板 */}
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between border-r border-border p-12">
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-60"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <span className="relative z-10 ledger-label">BudgetFlow</span>
+        <div className="relative z-10">
+          <p className="font-mono text-sm text-primary mb-4 tracking-[0.2em] uppercase">
+            FIRST Robotics Competition
+          </p>
+          <p className="text-7xl font-bold tracking-tight leading-none mb-2">FRC</p>
+          <p className="font-mono text-7xl font-semibold tracking-tight leading-none mb-6">6998</p>
+          <p className="font-mono text-xl tracking-[0.35em] text-muted-foreground uppercase">UNIPARDS</p>
+          <div className="mt-8 h-px w-24 bg-primary" />
+          <p className="mt-6 text-sm text-muted-foreground">
+            {language === "zh" ? "團隊財務管理系統" : "Team Financial Management System"}
+          </p>
+        </div>
+        <div className="relative z-10 border border-border bg-card/80 rounded-md overflow-hidden max-w-xs">
+          <div className="grid grid-cols-[auto_1fr] text-xs font-mono">
+            <span className="px-3 py-1.5 border-b border-r border-border text-muted-foreground uppercase tracking-wider">Team</span>
+            <span className="px-3 py-1.5 border-b border-border">FRC 6998 UNIPARDS</span>
+            <span className="px-3 py-1.5 border-r border-border text-muted-foreground uppercase tracking-wider">System</span>
+            <span className="px-3 py-1.5">BudgetFlow</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 右半：登入表單骨架 */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 sm:px-12 lg:px-16">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden text-center mb-12">
+            <p className="text-4xl font-bold tracking-tight">
+              FRC <span className="font-mono text-primary">6998</span>
+            </p>
+          </div>
+          <p className="text-2xl font-semibold mb-2">
+            {language === "zh" ? "歡迎回來" : "Welcome back"}
+          </p>
+          <p className="text-sm text-muted-foreground mb-8">
+            {language === "zh" ? "輸入你的帳號密碼登入系統" : "Enter your credentials to login"}
+          </p>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">{language === "zh" ? "電子郵件" : "Email"}</p>
+              <div className="h-12 rounded-md border border-input bg-card flex items-center px-3">
+                <span className="text-muted-foreground/70 text-base">name@example.com</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">{language === "zh" ? "密碼" : "Password"}</p>
+              <div className="h-12 rounded-md border border-input bg-card flex items-center px-3">
+                <span className="text-muted-foreground/70 text-base">{language === "zh" ? "輸入密碼" : "Enter password"}</span>
+              </div>
+            </div>
+            <div className="h-12 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-base font-medium">
+              {language === "zh" ? "登入" : "Login"}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-function generateTearParticles(count: number, seed: number): TearParticle[] {
-  const particles: TearParticle[] = []
-
-  for (let i = 0; i < count; i++) {
-    // 粒子沿著反斜線分布（從右上到左下）
-    const t = i / count // 沿著反斜線的位置
-    // 反斜線：x 從大到小，y 從小到大
-    // 假設中間位置 offset = 100，線從 (100, 0) 到 (0, 100)
-    const diagX = 100 * (1 - t) // 從右往左
-    const diagY = 100 * t // 從上往下
-
-    // 在對角線附近隨機偏移
-    const offsetRange = 15
-    const offsetX = (seededRandom(i * 2 + seed) - 0.5) * offsetRange
-    const offsetY = (seededRandom(i * 3 + seed) - 0.5) * offsetRange
-
-    particles.push({
-      id: i,
-      x: diagX + offsetX,
-      y: diagY + offsetY,
-      size: 2 + seededRandom(i + seed * 5) * 6,
-      rotation: seededRandom(i * 7 + seed) * 360,
-      // 粒子往右下飛散（被撕開的方向）
-      velocityX: 50 + seededRandom(i * 11 + seed) * 80,
-      velocityY: 50 + seededRandom(i * 13 + seed) * 80,
-      opacity: 0.5 + seededRandom(i * 17 + seed) * 0.5,
-      delay: t * 0.8, // 根據位置延遲，創造波浪效果
-    })
-  }
-
-  return particles
+/** 被撕開的首頁靜態複本（與 app/page.tsx 視覺一致） */
+function LandingCover({ language }: { language: string }) {
+  return (
+    <div className="absolute inset-0 bg-background text-foreground">
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-50"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
+      <div className="absolute top-6 left-6">
+        <span className="ledger-label">BudgetFlow</span>
+      </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+        <div className="text-center space-y-6 max-w-4xl">
+          <p className="font-mono text-sm text-primary tracking-[0.25em] uppercase">
+            FIRST Robotics Competition
+          </p>
+          <div>
+            <span className="block text-8xl md:text-9xl lg:text-[11rem] font-bold tracking-tight leading-none">
+              FRC
+            </span>
+            <span className="block font-mono text-8xl md:text-9xl lg:text-[11rem] font-semibold tracking-tight leading-none -mt-2 md:-mt-4 text-primary">
+              6998
+            </span>
+          </div>
+          <p className="font-mono text-xl md:text-2xl tracking-[0.35em] text-muted-foreground uppercase">
+            UNIPARDS
+          </p>
+          <div className="flex items-center justify-center py-2">
+            <div className="h-px w-24 bg-primary" />
+          </div>
+          <p className="text-lg md:text-xl text-muted-foreground">
+            {language === "zh" ? "團隊財務管理系統" : "Team Financial Management System"}
+          </p>
+        </div>
+        <div className="mt-12 flex flex-col sm:flex-row items-center gap-4">
+          <div className="h-12 px-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-base font-medium">
+            {language === "zh" ? "進入系統" : "Enter System"}
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </div>
+          <div className="h-12 px-8 rounded-md border border-border bg-card flex items-center justify-center text-base font-medium">
+            {language === "zh" ? "了解更多" : "Learn More"}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function TransitionButton({ language }: TransitionButtonProps) {
@@ -168,9 +244,6 @@ export function TransitionButton({ language }: TransitionButtonProps) {
 
   // 生成固定的鋸齒種子，確保動畫過程中形狀一致
   const jaggedSeed = useMemo(() => Math.floor(Math.random() * 1000), [])
-
-  // 生成撕裂粒子
-  const particles = useMemo(() => generateTearParticles(25, jaggedSeed), [jaggedSeed])
 
   // 使用 useRef 來追蹤計時器和動畫幀，以便清理
   const timeoutsRef = useRef<NodeJS.Timeout[]>([])
@@ -257,7 +330,7 @@ export function TransitionButton({ language }: TransitionButtonProps) {
   // Keep animation overlay visible until browser navigates to /login
   const isAnimating = phase !== "idle"
 
-  // 計算不規則鋸齒狀的 clip-path - 使用更多段數和更大的鋸齒深度
+  // 計算不規則鋸齒狀的 clip-path
   const jaggedClipPath = useMemo(() => {
     return generateJaggedDiagonalPath(tearProgress, 100, 7, jaggedSeed)
   }, [tearProgress, jaggedSeed])
@@ -268,7 +341,7 @@ export function TransitionButton({ language }: TransitionButtonProps) {
         size="lg"
         onClick={handleClick}
         disabled={isAnimating}
-        className="relative z-10 h-14 px-10 text-base font-medium bg-white text-black hover:bg-gray-100 rounded-full shadow-xl shadow-white/10 transition-all duration-300 hover:scale-105 hover:shadow-white/20 cursor-pointer"
+        className="relative z-10 h-12 px-8 text-base font-medium cursor-pointer"
       >
         {language === "zh" ? "進入系統" : "Enter System"}
         <ArrowRight className="ml-2 h-5 w-5" />
@@ -277,214 +350,25 @@ export function TransitionButton({ language }: TransitionButtonProps) {
       {/* 過渡動畫覆蓋層 */}
       {isAnimating && (
         <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
-          {/* 登入頁面內容 - 在最底層，撕開後露出 */}
-          <div
-            className="absolute inset-0 w-full h-full bg-black"
-            style={{ zIndex: 1 }}
-          >
-            {/* 登入頁面背景 */}
-            <div className="absolute inset-0">
-              {/* Left Side - Artistic Visual (hidden on mobile) */}
-              <div className="hidden lg:flex absolute left-0 top-0 bottom-0 w-1/2 items-center justify-center">
-                <div className="absolute inset-0">
-                  {/* Large gradient orbs */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/50 via-blue-600/40 to-cyan-500/30 blur-3xl animate-pulse" />
-                    <div className="absolute inset-[80px] rounded-full bg-gradient-to-tr from-pink-500/40 via-purple-500/30 to-transparent blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
-                  </div>
-                  {/* Accent lights */}
-                  <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-purple-500/40 blur-3xl" />
-                  <div className="absolute bottom-20 right-20 w-32 h-32 rounded-full bg-blue-500/30 blur-3xl" />
-                </div>
-
-                {/* Hero Text */}
-                <div className="relative z-10 text-center px-12">
-                  <h1 className="text-7xl font-black tracking-tighter leading-none mb-4">
-                    <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-                      FRC
-                    </span>
-                  </h1>
-                  <h1 className="text-7xl font-black tracking-tighter leading-none mb-8">
-                    <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                      6998
-                    </span>
-                  </h1>
-                  <p className="text-xl tracking-[0.3em] text-gray-400 uppercase font-light">
-                    UNIPARDS
-                  </p>
-                  <div className="mt-8 flex items-center justify-center gap-3">
-                    <div className="h-px w-12 bg-gradient-to-r from-transparent to-purple-500/50" />
-                    <div className="w-2 h-2 rounded-full bg-purple-500" />
-                    <div className="h-px w-12 bg-gradient-to-l from-transparent to-purple-500/50" />
-                  </div>
-                  <p className="mt-8 text-gray-500 text-sm">
-                    {language === "zh" ? "團隊財務管理系統" : "Team Financial Management System"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Right Side - Login Form */}
-              <div className="absolute right-0 top-0 bottom-0 w-full lg:w-1/2 flex flex-col">
-                {/* Background for mobile */}
-                <div className="absolute inset-0 lg:hidden">
-                  <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-purple-600/30 via-blue-600/20 to-transparent blur-3xl" />
-                </div>
-
-                {/* Language Switcher */}
-                <div className="absolute top-6 right-6 z-50">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                    <span className="text-sm text-white/80">{language === "zh" ? "中" : "EN"}</span>
-                  </div>
-                </div>
-
-                {/* Form Container */}
-                <div className="flex-1 flex items-center justify-center px-6 sm:px-12 lg:px-16 relative z-10">
-                  <div className="w-full max-w-md">
-                    {/* Mobile Logo */}
-                    <div className="lg:hidden text-center mb-12">
-                      <h1 className="text-5xl font-black tracking-tighter">
-                        <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">FRC </span>
-                        <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">6998</span>
-                      </h1>
-                    </div>
-
-                    {/* Welcome Text */}
-                    <div className="mb-10">
-                      <h2 className="text-3xl font-bold text-white mb-2">
-                        {language === "zh" ? "歡迎回來" : "Welcome back"}
-                      </h2>
-                      <p className="text-gray-400">
-                        {language === "zh" ? "輸入你的帳號密碼登入系統" : "Enter your credentials to login"}
-                      </p>
-                    </div>
-
-                    {/* Login Form */}
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">{language === "zh" ? "電子郵件" : "Email"}</label>
-                        <div className="h-14 bg-white/5 border border-white/10 rounded-xl flex items-center px-4">
-                          <span className="text-gray-500">{language === "zh" ? "name@example.com" : "name@example.com"}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">{language === "zh" ? "密碼" : "Password"}</label>
-                        <div className="h-14 bg-white/5 border border-white/10 rounded-xl flex items-center px-4">
-                          <span className="text-gray-500">{language === "zh" ? "輸入密碼" : "Enter password"}</span>
-                        </div>
-                      </div>
-                      <div className="h-14 bg-white text-black rounded-xl flex items-center justify-center font-medium">
-                        {language === "zh" ? "登入" : "Login"} →
-                      </div>
-                    </div>
-
-                    {/* Register Link */}
-                    <div className="mt-10 text-center">
-                      <p className="text-gray-500">
-                        {language === "zh" ? "還沒有帳號？" : "Don't have an account?"}{" "}
-                        <span className="text-white font-medium">{language === "zh" ? "立即註冊" : "Register now"}</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="py-6 px-6 text-center">
-                  <p className="text-xs text-gray-600">© 2024 FRC6998 保留所有權利。</p>
-                </div>
-              </div>
-            </div>
+          {/* 登入頁面預覽 - 在最底層，撕開後露出 */}
+          <div className="absolute inset-0" style={{ zIndex: 1 }}>
+            <LoginPreview language={language} />
           </div>
+
           {/* Claw follows the tear line midpoint */}
           <ClawOverlay phase={phase} tearProgress={tearProgress} />
 
-          {/* 被拉開的頁面覆蓋層 - 完整首頁樣式 */}
+          {/* 被拉開的首頁覆蓋層 */}
           <div
-            className="absolute inset-0 bg-black"
+            className="absolute inset-0"
             style={{
               zIndex: 10,
               clipPath: jaggedClipPath,
             }}
           >
-            {/* 完整首頁背景效果 */}
-            <div className="absolute inset-0">
-              {/* Large gradient circle - artistic focal point */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px]">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/40 via-blue-600/30 to-cyan-500/20 blur-3xl animate-pulse" />
-                <div className="absolute inset-[100px] rounded-full bg-gradient-to-tr from-pink-500/30 via-purple-500/20 to-transparent blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
-              </div>
-              {/* Accent lights */}
-              <div className="absolute top-20 left-20 w-32 h-32 rounded-full bg-purple-500/30 blur-3xl" />
-              <div className="absolute bottom-20 right-20 w-40 h-40 rounded-full bg-blue-500/20 blur-3xl" />
-              {/* Subtle noise texture */}
-              <div className="absolute inset-0 opacity-[0.015] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==')]" />
-            </div>
+            <LandingCover language={language} />
 
-            {/* 語言切換器位置 */}
-            <div className="absolute top-6 right-6 z-50">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                <span className="text-sm text-white/80">EN</span>
-              </div>
-            </div>
-
-            {/* 首頁主要內容 - FRC 6998 */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-              {/* Main Title */}
-              <h1 className="relative text-center">
-                <span className="block text-8xl md:text-9xl lg:text-[12rem] font-black tracking-tighter leading-none">
-                  <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent drop-shadow-2xl">
-                    FRC
-                  </span>
-                </span>
-                <span className="block text-8xl md:text-9xl lg:text-[12rem] font-black tracking-tighter leading-none -mt-4 md:-mt-8">
-                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                    6998
-                  </span>
-                </span>
-              </h1>
-
-              {/* Team English Name */}
-              <p className="text-2xl md:text-3xl font-light tracking-[0.3em] text-gray-400 uppercase mt-6">
-                UNIPARDS
-              </p>
-
-              {/* Divider */}
-              <div className="flex items-center justify-center gap-4 py-4 mt-2">
-                <div className="h-px w-16 bg-gradient-to-r from-transparent to-purple-500/50" />
-                <div className="w-2 h-2 rounded-full bg-purple-500" />
-                <div className="h-px w-16 bg-gradient-to-l from-transparent to-purple-500/50" />
-              </div>
-
-              {/* Subtitle */}
-              <p className="text-lg md:text-xl text-gray-400 font-light">
-                {language === "zh" ? "團隊財務管理系統" : "Team Financial Management System"}
-              </p>
-
-              {/* CTA Buttons - 與首頁一致 */}
-              <div className="mt-12 flex flex-col sm:flex-row items-center gap-4">
-                <div className="h-14 px-10 text-base font-medium bg-white text-black rounded-full shadow-xl shadow-white/10 flex items-center justify-center">
-                  {language === "zh" ? "進入系統" : "Enter System"}
-                  <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </div>
-                <div className="h-14 px-10 text-base font-medium border border-white/20 bg-white/5 backdrop-blur-sm rounded-full flex items-center justify-center text-white">
-                  {language === "zh" ? "了解更多" : "Learn More"}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="absolute bottom-0 left-0 right-0 py-6">
-              <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 px-6 mx-auto">
-                <p className="text-xs text-gray-500">© 2024 FRC6998 保留所有權利。</p>
-                <nav className="flex gap-6">
-                  <span className="text-xs text-gray-500">服務條款</span>
-                  <span className="text-xs text-gray-500">隱私政策</span>
-                </nav>
-              </div>
-            </div>
-
-            {/* 撕裂邊緣陰影效果 - 增加深度感 */}
+            {/* 撕裂邊緣陰影 - 沿撕裂線的深度感 */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -492,8 +376,8 @@ export function TransitionButton({ language }: TransitionButtonProps) {
                   135deg,
                   transparent 0%,
                   transparent ${Math.max(0, 45 - tearProgress * 50)}%,
-                  rgba(0, 0, 0, 0.4) ${50 - tearProgress * 50}%,
-                  rgba(0, 0, 0, 0.6) ${52 - tearProgress * 50}%,
+                  rgba(0, 0, 0, 0.25) ${50 - tearProgress * 50}%,
+                  rgba(0, 0, 0, 0.35) ${52 - tearProgress * 50}%,
                   transparent ${55 - tearProgress * 50}%,
                   transparent 100%
                 )`,
@@ -501,145 +385,22 @@ export function TransitionButton({ language }: TransitionButtonProps) {
             />
           </div>
 
-          {/* 紙張翻捲高光效果 */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              zIndex: 11,
-              background: `linear-gradient(
-                135deg,
-                transparent 0%,
-                transparent ${Math.max(0, 43 - tearProgress * 50)}%,
-                rgba(255, 255, 255, 0.08) ${47 - tearProgress * 50}%,
-                rgba(255, 255, 255, 0.15) ${49 - tearProgress * 50}%,
-                rgba(255, 255, 255, 0.08) ${51 - tearProgress * 50}%,
-                transparent ${53 - tearProgress * 50}%,
-                transparent 100%
-              )`,
-              clipPath: jaggedClipPath,
-            }}
-          />
-
-          {/* 對角線發光撕裂邊緣效果 */}
+          {/* 撕裂邊緣線（琥珀） */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
             style={{ zIndex: 20, overflow: "visible" }}
           >
-            <defs>
-              {/* 增強的發光濾鏡 */}
-              <filter id="tear-glow-filter" x="-100%" y="-100%" width="300%" height="300%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feFlood floodColor="rgba(168, 85, 247, 1)" result="color" />
-                <feComposite in="color" in2="blur" operator="in" result="glow" />
-                <feMerge>
-                  <feMergeNode in="glow" />
-                  <feMergeNode in="glow" />
-                  <feMergeNode in="glow" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-
-              {/* 銳利邊緣濾鏡 */}
-              <filter id="sharp-edge-filter" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="0.5" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-
-              {/* 動態漸層 */}
-              <linearGradient id="tear-edge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(147, 51, 234, 1)">
-                  <animate attributeName="stop-color"
-                    values="rgba(147, 51, 234, 1);rgba(59, 130, 246, 1);rgba(147, 51, 234, 1)"
-                    dur="2s" repeatCount="indefinite" />
-                </stop>
-                <stop offset="50%" stopColor="rgba(59, 130, 246, 1)">
-                  <animate attributeName="stop-color"
-                    values="rgba(59, 130, 246, 1);rgba(147, 51, 234, 1);rgba(59, 130, 246, 1)"
-                    dur="2s" repeatCount="indefinite" />
-                </stop>
-                <stop offset="100%" stopColor="rgba(147, 51, 234, 1)">
-                  <animate attributeName="stop-color"
-                    values="rgba(147, 51, 234, 1);rgba(59, 130, 246, 1);rgba(147, 51, 234, 1)"
-                    dur="2s" repeatCount="indefinite" />
-                </stop>
-              </linearGradient>
-
-              {/* 電流效果漸層 */}
-              <linearGradient id="electric-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="rgba(255, 255, 255, 0)" />
-                <stop offset="45%" stopColor="rgba(255, 255, 255, 0)" />
-                <stop offset="50%" stopColor="rgba(255, 255, 255, 1)" />
-                <stop offset="55%" stopColor="rgba(255, 255, 255, 0)" />
-                <stop offset="100%" stopColor="rgba(255, 255, 255, 0)" />
-              </linearGradient>
-            </defs>
-
-            {/* 發光的撕裂邊緣線 */}
             {phase === "pulling" && (
               <TearEdgeLine progress={tearProgress} seed={jaggedSeed} />
             )}
           </svg>
-
-          {/* 撕裂粒子效果 - 沿著撕裂線分布 */}
-          {phase === "pulling" && particles.map((particle) => (
-            <div
-              key={particle.id}
-              className="absolute pointer-events-none"
-              style={{
-                zIndex: 30,
-                left: `${particle.x}%`,
-                top: `${particle.y}%`,
-                width: particle.size,
-                height: particle.size * (0.5 + seededRandom(particle.id) * 0.8), // 不規則形狀
-                background: `linear-gradient(${particle.rotation}deg,
-                  rgba(168, 85, 247, ${particle.opacity}) 0%,
-                  rgba(59, 130, 246, ${particle.opacity * 0.8}) 50%,
-                  rgba(255, 255, 255, ${particle.opacity * 0.3}) 100%)`,
-                borderRadius: seededRandom(particle.id * 3) > 0.5 ? "2px" : "1px",
-                transform: `rotate(${particle.rotation}deg)`,
-                animation: `tear-particle-fall 1.8s ease-out ${particle.delay}s forwards,
-                           particle-sparkle 0.5s ease-in-out ${particle.delay}s infinite`,
-                opacity: 0,
-                boxShadow: `
-                  0 0 ${particle.size * 1.5}px rgba(168, 85, 247, 0.6),
-                  0 0 ${particle.size * 0.5}px rgba(255, 255, 255, 0.8)
-                `,
-              }}
-            />
-          ))}
-
-          {/* 額外的閃光粒子 - 更小更亮（沿著反斜線分佈） */}
-          {phase === "pulling" && Array.from({ length: 15 }).map((_, i) => {
-            const t = i / 15
-            // 反斜線方向：x 從右往左，y 從上往下
-            const x = 100 * (1 - t) + (seededRandom(i * 100 + jaggedSeed) - 0.5) * 10
-            const y = 100 * t + (seededRandom(i * 101 + jaggedSeed) - 0.5) * 10
-            return (
-              <div
-                key={`spark-${i}`}
-                className="absolute pointer-events-none rounded-full"
-                style={{
-                  zIndex: 35,
-                  left: `${x}%`,
-                  top: `${y}%`,
-                  width: 2 + seededRandom(i + jaggedSeed) * 3,
-                  height: 2 + seededRandom(i + jaggedSeed) * 3,
-                  background: "rgba(255, 255, 255, 0.95)",
-                  animation: `tear-particle-fall 1.2s ease-out ${t * 0.6}s forwards`,
-                  opacity: 0,
-                  boxShadow: "0 0 8px rgba(255, 255, 255, 1), 0 0 15px rgba(168, 85, 247, 0.8)",
-                }}
-              />
-            )
-          })}
         </div>
       )}
-
     </>
   )
 }
 
-// 撕裂邊緣線組件 - 增強版，帶有多層發光效果
+// 撕裂邊緣線組件：琥珀色三層線，無濾鏡無粒子
 function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
   // 安全獲取視窗尺寸（SSR 兼容）
   const [dimensions, setDimensions] = useState({ width: 1920, height: 1080 })
@@ -666,14 +427,12 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
     for (let i = 0; i <= segments; i++) {
       const t = i / segments
 
-      // Diagonal line: x = offset * (1-t), y = offset * t
       const baseXPercent = offset * (1 - t)
       const baseYPercent = offset * t
 
       const baseX = (baseXPercent / 100) * dimensions.width
       const baseY = (baseYPercent / 100) * dimensions.height
 
-      // Multi-layer wave for jagged effect
       const wave1 = Math.sin(i * 0.5 + seed) * jaggedDepth * 0.4
       const wave2 = Math.sin(i * 1.3 + seed * 1.7) * jaggedDepth * 0.3
       const wave3 = Math.sin(i * 2.7 + seed * 3.1) * jaggedDepth * 0.2
@@ -683,7 +442,6 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
       const spike = spikeChance > 0.88 ? (seededRandom(i + seed * 17) - 0.5) * jaggedDepth * 0.5 : 0
       const randomJag = (seededRandom(i + seed) - 0.5) * jaggedDepth * 0.25
 
-      // Perpendicular offset direction: (1, 1) / sqrt(2) = 0.707
       const perpOffset = wave1 + wave2 + wave3 + wave4 + spike + randomJag
       const x = baseX + perpOffset * 0.707
       const y = baseY + perpOffset * 0.707
@@ -700,52 +458,31 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
 
   return (
     <g>
-      {/* 最外層大範圍光暈 */}
+      {/* 外層柔光 */}
       <path
         d={pathData}
         fill="none"
-        stroke="rgba(168, 85, 247, 0.15)"
-        strokeWidth="30"
+        stroke="hsl(26 95% 55% / 0.25)"
+        strokeWidth="10"
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ filter: "blur(15px)" }}
+        style={{ filter: "blur(6px)" }}
       />
-      {/* 中層光暈 */}
+      {/* 琥珀主線 */}
       <path
         d={pathData}
         fill="none"
-        stroke="rgba(59, 130, 246, 0.3)"
-        strokeWidth="15"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ filter: "blur(8px)" }}
-      />
-      {/* 內層發光 */}
-      <path
-        d={pathData}
-        fill="none"
-        stroke="rgba(168, 85, 247, 0.6)"
-        strokeWidth="8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ filter: "blur(3px)" }}
-      />
-      {/* 核心亮線 */}
-      <path
-        d={pathData}
-        fill="none"
-        stroke="url(#tear-edge-gradient)"
-        strokeWidth="3"
-        filter="url(#tear-glow-filter)"
+        stroke="hsl(26 95% 55%)"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* Brightest center line */}
+      {/* 中心亮線 */}
       <path
         d={pathData}
         fill="none"
-        stroke="rgba(255, 255, 255, 0.9)"
-        strokeWidth="1.5"
+        stroke="hsl(40 30% 96% / 0.9)"
+        strokeWidth="1"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -761,10 +498,10 @@ function ClawOverlay({ phase, tearProgress }: { phase: TransitionPhase; tearProg
 
   return (
     <div
-      className="absolute w-36 h-48"
+      className="absolute w-36 h-48 text-foreground"
       style={{
         zIndex: 50,
-        filter: "drop-shadow(0 0 25px rgba(168, 85, 247, 0.8))",
+        filter: "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45))",
         top: isEntering ? "-80px" : `calc(${midpoint}% - 100px)`,
         left: isEntering ? "-80px" : `calc(${midpoint}% - 80px)`,
         opacity: 1,

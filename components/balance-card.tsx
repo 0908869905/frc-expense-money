@@ -92,9 +92,9 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
 
     return (
         <>
-            <div className="rounded-xl border bg-gradient-to-br from-primary/10 via-background to-background p-6">
+            <div className="h-full rounded-xl border bg-card p-5">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <h3 className="ledger-label flex items-center gap-2">
                         <Wallet className="h-4 w-4" />
                         財務摘要
                     </h3>
@@ -113,7 +113,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                 <div className="mb-6">
                     <p className="text-sm text-muted-foreground mb-1">目前餘額</p>
                     <p
-                        className={`text-3xl font-bold ${isPositive ? "text-green-600" : "text-red-600"
+                        className={`text-3xl font-semibold tech-number ${isPositive ? "text-foreground" : "text-danger"
                             }`}
                     >
                         {formatCurrency(currentBalance)}
@@ -122,25 +122,21 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
 
                 {/* 收入/支出 明細 */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                            <TrendingUp className="h-4 w-4 text-green-600" />
-                        </div>
+                    <div className="flex items-center gap-3 border-l-2 border-ok/60 pl-3">
+                        <TrendingUp className="h-4 w-4 text-ok shrink-0" />
                         <div>
                             <p className="text-xs text-muted-foreground">總收入</p>
-                            <p className="text-sm font-semibold text-green-600">
+                            <p className="text-sm font-medium font-mono tabular-nums text-ok">
                                 {formatCurrency(totalIncome)}
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-                            <TrendingDown className="h-4 w-4 text-red-600" />
-                        </div>
+                    <div className="flex items-center gap-3 border-l-2 border-danger/60 pl-3">
+                        <TrendingDown className="h-4 w-4 text-danger shrink-0" />
                         <div>
                             <p className="text-xs text-muted-foreground">總支出</p>
-                            <p className="text-sm font-semibold text-red-600">
+                            <p className="text-sm font-medium font-mono tabular-nums text-danger">
                                 {formatCurrency(totalExpense)}
                             </p>
                         </div>
@@ -152,34 +148,34 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                     <div className="mt-6 pt-4 border-t">
                         <h4 className="text-sm font-medium mb-3">資金記錄</h4>
                         {message && (
-                            <div className={`mb-3 p-2 rounded text-sm ${message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                            <div className={`mb-3 p-2 rounded-md border text-sm ${message.type === "success" ? "border-ok/30 bg-ok/10 text-ok" : "border-danger/30 bg-danger/10 text-danger"}`}>
                                 {message.text}
                             </div>
                         )}
-                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                        <div className="max-h-64 overflow-y-auto">
                             {fundingRecords.map((record) => (
                                 <div
                                     key={record.id}
-                                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                                    className="flex items-center justify-between gap-2 py-2.5 border-b border-border last:border-0"
                                 >
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <p className="font-medium truncate">{record.title}</p>
-                                            <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded">
+                                            <p className="text-sm font-medium truncate">{record.title}</p>
+                                            <span className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[11px] text-muted-foreground shrink-0">
                                                 {getTypeLabel(record.type)}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground font-mono">
                                             {formatDate(record.date)} • {record.source || "未知來源"} • {record.recordedBy}
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-2 ml-2">
-                                        <p className="font-semibold text-green-600 whitespace-nowrap">
+                                    <div className="flex items-center gap-1 ml-2">
+                                        <p className="text-sm font-medium font-mono tabular-nums text-ok whitespace-nowrap mr-1">
                                             {formatCurrency(record.amount)}
                                         </p>
                                         <button
                                             onClick={() => openEditModal(record)}
-                                            className="p-1.5 rounded hover:bg-muted"
+                                            className="p-1.5 rounded-md hover:bg-accent transition-colors"
                                             title="編輯"
                                         >
                                             <Edit2 className="h-4 w-4" />
@@ -187,7 +183,7 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
                                         <button
                                             onClick={() => handleDelete(record.id)}
                                             disabled={isPending}
-                                            className="p-1.5 rounded hover:bg-red-50 text-red-600"
+                                            className="p-1.5 rounded-md hover:bg-danger/10 text-danger transition-colors"
                                             title="刪除"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -202,8 +198,8 @@ export function BalanceCard({ totalIncome, totalExpense, currentBalance, funding
 
             {/* Edit Modal */}
             {editingRecord && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-background rounded-xl border shadow-lg w-full max-w-md mx-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-card rounded-lg border shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] w-full max-w-md mx-4">
                         <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Edit2 className="h-5 w-5" />
