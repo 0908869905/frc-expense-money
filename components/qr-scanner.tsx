@@ -17,7 +17,7 @@ const MESSAGES = {
         stop: "停止掃描",
         restart: "重新啟動",
         scanningHint: "將 QR Code 對準框框內，保持距離 10-20 公分",
-        scanning: "🔍 掃描中...",
+        scanning: "掃描中...",
     },
     en: {
         permissionDenied: "Camera permission denied",
@@ -29,7 +29,7 @@ const MESSAGES = {
         stop: "Stop",
         restart: "Restart",
         scanningHint: "Align QR Code within the frame, keep 10-20cm distance",
-        scanning: "🔍 Scanning...",
+        scanning: "Scanning...",
     },
 } as const
 
@@ -173,11 +173,11 @@ export function QRScanner({ onScan, onError }: QRScannerProps): JSX.Element {
 
                 {/* Error State */}
                 {state === "error" && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50">
-                        <XCircle className="h-16 w-16 text-red-500 mb-4" />
-                        <p className="text-red-600 text-center px-4 font-medium">{errorMessage}</p>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-danger/10">
+                        <XCircle className="h-16 w-16 text-danger mb-4" />
+                        <p className="text-danger text-center px-4 font-medium">{errorMessage}</p>
                         {hasPermission === false && (
-                            <p className="text-red-500 text-sm text-center px-4 mt-2">
+                            <p className="text-danger text-sm text-center px-4 mt-2">
                                 {t.allowCameraAccess}
                             </p>
                         )}

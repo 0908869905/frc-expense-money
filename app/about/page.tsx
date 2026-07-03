@@ -72,7 +72,7 @@ export default function AboutPage() {
                                 <p className="text-sm tracking-widest text-gray-500 uppercase">
                                     {t("我們的足跡", "Our Journey")}
                                 </p>
-                                <div className="mt-12 hidden md:block w-px h-32 bg-gradient-to-b from-white/20 to-transparent" />
+                                <div className="mt-12 hidden md:block w-px h-32 bg-white/20" />
                             </div>
                         </div>
 
@@ -194,7 +194,7 @@ function TimelineEntry({ year, title, content }: { year: string, title: string, 
     return (
         <div className="group border-l border-white/20 pl-8 md:pl-16 relative pb-12 last:pb-0">
             {/* Dot */}
-            <div className="absolute left-[-5px] top-2 w-2.5 h-2.5 bg-white rounded-full opacity-20 group-hover:opacity-100 group-hover:bg-purple-500 transition-all duration-500" />
+            <div className="absolute left-[-5px] top-2 w-2.5 h-2.5 bg-white rounded-full opacity-20 group-hover:opacity-100 group-hover:bg-[hsl(26,95%,55%)] transition-all duration-500" />
             
             <span className="block font-serif text-2xl md:text-3xl text-gray-500 italic mb-2 group-hover:text-white transition-colors duration-300">
                 {year}

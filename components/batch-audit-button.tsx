@@ -59,10 +59,10 @@ export function BatchAuditButton({
     };
 
     const getStatusIcon = (isValid: boolean | undefined, hasError: boolean) => {
-        if (hasError) return <XCircle className="h-4 w-4 text-red-500" />;
-        if (isValid === true) return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-        if (isValid === false) return <XCircle className="h-4 w-4 text-red-500" />;
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+        if (hasError) return <XCircle className="h-4 w-4 text-danger" />;
+        if (isValid === true) return <CheckCircle2 className="h-4 w-4 text-ok" />;
+        if (isValid === false) return <XCircle className="h-4 w-4 text-danger" />;
+        return <AlertTriangle className="h-4 w-4 text-warn" />;
     };
 
     return (
@@ -109,17 +109,17 @@ export function BatchAuditButton({
                                 <div className="text-2xl font-bold">{result.auditedItems}</div>
                                 <div className="text-xs text-muted-foreground">已審核</div>
                             </div>
-                            <div className="rounded-lg bg-green-100 dark:bg-green-900/30 p-2">
-                                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            <div className="rounded-lg bg-ok/10 p-2">
+                                <div className="text-2xl font-bold text-ok">
                                     {result.passedItems}
                                 </div>
-                                <div className="text-xs text-green-600 dark:text-green-400">通過</div>
+                                <div className="text-xs text-ok">通過</div>
                             </div>
-                            <div className="rounded-lg bg-red-100 dark:bg-red-900/30 p-2">
-                                <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                            <div className="rounded-lg bg-danger/10 p-2">
+                                <div className="text-2xl font-bold text-danger">
                                     {result.failedItems}
                                 </div>
-                                <div className="text-xs text-red-600 dark:text-red-400">未通過</div>
+                                <div className="text-xs text-danger">未通過</div>
                             </div>
                         </div>
 
@@ -132,9 +132,9 @@ export function BatchAuditButton({
                                         {Math.round((result.passedItems / result.auditedItems) * 100)}%
                                     </span>
                                 </div>
-                                <div className="h-2 rounded-full bg-red-200 dark:bg-red-900/50 overflow-hidden">
+                                <div className="h-2 rounded-full bg-danger/20 overflow-hidden">
                                     <div
-                                        className="h-full bg-green-500 transition-all"
+                                        className="h-full bg-ok transition-all"
                                         style={{
                                             width: `${(result.passedItems / result.auditedItems) * 100}%`,
                                         }}
@@ -182,8 +182,8 @@ export function BatchAuditButton({
 
                         {/* 錯誤訊息 */}
                         {result.error && (
-                            <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3">
-                                <p className="text-sm text-red-700 dark:text-red-400">
+                            <div className="rounded-lg border border-danger/30 bg-danger/10 p-3">
+                                <p className="text-sm text-danger">
                                     {result.error}
                                 </p>
                             </div>

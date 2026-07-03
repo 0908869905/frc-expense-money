@@ -129,8 +129,8 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
     return (
         <div className="flex flex-col gap-6 max-w-2xl">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t("settings")}</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-2xl font-semibold tracking-tight">{t("settings")}</h1>
+                <p className="text-sm text-muted-foreground">
                     {language === "zh" ? "管理你的應用程式設定" : "Manage your application settings"}
                 </p>
             </div>
@@ -190,7 +190,7 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
                     </div>
                 </div>
                 {avatarMessage && (
-                    <p className={`mt-3 text-sm ${avatarMessage.type === "success" ? "text-green-500" : "text-destructive"}`}>
+                    <p className={`mt-3 text-sm ${avatarMessage.type === "success" ? "text-ok" : "text-destructive"}`}>
                         {avatarMessage.text}
                     </p>
                 )}
@@ -220,7 +220,7 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                                     language === lang
                                         ? "bg-primary text-primary-foreground"
-                                        : "bg-muted hover:bg-muted/80"
+                                        : "border border-border bg-card hover:bg-accent"
                                 }`}
                             >
                                 {lang === "zh" ? "中文" : "English"}
@@ -253,7 +253,7 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
                                     onClick={() => handleNotificationChange(option.value)}
                                     disabled={notificationLoading}
                                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 ${
-                                        isSelected ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"
+                                        isSelected ? "bg-primary text-primary-foreground" : "border border-border bg-card hover:bg-accent"
                                     }`}
                                 >
                                     {isSelected && <Check className="h-4 w-4" />}
@@ -263,7 +263,7 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
                         })}
                     </div>
                     {notificationMessage && (
-                        <p className={`text-sm ${notificationMessage.type === "success" ? "text-green-500" : "text-destructive"}`}>
+                        <p className={`text-sm ${notificationMessage.type === "success" ? "text-ok" : "text-destructive"}`}>
                             {notificationMessage.text}
                         </p>
                     )}
@@ -301,7 +301,7 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
                         error={passwordState.errors?.confirmPassword?.[0]}
                     />
                     {passwordState.message && (
-                        <p className={`text-sm ${passwordState.success ? "text-green-500" : "text-destructive"}`}>
+                        <p className={`text-sm ${passwordState.success ? "text-ok" : "text-destructive"}`}>
                             {passwordState.message}
                         </p>
                     )}

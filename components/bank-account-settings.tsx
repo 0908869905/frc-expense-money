@@ -142,8 +142,8 @@ export function BankAccountSettings({ initialAccounts }: BankAccountSettingsProp
             {message && (
                 <div className={`p-3 rounded-lg text-sm ${
                     message.type === "success"
-                        ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-red-50 text-red-700 border border-red-200"
+                        ? "bg-ok/10 text-ok border border-ok/30"
+                        : "bg-danger/10 text-danger border border-danger/30"
                 }`}>
                     {message.text}
                 </div>

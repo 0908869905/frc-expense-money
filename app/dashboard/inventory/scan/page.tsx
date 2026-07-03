@@ -164,8 +164,8 @@ export default function ScanPage(): JSX.Element {
             {message && (
                 <div
                     className={`p-4 rounded-lg ${message.type === "success"
-                        ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-red-50 text-red-700 border border-red-200"
+                        ? "bg-ok/10 text-ok border border-ok/30"
+                        : "bg-danger/10 text-danger border border-danger/30"
                         }`}
                 >
                     {message.text}
@@ -212,7 +212,7 @@ export default function ScanPage(): JSX.Element {
 
             {/* Error */}
             {error && (
-                <div className="p-4 rounded-lg bg-red-50 text-red-700 border border-red-200">
+                <div className="p-4 rounded-lg bg-danger/10 text-danger border border-danger/30">
                     {error}
                 </div>
             )}
@@ -240,13 +240,13 @@ export default function ScanPage(): JSX.Element {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 rounded-lg bg-muted/50">
                             <div className="text-sm text-muted-foreground mb-1">{t.currentQty}</div>
-                            <div className={`text-3xl font-bold ${itemIsLowStock ? "text-red-600" : ""}`}>
+                            <div className={`text-3xl font-semibold tech-number ${itemIsLowStock ? "text-danger" : ""}`}>
                                 {scannedItem.currentQuantity}
                             </div>
                         </div>
                         <div className="p-4 rounded-lg bg-muted/50">
                             <div className="text-sm text-muted-foreground mb-1">{t.safetyStock}</div>
-                            <div className="text-3xl font-bold text-muted-foreground">
+                            <div className="text-3xl font-semibold tech-number text-muted-foreground">
                                 {scannedItem.safetyStockLevel}
                             </div>
                         </div>
@@ -254,7 +254,7 @@ export default function ScanPage(): JSX.Element {
 
                     {/* Low Stock Warning */}
                     {itemIsLowStock && (
-                        <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 text-yellow-700 border border-yellow-200">
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-warn/10 text-warn border border-warn/30">
                             <AlertTriangle className="h-5 w-5" />
                             <span className="font-medium">{t.lowStockWarning}</span>
                         </div>
@@ -297,7 +297,7 @@ export default function ScanPage(): JSX.Element {
                             <button
                                 onClick={() => handleStockChange(true)}
                                 disabled={isPending || adjustAmount <= 0}
-                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 font-medium"
+                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-ok text-white rounded-md hover:bg-ok/90 disabled:opacity-50 font-medium"
                             >
                                 <ArrowDownToLine className="h-5 w-5" />
                                 {t.stockIn}
@@ -305,7 +305,7 @@ export default function ScanPage(): JSX.Element {
                             <button
                                 onClick={() => handleStockChange(false)}
                                 disabled={isPending || adjustAmount <= 0 || adjustAmount > scannedItem.currentQuantity}
-                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 font-medium"
+                                className="flex-1 flex items-center justify-center gap-2 py-3 bg-warn text-white rounded-md hover:bg-warn/90 disabled:opacity-50 font-medium"
                             >
                                 <ArrowUpFromLine className="h-5 w-5" />
                                 {t.stockOut}

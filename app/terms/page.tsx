@@ -13,7 +13,7 @@ export default function TermsPage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+            <header className="sticky top-0 z-50 w-full border-b bg-background">
                 <div className="container flex h-16 items-center px-4 md:px-6">
                     <Link href="/" className="flex items-center gap-2">
                         <Button variant="ghost" size="sm">
@@ -26,7 +26,7 @@ export default function TermsPage() {
 
             {/* Content */}
             <main className="container max-w-4xl py-12 px-4 md:px-6">
-                <h1 className="text-3xl font-bold mb-8">
+                <h1 className="text-2xl font-semibold mb-8">
                     {language === "zh" ? "服務條款" : "Terms of Service"}
                 </h1>
 

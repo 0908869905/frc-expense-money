@@ -314,7 +314,7 @@ export function BatchInventoryModal({
                     <span className="text-sm text-muted-foreground ml-auto">
                         {zh ? `${rowCount} 行` : `${rowCount} rows`}
                         {rowCount >= MAX_ROWS && (
-                            <span className="text-yellow-600 ml-1">
+                            <span className="text-warn ml-1">
                                 ({zh ? "已達上限" : "max reached"})
                             </span>
                         )}
@@ -350,7 +350,7 @@ export function BatchInventoryModal({
                             </thead>
                             <tbody className="divide-y">
                                 {createRows.map((row) => (
-                                    <tr key={row.id} className={row.error ? "bg-red-50/50" : ""}>
+                                    <tr key={row.id} className={row.error ? "bg-danger/5" : ""}>
                                         <td className="p-1.5">
                                             <input
                                                 type="text"
@@ -359,7 +359,7 @@ export function BatchInventoryModal({
                                                     updateCreateRow(row.id, "name", e.target.value)
                                                 }
                                                 className={`w-full px-2 py-1 border rounded text-sm ${
-                                                    row.error ? "border-red-400" : ""
+                                                    row.error ? "border-danger" : ""
                                                 }`}
                                                 placeholder={zh ? "品名" : "Name"}
                                             />
@@ -372,7 +372,7 @@ export function BatchInventoryModal({
                                                     updateCreateRow(row.id, "sku", e.target.value)
                                                 }
                                                 className={`w-full px-2 py-1 border rounded text-sm font-mono ${
-                                                    row.error ? "border-red-400" : ""
+                                                    row.error ? "border-danger" : ""
                                                 }`}
                                                 placeholder="REV-21-1650"
                                             />
@@ -404,7 +404,7 @@ export function BatchInventoryModal({
                                                     )
                                                 }
                                                 className={`w-full px-2 py-1 border rounded text-sm ${
-                                                    row.error ? "border-red-400" : ""
+                                                    row.error ? "border-danger" : ""
                                                 }`}
                                                 placeholder={zh ? "A櫃-3層" : "A-3"}
                                             />
@@ -443,7 +443,7 @@ export function BatchInventoryModal({
                                             <button
                                                 onClick={() => removeCreateRow(row.id)}
                                                 disabled={createRows.length <= 1}
-                                                className="p-1 rounded hover:bg-red-100 text-red-500 disabled:opacity-30"
+                                                className="p-1 rounded hover:bg-danger/10 text-danger disabled:opacity-30"
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </button>
@@ -483,7 +483,7 @@ export function BatchInventoryModal({
                                     return (
                                         <tr
                                             key={row.id}
-                                            className={row.error ? "bg-red-50/50" : ""}
+                                            className={row.error ? "bg-danger/5" : ""}
                                         >
                                             <td className="p-1.5">
                                                 <select
@@ -496,7 +496,7 @@ export function BatchInventoryModal({
                                                         )
                                                     }
                                                     className={`w-full px-2 py-1 border rounded text-sm ${
-                                                        row.error ? "border-red-400" : ""
+                                                        row.error ? "border-danger" : ""
                                                     }`}
                                                 >
                                                     <option value="">
@@ -546,7 +546,7 @@ export function BatchInventoryModal({
                                                         )
                                                     }
                                                     className={`w-full px-2 py-1 border rounded text-sm ${
-                                                        row.error ? "border-red-400" : ""
+                                                        row.error ? "border-danger" : ""
                                                     }`}
                                                 />
                                             </td>
@@ -575,7 +575,7 @@ export function BatchInventoryModal({
                                                 <button
                                                     onClick={() => removeAdjustRow(row.id)}
                                                     disabled={adjustRows.length <= 1}
-                                                    className="p-1 rounded hover:bg-red-100 text-red-500 disabled:opacity-30"
+                                                    className="p-1 rounded hover:bg-danger/10 text-danger disabled:opacity-30"
                                                 >
                                                     <Trash2 className="h-3.5 w-3.5" />
                                                 </button>
@@ -590,9 +590,9 @@ export function BatchInventoryModal({
 
                 {/* Row-level errors summary */}
                 {(mode === "create" ? createRows : adjustRows).some((r) => r.error) && (
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-sm">
-                        <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-                        <div className="text-red-700">
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-danger/10 border border-danger/30 text-sm">
+                        <AlertCircle className="h-4 w-4 text-danger shrink-0 mt-0.5" />
+                        <div className="text-danger">
                             {(mode === "create" ? createRows : adjustRows)
                                 .filter((r) => r.error)
                                 .map((r, idx) => (
@@ -607,16 +607,16 @@ export function BatchInventoryModal({
                     <div
                         className={`flex items-start gap-2 p-3 rounded-lg border text-sm ${
                             batchResult.success
-                                ? "bg-green-50 border-green-200"
-                                : "bg-yellow-50 border-yellow-200"
+                                ? "bg-ok/10 border-ok/30"
+                                : "bg-warn/10 border-warn/30"
                         }`}
                     >
                         {batchResult.success ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                            <CheckCircle2 className="h-4 w-4 text-ok shrink-0 mt-0.5" />
                         ) : (
-                            <AlertCircle className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+                            <AlertCircle className="h-4 w-4 text-warn shrink-0 mt-0.5" />
                         )}
-                        <div className={batchResult.success ? "text-green-700" : "text-yellow-700"}>
+                        <div className={batchResult.success ? "text-ok" : "text-warn"}>
                             <div className="font-medium">{batchResult.message}</div>
                             {batchResult.successCount > 0 && batchResult.failedCount > 0 && (
                                 <div className="mt-1">

@@ -196,38 +196,38 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
+                    <h1 className="text-2xl font-semibold tracking-tight">
                         {language === "zh" ? "庫存管理" : "Inventory Management"}
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         {language === "zh" ? "管理 FRC 零件庫存" : "Manage FRC parts inventory"}
                     </p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                     <Link
                         href="/dashboard/inventory/scan"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border hover:bg-muted transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border bg-card hover:bg-accent transition-colors text-sm font-medium"
                     >
                         <ScanLine className="h-4 w-4" />
                         {language === "zh" ? "掃描" : "Scan"}
                     </Link>
                     <button
                         onClick={() => openModal("batchCreate")}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border hover:bg-muted transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border bg-card hover:bg-accent transition-colors text-sm font-medium"
                     >
                         <Layers className="h-4 w-4" />
                         {language === "zh" ? "批量新增" : "Batch Add"}
                     </button>
                     <button
                         onClick={() => openModal("batchAdjust")}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border hover:bg-muted transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border bg-card hover:bg-accent transition-colors text-sm font-medium"
                     >
                         <ArrowLeftRight className="h-4 w-4" />
                         {language === "zh" ? "批量調整" : "Batch Adjust"}
                     </button>
                     <button
                         onClick={() => openModal("add")}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
                     >
                         <Plus className="h-4 w-4" />
                         {language === "zh" ? "新增零件" : "Add Item"}
@@ -238,9 +238,9 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
             {/* Message */}
             {message && (
                 <div
-                    className={`p-4 rounded-lg ${message.type === "success"
-                        ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-red-50 text-red-700 border border-red-200"
+                    className={`p-3 rounded-md border text-sm ${message.type === "success"
+                        ? "bg-ok/10 text-ok border-ok/30"
+                        : "bg-danger/10 text-danger border-danger/30"
                         }`}
                 >
                     {message.text}
@@ -249,10 +249,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
 
             {/* Restock Alert */}
             {restockItems.length > 0 && (
-                <div className="p-4 rounded-xl border border-yellow-200 bg-yellow-50">
+                <div className="p-4 rounded-lg border border-warn/40 bg-warn/10">
                     <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                        <h3 className="font-semibold text-yellow-800">
+                        <AlertTriangle className="h-4 w-4 text-warn" />
+                        <h3 className="font-semibold text-warn text-sm">
                             {language === "zh" ? "需要補貨" : "Need Restock"} ({restockItems.length})
                         </h3>
                     </div>
@@ -260,7 +260,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         {restockItems.map((item) => (
                             <span
                                 key={item.id}
-                                className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm"
+                                className="px-2 py-0.5 rounded border border-warn/40 bg-card font-mono text-xs text-warn"
                             >
                                 {item.name} ({item.currentQuantity}/{item.safetyStockLevel})
                             </span>
@@ -278,13 +278,13 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         placeholder={language === "zh" ? "搜尋品名、料號或位置..." : "Search name, SKU or location..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
+                        className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-card"
                     />
                 </div>
                 <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-4 py-2 border rounded-lg bg-background"
+                    className="px-4 py-2 border border-input rounded-md bg-card"
                 >
                     <option value="all">{language === "zh" ? "所有類別" : "All Categories"}</option>
                     {ITEM_CATEGORIES.map((cat) => (
@@ -296,7 +296,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 <select
                     value={locationFilter}
                     onChange={(e) => setLocationFilter(e.target.value)}
-                    className="px-4 py-2 border rounded-lg bg-background"
+                    className="px-4 py-2 border border-input rounded-md bg-card"
                 >
                     <option value="all">{language === "zh" ? "所有位置" : "All Locations"}</option>
                     {uniqueLocations.map((loc) => (
@@ -312,13 +312,13 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "品名" : "Name"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "料號" : "SKU"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "類別" : "Category"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "位置" : "Location"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "數量" : "Qty"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "安全庫存" : "Safety"}</th>
-                            <th className="text-left p-4 font-medium">{language === "zh" ? "操作" : "Actions"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "品名" : "Name"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "料號" : "SKU"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "類別" : "Category"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "位置" : "Location"}</th>
+                            <th className="text-right px-4 py-2.5 ledger-label">{language === "zh" ? "數量" : "Qty"}</th>
+                            <th className="text-right px-4 py-2.5 ledger-label">{language === "zh" ? "安全庫存" : "Safety"}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{language === "zh" ? "操作" : "Actions"}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -331,45 +331,45 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                             </tr>
                         ) : (
                             filteredItems.map((item) => (
-                                <tr key={item.id} className="hover:bg-muted/20">
-                                    <td className="p-4 font-medium">{item.name}</td>
+                                <tr key={item.id} className="hover:bg-accent/60 transition-colors">
+                                    <td className="p-4 font-medium text-sm">{item.name}</td>
                                     <td className="p-4 text-muted-foreground font-mono text-sm">{item.sku}</td>
                                     <td className="p-4">
-                                        <span className="px-2 py-1 bg-muted rounded text-xs">
+                                        <span className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[11px] text-muted-foreground">
                                             {getCategoryLabel(item.category, language as Language)}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-muted-foreground">{item.storageLocation}</td>
-                                    <td className="p-4">
+                                    <td className="p-4 text-muted-foreground font-mono text-sm">{item.storageLocation}</td>
+                                    <td className="p-4 text-right">
                                         <span
-                                            className={`font-semibold ${item.currentQuantity <= item.safetyStockLevel
-                                                ? "text-red-600"
+                                            className={`font-mono font-semibold tabular-nums ${item.currentQuantity <= item.safetyStockLevel
+                                                ? "text-danger"
                                                 : "text-foreground"
                                                 }`}
                                         >
                                             {item.currentQuantity}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-muted-foreground">{item.safetyStockLevel}</td>
+                                    <td className="p-4 text-right text-muted-foreground font-mono tabular-nums">{item.safetyStockLevel}</td>
                                     <td className="p-4">
                                         <div className="flex gap-1">
                                             <button
                                                 onClick={() => openModal("qr", item)}
-                                                className="p-1.5 rounded hover:bg-blue-100 text-blue-600"
+                                                className="p-1.5 rounded text-info hover:bg-info/10 transition-colors"
                                                 title="QR Code"
                                             >
                                                 <QrCode className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => openModal("stockIn", item)}
-                                                className="p-1.5 rounded hover:bg-green-100 text-green-600"
+                                                className="p-1.5 rounded text-ok hover:bg-ok/10 transition-colors"
                                                 title={language === "zh" ? "入庫" : "Stock In"}
                                             >
                                                 <ArrowDownToLine className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => openModal("stockOut", item)}
-                                                className="p-1.5 rounded hover:bg-orange-100 text-orange-600"
+                                                className="p-1.5 rounded text-warn hover:bg-warn/10 transition-colors"
                                                 title={language === "zh" ? "領用" : "Stock Out"}
                                             >
                                                 <ArrowUpFromLine className="h-4 w-4" />
@@ -403,7 +403,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                                 <button
                                                     onClick={() => handleDeleteItem(item.id)}
                                                     disabled={isPending}
-                                                    className="p-1.5 rounded text-red-600 hover:bg-red-50"
+                                                    className="p-1.5 rounded text-danger hover:bg-danger/10 transition-colors"
                                                     title={language === "zh" ? "刪除" : "Delete"}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -420,9 +420,9 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
 
             {/* Add/Edit Modal */}
             {(activeModal === "add" || activeModal === "edit") && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-card rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-card border border-border rounded-lg shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                        <h2 className="text-lg font-semibold mb-4">
                             {activeModal === "add"
                                 ? (language === "zh" ? "新增零件" : "Add Item")
                                 : (language === "zh" ? "編輯零件" : "Edit Item")}
@@ -436,7 +436,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 />
                             </div>
                             <div>
@@ -448,7 +448,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     value={formData.sku}
                                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                                     placeholder="REV-21-1650"
-                                    className="w-full px-3 py-2 border rounded-lg font-mono"
+                                    className="w-full px-3 py-2 border rounded-md font-mono"
                                 />
                             </div>
                             <div>
@@ -460,7 +460,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     onChange={(e) =>
                                         setFormData({ ...formData, category: e.target.value as ItemCategory })
                                     }
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 >
                                     {ITEM_CATEGORIES.map((cat) => (
                                         <option key={cat.value} value={cat.value}>
@@ -478,7 +478,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     value={formData.storageLocation}
                                     onChange={(e) => setFormData({ ...formData, storageLocation: e.target.value })}
                                     placeholder="A櫃-3層"
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 />
                             </div>
                             {activeModal === "add" && (
@@ -492,7 +492,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                         onChange={(e) =>
                                             setFormData({ ...formData, currentQuantity: parseInt(e.target.value) || 0 })
                                         }
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-md"
                                     />
                                 </div>
                             )}
@@ -506,7 +506,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     onChange={(e) =>
                                         setFormData({ ...formData, safetyStockLevel: parseInt(e.target.value) || 0 })
                                     }
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 />
                             </div>
                             <div>
@@ -518,21 +518,21 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     value={formData.vendorLink}
                                     onChange={(e) => setFormData({ ...formData, vendorLink: e.target.value })}
                                     placeholder="https://..."
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 />
                             </div>
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={closeModal}
-                                className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
+                                className="flex-1 px-4 py-2 border border-border rounded-md bg-card hover:bg-accent transition-colors text-sm font-medium"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
                             </button>
                             <button
                                 onClick={activeModal === "add" ? handleAddItem : handleUpdateItem}
                                 disabled={isPending}
-                                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
                             >
                                 {isPending
                                     ? (language === "zh" ? "處理中..." : "Processing...")
@@ -545,9 +545,9 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
 
             {/* Adjust Stock Modal */}
             {activeModal === "adjust" && selectedItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-card rounded-xl p-6 w-full max-w-md mx-4">
-                        <h2 className="text-xl font-bold mb-2">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-card border border-border rounded-lg shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] p-6 w-full max-w-md mx-4">
+                        <h2 className="text-lg font-semibold mb-2">
                             {language === "zh" ? "調整庫存" : "Adjust Stock"}
                         </h2>
                         <p className="text-muted-foreground mb-4">
@@ -563,7 +563,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     onChange={(e) =>
                                         setAdjustData({ ...adjustData, type: e.target.value as TransactionType })
                                     }
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 >
                                     {TRANSACTION_TYPES.map((t) => (
                                         <option key={t.value} value={t.value}>
@@ -582,7 +582,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     onChange={(e) =>
                                         setAdjustData({ ...adjustData, amount: parseInt(e.target.value) || 0 })
                                     }
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 />
                             </div>
                             {adjustData.type === "PROJECT_USE" && (
@@ -595,7 +595,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                         value={adjustData.projectId}
                                         onChange={(e) => setAdjustData({ ...adjustData, projectId: e.target.value })}
                                         placeholder="2024-Robot"
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-md"
                                     />
                                 </div>
                             )}
@@ -603,14 +603,14 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={closeModal}
-                                className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
+                                className="flex-1 px-4 py-2 border border-border rounded-md bg-card hover:bg-accent transition-colors text-sm font-medium"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
                             </button>
                             <button
                                 onClick={handleAdjustStock}
                                 disabled={isPending || adjustData.amount === 0}
-                                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
                             >
                                 {isPending
                                     ? (language === "zh" ? "處理中..." : "Processing...")
@@ -623,9 +623,9 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
 
             {/* Quick Stock In Modal */}
             {activeModal === "stockIn" && selectedItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
-                        <h2 className="text-xl font-bold mb-2 text-green-600 flex items-center gap-2">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-card border border-border rounded-lg shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] p-6 w-full max-w-sm mx-4">
+                        <h2 className="text-lg font-semibold mb-2 text-ok flex items-center gap-2">
                             <ArrowDownToLine className="h-5 w-5" />
                             {language === "zh" ? "零件入庫" : "Stock In"}
                         </h2>
@@ -644,21 +644,21 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     onChange={(e) =>
                                         setAdjustData({ ...adjustData, amount: parseInt(e.target.value) || 0 })
                                     }
-                                    className="w-full px-3 py-2 border rounded-lg text-center text-xl font-bold"
+                                    className="w-full px-3 py-2 border rounded-md text-center font-mono text-xl font-semibold tabular-nums"
                                 />
                             </div>
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={closeModal}
-                                className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
+                                className="flex-1 px-4 py-2 border border-border rounded-md bg-card hover:bg-accent transition-colors text-sm font-medium"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
                             </button>
                             <button
                                 onClick={() => handleQuickStock(true)}
                                 disabled={isPending || adjustData.amount <= 0}
-                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                className="flex-1 px-4 py-2 bg-ok text-white rounded-md hover:bg-ok/90 transition-colors text-sm font-medium disabled:opacity-50"
                             >
                                 {isPending
                                     ? (language === "zh" ? "處理中..." : "Processing...")
@@ -671,9 +671,9 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
 
             {/* Quick Stock Out Modal */}
             {activeModal === "stockOut" && selectedItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-card rounded-xl p-6 w-full max-w-sm mx-4">
-                        <h2 className="text-xl font-bold mb-2 text-orange-600 flex items-center gap-2">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-card border border-border rounded-lg shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] p-6 w-full max-w-sm mx-4">
+                        <h2 className="text-lg font-semibold mb-2 text-warn flex items-center gap-2">
                             <ArrowUpFromLine className="h-5 w-5" />
                             {language === "zh" ? "零件領用" : "Stock Out"}
                         </h2>
@@ -693,7 +693,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     onChange={(e) =>
                                         setAdjustData({ ...adjustData, amount: parseInt(e.target.value) || 0 })
                                     }
-                                    className="w-full px-3 py-2 border rounded-lg text-center text-xl font-bold"
+                                    className="w-full px-3 py-2 border rounded-md text-center font-mono text-xl font-semibold tabular-nums"
                                 />
                             </div>
                             <div>
@@ -705,21 +705,21 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                                     value={adjustData.projectId}
                                     onChange={(e) => setAdjustData({ ...adjustData, projectId: e.target.value })}
                                     placeholder={language === "zh" ? "例如: 2024 機器人" : "e.g. 2024 Robot"}
-                                    className="w-full px-3 py-2 border rounded-lg"
+                                    className="w-full px-3 py-2 border rounded-md"
                                 />
                             </div>
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={closeModal}
-                                className="flex-1 px-4 py-2 border rounded-lg hover:bg-muted"
+                                className="flex-1 px-4 py-2 border border-border rounded-md bg-card hover:bg-accent transition-colors text-sm font-medium"
                             >
                                 {language === "zh" ? "取消" : "Cancel"}
                             </button>
                             <button
                                 onClick={() => handleQuickStock(false)}
                                 disabled={isPending || adjustData.amount <= 0 || adjustData.amount > selectedItem.currentQuantity}
-                                className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                                className="flex-1 px-4 py-2 bg-warn text-white rounded-md hover:bg-warn/90 transition-colors text-sm font-medium disabled:opacity-50"
                             >
                                 {isPending
                                     ? (language === "zh" ? "處理中..." : "Processing...")

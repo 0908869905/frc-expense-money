@@ -19,12 +19,12 @@ interface DepartmentBudgetContentProps {
 }
 
 const DEPARTMENTS = [
-    { value: "ELECTRICAL", zh: "電資組", en: "Electrical", icon: "⚡" },
-    { value: "MECHANICAL", zh: "機構組", en: "Mechanical", icon: "⚙️" },
-    { value: "DOCUMENTATION", zh: "文書組", en: "Documentation", icon: "📝" },
-    { value: "PR", zh: "公關組", en: "PR", icon: "📣" },
-    { value: "FINANCE", zh: "財管組", en: "Finance", icon: "💰" },
-    { value: "DESIGN", zh: "意象組", en: "Design", icon: "🎨" },
+    { value: "ELECTRICAL", zh: "電資組", en: "Electrical" },
+    { value: "MECHANICAL", zh: "機構組", en: "Mechanical" },
+    { value: "DOCUMENTATION", zh: "文書組", en: "Documentation" },
+    { value: "PR", zh: "公關組", en: "PR" },
+    { value: "FINANCE", zh: "財管組", en: "Finance" },
+    { value: "DESIGN", zh: "意象組", en: "Design" },
 ]
 
 export function DepartmentBudgetContent({ departmentSummary, userRole, userDepartment }: DepartmentBudgetContentProps) {
@@ -88,10 +88,10 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
         <div className="space-y-6">
             {/* 超支警告 */}
             {canEdit && overspentDepts.length > 0 && (
-                <div className="rounded-xl border border-red-300 bg-red-50 p-4">
-                    <div className="flex items-center gap-2 text-red-700">
-                        <AlertTriangle className="h-5 w-5" />
-                        <h3 className="font-semibold">
+                <div className="rounded-lg border border-danger/40 bg-danger/10 p-4">
+                    <div className="flex items-center gap-2 text-danger">
+                        <AlertTriangle className="h-4 w-4" />
+                        <h3 className="font-semibold text-sm">
                             {t("超支警告", "Overspent Warning")}
                         </h3>
                     </div>
@@ -99,10 +99,10 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                         {overspentDepts.map(dept => {
                             const data = departmentSummary[dept.value]
                             return (
-                                <p key={dept.value} className="text-sm text-red-600">
-                                    {dept.icon} {dept[language as "zh" | "en"]}：
+                                <p key={dept.value} className="text-sm text-danger">
+                                    {dept[language as "zh" | "en"]}：
                                     {t("超支 ", "Overspent by ")}
-                                    <span className="font-bold">{formatCurrency(Math.abs(data.remaining))}</span>
+                                    <span className="font-semibold font-mono tabular-nums">{formatCurrency(Math.abs(data.remaining))}</span>
                                 </p>
                             )
                         })}
@@ -112,15 +112,15 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
 
             {/* 訊息提示 */}
             {message && (
-                <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                <div className={`p-3 rounded-md border text-sm ${message.type === "success" ? "bg-ok/10 text-ok border-ok/30" : "bg-danger/10 text-danger border-danger/30"}`}>
                     {message.text}
                 </div>
             )}
 
             {/* 標題 */}
             <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                <h2 className="text-xl font-bold">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-lg font-semibold">
                     {t("組別預算", "Department Budgets")}
                 </h2>
             </div>
@@ -134,15 +134,13 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                     return (
                         <div
                             key={dept.value}
-                            className={`rounded-xl border p-4 ${data.isOverspent ? "border-red-300 bg-red-50/50" : "bg-card"}`}
+                            className={`rounded-xl border p-4 bg-card ${data.isOverspent ? "border-danger/50" : ""}`}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-2xl">{dept.icon}</span>
-                                    <h3 className="font-semibold">{dept[language as "zh" | "en"]}</h3>
-                                </div>
+                                <h3 className="font-semibold text-sm">{dept[language as "zh" | "en"]}</h3>
                                 {data.isOverspent && (
-                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                    <span className="inline-flex items-center gap-1.5 font-mono text-xs font-medium text-danger">
+                                        <span className="status-dot bg-danger" />
                                         {t("超支", "Overspent")}
                                     </span>
                                 )}
@@ -163,20 +161,20 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
                                             <button
                                                 onClick={() => handleSave(dept.value)}
                                                 disabled={isPending}
-                                                className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                                className="p-1 text-ok hover:bg-ok/10 rounded transition-colors"
                                             >
                                                 <Check className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => setEditingDept(null)}
-                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                className="p-1 text-danger hover:bg-danger/10 rounded transition-colors"
                                             >
                                                 <X className="h-4 w-4" />
                                             </button>
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-1">
-                                            <span className="font-medium">{formatCurrency(data.budget)}</span>
+                                            <span className="font-medium font-mono tabular-nums">{formatCurrency(data.budget)}</span>
                                             {canEdit && (
                                                 <button
                                                     onClick={() => handleEdit(dept.value)}
@@ -191,12 +189,12 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
 
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">{t("已用", "Spent")}</span>
-                                    <span className="font-medium">{formatCurrency(data.spent)}</span>
+                                    <span className="font-medium font-mono tabular-nums">{formatCurrency(data.spent)}</span>
                                 </div>
 
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">{t("剩餘", "Remaining")}</span>
-                                    <span className={`font-bold ${data.isOverspent ? "text-red-600" : "text-green-600"}`}>
+                                    <span className={`font-semibold font-mono tabular-nums ${data.isOverspent ? "text-danger" : "text-ok"}`}>
                                         {formatCurrency(data.remaining)}
                                     </span>
                                 </div>
@@ -204,13 +202,13 @@ export function DepartmentBudgetContent({ departmentSummary, userRole, userDepar
 
                             {/* 進度條 */}
                             <div className="mt-3">
-                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full transition-all ${data.isOverspent ? "bg-red-500" : progressPercent > 80 ? "bg-yellow-500" : "bg-green-500"}`}
+                                        className={`h-full transition-all ${data.isOverspent ? "bg-danger" : progressPercent > 80 ? "bg-warn" : "bg-ok"}`}
                                         style={{ width: `${progressPercent}%` }}
                                     />
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1 text-right">
+                                <p className="font-mono text-xs text-muted-foreground mt-1 text-right tabular-nums">
                                     {progressPercent.toFixed(0)}% {t("已使用", "used")}
                                 </p>
                             </div>

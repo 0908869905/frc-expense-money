@@ -60,7 +60,7 @@ export function ReceiptPreview({ src, alt = "收據", size = "sm" }: ReceiptPrev
           >
             <button
               onClick={() => setOpen(false)}
-              className="absolute -top-3 -right-3 z-10 rounded-full bg-white p-1 shadow-md hover:bg-gray-100"
+              className="absolute -top-3 -right-3 z-10 rounded-full bg-card border border-border p-1 shadow-md hover:bg-accent transition-colors"
             >
               <X className="h-5 w-5" />
             </button>

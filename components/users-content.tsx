@@ -36,13 +36,14 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
         return new Date(date).toLocaleDateString(language === "zh" ? "zh-TW" : "en-US")
     }
 
+    // 角色晶片：中性 hairline 晶片，僅 ADMIN 帶主色（60/30/10 原則）
     const getRoleColor = (role: string) => {
         switch (role) {
-            case "ADMIN": return "bg-purple-100 text-purple-700"
-            case "LEADER": return "bg-blue-100 text-blue-700"
-            case "VICE_LEADER": return "bg-cyan-100 text-cyan-700"
-            case "FINANCE": return "bg-green-100 text-green-700"
-            default: return "bg-gray-100 text-gray-700"
+            case "ADMIN": return "border-primary/40 bg-primary/10 text-primary"
+            case "LEADER": return "border-info/40 bg-info/10 text-info"
+            case "VICE_LEADER": return "border-border bg-muted text-foreground"
+            case "FINANCE": return "border-ok/40 bg-ok/10 text-ok"
+            default: return "border-border bg-muted text-muted-foreground"
         }
     }
 
@@ -59,27 +60,27 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
 
     const getDepartmentLabel = (dept: string | null) => {
         if (!dept) return t("未指定", "Not Set")
-        const labels: Record<string, { zh: string, en: string, icon: string }> = {
-            ELECTRICAL: { zh: "電資組", en: "Electrical", icon: "⚡" },
-            MECHANICAL: { zh: "機構組", en: "Mechanical", icon: "⚙️" },
-            DOCUMENTATION: { zh: "文書組", en: "Documentation", icon: "📝" },
-            PR: { zh: "公關組", en: "PR", icon: "📣" },
-            FINANCE: { zh: "財管組", en: "Finance", icon: "💰" },
-            DESIGN: { zh: "意象組", en: "Design", icon: "🎨" },
-            MENTOR: { zh: "老師", en: "Mentor", icon: "👨‍🏫" },
+        const labels: Record<string, { zh: string, en: string }> = {
+            ELECTRICAL: { zh: "電資組", en: "Electrical" },
+            MECHANICAL: { zh: "機構組", en: "Mechanical" },
+            DOCUMENTATION: { zh: "文書組", en: "Documentation" },
+            PR: { zh: "公關組", en: "PR" },
+            FINANCE: { zh: "財管組", en: "Finance" },
+            DESIGN: { zh: "意象組", en: "Design" },
+            MENTOR: { zh: "老師", en: "Mentor" },
         }
         const found = labels[dept]
-        return found ? `${found.icon} ${found[language as "zh" | "en"]}` : dept
+        return found ? found[language as "zh" | "en"] : dept
     }
 
     const DEPARTMENTS = [
-        { value: "ELECTRICAL", zh: "電資組", en: "Electrical", icon: "⚡" },
-        { value: "MECHANICAL", zh: "機構組", en: "Mechanical", icon: "⚙️" },
-        { value: "DOCUMENTATION", zh: "文書組", en: "Documentation", icon: "📝" },
-        { value: "PR", zh: "公關組", en: "PR", icon: "📣" },
-        { value: "FINANCE", zh: "財管組", en: "Finance", icon: "💰" },
-        { value: "DESIGN", zh: "意象組", en: "Design", icon: "🎨" },
-        { value: "MENTOR", zh: "老師", en: "Mentor", icon: "👨‍🏫" },
+        { value: "ELECTRICAL", zh: "電資組", en: "Electrical" },
+        { value: "MECHANICAL", zh: "機構組", en: "Mechanical" },
+        { value: "DOCUMENTATION", zh: "文書組", en: "Documentation" },
+        { value: "PR", zh: "公關組", en: "PR" },
+        { value: "FINANCE", zh: "財管組", en: "Finance" },
+        { value: "DESIGN", zh: "意象組", en: "Design" },
+        { value: "MENTOR", zh: "老師", en: "Mentor" },
     ]
 
     const showMessage = (type: "success" | "error", text: string) => {
@@ -182,42 +183,41 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
     return (
         <div className="flex flex-col gap-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                    <Users className="h-8 w-8" />
+                <h1 className="text-2xl font-semibold tracking-tight">
                     {t("用戶管理", "User Management")}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                     {t("管理所有用戶帳號和權限", "Manage all user accounts and permissions")}
                 </p>
             </div>
 
             {message && (
-                <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                <div className={`p-3 rounded-md border text-sm ${message.type === "success" ? "bg-ok/10 text-ok border-ok/30" : "bg-danger/10 text-danger border-danger/30"}`}>
                     {message.text}
                 </div>
             )}
 
             {/* Stats */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("總用戶", "Total Users")}</p>
-                    <p className="text-2xl font-bold">{localUsers.length}</p>
+                    <p className="ledger-label">{t("總用戶", "Total Users")}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localUsers.length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("管理員", "Admins")}</p>
-                    <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "ADMIN").length}</p>
+                    <p className="ledger-label">{t("管理員", "Admins")}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.role === "ADMIN").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("組長", "Leaders")}</p>
-                    <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "LEADER").length}</p>
+                    <p className="ledger-label">{t("組長", "Leaders")}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.role === "LEADER").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("副組長", "Vice Leaders")}</p>
-                    <p className="text-2xl font-bold">{localUsers.filter(u => u.role === "VICE_LEADER").length}</p>
+                    <p className="ledger-label">{t("副組長", "Vice Leaders")}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.role === "VICE_LEADER").length}</p>
                 </div>
                 <div className="rounded-xl border bg-card p-4">
-                    <p className="text-sm text-muted-foreground">{t("已驗證", "Verified")}</p>
-                    <p className="text-2xl font-bold">{localUsers.filter(u => u.emailVerified).length}</p>
+                    <p className="ledger-label">{t("已驗證", "Verified")}</p>
+                    <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.emailVerified).length}</p>
                 </div>
             </div>
 
@@ -226,22 +226,22 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{t("用戶", "User")}</th>
-                            <th className="text-left p-4 font-medium">{t("角色", "Role")}</th>
-                            <th className="text-left p-4 font-medium">{t("組別", "Dept")}</th>
-                            <th className="text-left p-4 font-medium">{t("狀態", "Status")}</th>
-                            <th className="text-left p-4 font-medium">{t("報表數", "Reports")}</th>
-                            <th className="text-left p-4 font-medium">{t("建立日期", "Created")}</th>
-                            <th className="text-left p-4 font-medium">{t("操作", "Actions")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("用戶", "User")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("角色", "Role")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("組別", "Dept")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("狀態", "Status")}</th>
+                            <th className="text-right px-4 py-2.5 ledger-label">{t("報表數", "Reports")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("建立日期", "Created")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("操作", "Actions")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
                         {localUsers.map((user) => (
-                            <tr key={user.id} className="hover:bg-muted/20">
+                            <tr key={user.id} className="hover:bg-accent/60 transition-colors">
                                 <td className="p-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                            <span className="text-sm font-bold text-primary">
+                                        <div className="h-9 w-9 rounded-full bg-secondary border border-border flex items-center justify-center">
+                                            <span className="text-sm font-semibold text-foreground">
                                                 {(user.name || user.email || "U")[0].toUpperCase()}
                                             </span>
                                         </div>
@@ -256,10 +256,10 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                         className="px-2 py-1 border rounded text-sm w-48"
                                                         placeholder={user.email || ""}
                                                     />
-                                                    <button onClick={() => handleUpdateEmail(user.id)} className="text-green-600 hover:text-green-700">
+                                                    <button onClick={() => handleUpdateEmail(user.id)} className="text-ok hover:opacity-80">
                                                         <Check className="h-4 w-4" />
                                                     </button>
-                                                    <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-red-600 hover:text-red-700">
+                                                    <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-danger hover:opacity-80">
                                                         <X className="h-4 w-4" />
                                                     </button>
                                                 </div>
@@ -277,17 +277,17 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                     key={role}
                                                     onClick={() => handleUpdateRole(user.id, role as any)}
                                                     disabled={isPending}
-                                                    className={`px-2 py-1 rounded text-xs font-medium ${getRoleColor(role)} hover:opacity-80 disabled:opacity-50`}
+                                                    className={`px-2 py-1 rounded border font-mono text-[11px] font-medium ${getRoleColor(role)} hover:opacity-80 disabled:opacity-50`}
                                                 >
                                                     {getRoleLabel(role)}
                                                 </button>
                                             ))}
-                                            <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-red-600 hover:text-red-700 ml-1">
+                                            <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-danger hover:opacity-80 ml-1">
                                                 <X className="h-4 w-4" />
                                             </button>
                                         </div>
                                     ) : (
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                                        <span className={`px-1.5 py-0.5 rounded border font-mono text-[11px] font-medium ${getRoleColor(user.role)}`}>
                                             {getRoleLabel(user.role)}
                                         </span>
                                     )}
@@ -298,7 +298,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                             <button
                                                 onClick={() => handleUpdateDepartment(user.id, null)}
                                                 disabled={isPending}
-                                                className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 hover:opacity-80 disabled:opacity-50"
+                                                className="px-2 py-1 rounded border border-border bg-muted font-mono text-[11px] font-medium text-muted-foreground hover:opacity-80 disabled:opacity-50"
                                             >
                                                 {t("無", "None")}
                                             </button>
@@ -307,12 +307,12 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                     key={dept.value}
                                                     onClick={() => handleUpdateDepartment(user.id, dept.value)}
                                                     disabled={isPending}
-                                                    className="px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary hover:opacity-80 disabled:opacity-50"
+                                                    className="px-2 py-1 rounded border border-primary/40 bg-primary/10 font-mono text-[11px] font-medium text-primary hover:opacity-80 disabled:opacity-50"
                                                 >
-                                                    {dept.icon} {dept[language as "zh" | "en"]}
+                                                    {dept[language as "zh" | "en"]}
                                                 </button>
                                             ))}
-                                            <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-red-600 hover:text-red-700 ml-1">
+                                            <button onClick={() => { setEditingUser(null); setEditField(null) }} className="text-danger hover:opacity-80 ml-1">
                                                 <X className="h-4 w-4" />
                                             </button>
                                         </div>
@@ -328,18 +328,21 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                 </td>
                                 <td className="p-4">
                                     {user.emailVerified ? (
-                                        <span className="flex items-center gap-1 text-green-600 text-sm">
-                                            <UserCheck className="h-4 w-4" />
+                                        <span className="inline-flex items-center gap-1.5 font-mono text-xs font-medium text-ok">
+                                            <span className="status-dot bg-ok" />
                                             {t("已驗證", "Verified")}
                                         </span>
                                     ) : (
-                                        <span className="text-muted-foreground text-sm">{t("未驗證", "Unverified")}</span>
+                                        <span className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+                                            <span className="status-dot bg-muted-foreground/50" />
+                                            {t("未驗證", "Unverified")}
+                                        </span>
                                     )}
                                 </td>
-                                <td className="p-4 text-muted-foreground">
+                                <td className="p-4 text-right text-muted-foreground font-mono tabular-nums">
                                     {user._count.expenseReports}
                                 </td>
-                                <td className="p-4 text-muted-foreground text-sm">
+                                <td className="p-4 text-muted-foreground font-mono text-xs">
                                     {formatDate(user.createdAt)}
                                 </td>
                                 <td className="p-4">
@@ -352,10 +355,10 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                 className="px-2 py-1 border rounded text-sm w-32"
                                                 placeholder={t("新密碼", "New password")}
                                             />
-                                            <button onClick={() => handleUpdatePassword(user.id)} className="text-green-600 hover:text-green-700">
+                                            <button onClick={() => handleUpdatePassword(user.id)} className="text-ok hover:opacity-80">
                                                 <Check className="h-4 w-4" />
                                             </button>
-                                            <button onClick={() => { setEditingUser(null); setEditField(null); setInputValue("") }} className="text-red-600 hover:text-red-700">
+                                            <button onClick={() => { setEditingUser(null); setEditField(null); setInputValue("") }} className="text-danger hover:opacity-80">
                                                 <X className="h-4 w-4" />
                                             </button>
                                         </div>
@@ -363,21 +366,21 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => { setEditingUser(user.id); setEditField("email"); setInputValue(user.email || "") }}
-                                                className="p-1.5 rounded hover:bg-muted"
+                                                className="p-1.5 rounded hover:bg-accent transition-colors"
                                                 title={t("編輯 Email", "Edit Email")}
                                             >
                                                 <Mail className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => { setEditingUser(user.id); setEditField("password"); setInputValue("") }}
-                                                className="p-1.5 rounded hover:bg-muted"
+                                                className="p-1.5 rounded hover:bg-accent transition-colors"
                                                 title={t("更改密碼", "Change Password")}
                                             >
                                                 <Key className="h-4 w-4" />
                                             </button>
                                             <button
                                                 onClick={() => { setEditingUser(user.id); setEditField("role") }}
-                                                className="p-1.5 rounded hover:bg-muted"
+                                                className="p-1.5 rounded hover:bg-accent transition-colors"
                                                 title={t("更改角色", "Change Role")}
                                             >
                                                 <Shield className="h-4 w-4" />
@@ -386,7 +389,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                 <button
                                                     onClick={() => handleVerifyEmail(user.id)}
                                                     disabled={isPending}
-                                                    className="p-1.5 rounded hover:bg-muted text-green-600"
+                                                    className="p-1.5 rounded hover:bg-ok/10 text-ok transition-colors"
                                                     title={t("驗證 Email", "Verify Email")}
                                                 >
                                                     <UserCheck className="h-4 w-4" />
@@ -396,7 +399,7 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                                                 <button
                                                     onClick={() => handleDeleteUser(user.id)}
                                                     disabled={isPending}
-                                                    className="p-1.5 rounded hover:bg-red-50 text-red-600"
+                                                    className="p-1.5 rounded hover:bg-danger/10 text-danger transition-colors"
                                                     title={t("刪除用戶", "Delete User")}
                                                 >
                                                     <Trash2 className="h-4 w-4" />

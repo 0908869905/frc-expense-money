@@ -91,10 +91,10 @@ export function ReceiptAuditButton({
 
     function getStatusIcon(): React.ReactElement | null {
         if (existingAuditStatus === true) {
-            return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+            return <CheckCircle2 className="h-3 w-3 text-ok" />;
         }
         if (existingAuditStatus === false) {
-            return <XCircle className="h-3 w-3 text-red-500" />;
+            return <XCircle className="h-3 w-3 text-danger" />;
         }
         return null;
     }

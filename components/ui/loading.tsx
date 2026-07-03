@@ -38,7 +38,7 @@ export function LoadingOverlay({ isLoading, children, text }: LoadingOverlayProp
         <div className="relative">
             {children}
             {isLoading && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg z-10">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/85 rounded-lg z-10">
                     <Spinner size="lg" />
                     {text && (
                         <p className="mt-2 text-sm text-muted-foreground">{text}</p>

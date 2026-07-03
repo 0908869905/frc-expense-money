@@ -136,11 +136,10 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <Wallet className="h-8 w-8" />
+                    <h1 className="text-2xl font-semibold tracking-tight">
                         {t("資金記錄", "Funding Records")}
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                         {t("管理贊助、捐款和其他收入來源", "Manage sponsorships, donations, and other income sources")}
                     </p>
                 </div>
@@ -152,32 +151,32 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
             {/* Message */}
             {message && (
-                <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                <div className={`p-3 rounded-md border text-sm ${message.type === "success" ? "bg-ok/10 text-ok border-ok/30" : "bg-danger/10 text-danger border-danger/30"}`}>
                     {message.text}
                 </div>
             )}
 
             {/* Summary Cards */}
             <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border bg-gradient-to-br from-primary/10 via-background to-background p-6">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">{t("目前餘額", "Current Balance")}</h3>
-                    <p className={`text-3xl font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}>
+                <div className="rounded-xl border bg-card p-5">
+                    <h3 className="ledger-label mb-2">{t("目前餘額", "Current Balance")}</h3>
+                    <p className={`text-3xl font-semibold tech-number ${isPositive ? "text-foreground" : "text-danger"}`}>
                         {formatCurrency(financialSummary.currentBalance)}
                     </p>
                 </div>
-                <div className="rounded-xl border bg-card p-6">
+                <div className="rounded-xl border bg-card p-5 border-l-2 border-l-ok/60">
                     <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                        <h3 className="text-sm font-medium text-muted-foreground">{t("總收入", "Total Income")}</h3>
+                        <TrendingUp className="h-4 w-4 text-ok" />
+                        <h3 className="ledger-label">{t("總收入", "Total Income")}</h3>
                     </div>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(financialSummary.totalIncome)}</p>
+                    <p className="text-2xl font-semibold tech-number text-ok">{formatCurrency(financialSummary.totalIncome)}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-6">
+                <div className="rounded-xl border bg-card p-5 border-l-2 border-l-danger/60">
                     <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="h-4 w-4 text-red-600" />
-                        <h3 className="text-sm font-medium text-muted-foreground">{t("總支出", "Total Expense")}</h3>
+                        <TrendingDown className="h-4 w-4 text-danger" />
+                        <h3 className="ledger-label">{t("總支出", "Total Expense")}</h3>
                     </div>
-                    <p className="text-2xl font-bold text-red-600">{formatCurrency(financialSummary.totalExpense)}</p>
+                    <p className="text-2xl font-semibold tech-number text-danger">{formatCurrency(financialSummary.totalExpense)}</p>
                 </div>
             </div>
 
@@ -190,13 +189,13 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                         placeholder={t("搜尋標題或來源...", "Search title or source...")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg bg-background"
+                        className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-card"
                     />
                 </div>
                 <select
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
-                    className="px-4 py-2 border rounded-lg bg-background"
+                    className="px-4 py-2 border border-input rounded-md bg-card"
                 >
                     <option value="all">{t("所有類型", "All Types")}</option>
                     {FUNDING_TYPES.map((type) => (
@@ -212,13 +211,13 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
-                            <th className="text-left p-4 font-medium">{t("日期", "Date")}</th>
-                            <th className="text-left p-4 font-medium">{t("標題", "Title")}</th>
-                            <th className="text-left p-4 font-medium">{t("類型", "Type")}</th>
-                            <th className="text-left p-4 font-medium">{t("來源", "Source")}</th>
-                            <th className="text-right p-4 font-medium">{t("金額", "Amount")}</th>
-                            <th className="text-left p-4 font-medium">{t("記錄者", "Recorded By")}</th>
-                            <th className="text-left p-4 font-medium">{t("操作", "Actions")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("日期", "Date")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("標題", "Title")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("類型", "Type")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("來源", "Source")}</th>
+                            <th className="text-right px-4 py-2.5 ledger-label">{t("金額", "Amount")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("記錄者", "Recorded By")}</th>
+                            <th className="text-left px-4 py-2.5 ledger-label">{t("操作", "Actions")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -231,31 +230,31 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                             </tr>
                         ) : (
                             filteredRecords.map((record) => (
-                                <tr key={record.id} className="hover:bg-muted/20">
-                                    <td className="p-4 text-muted-foreground">{formatDate(record.date)}</td>
+                                <tr key={record.id} className="hover:bg-accent/60 transition-colors">
+                                    <td className="p-4 text-muted-foreground font-mono text-xs">{formatDate(record.date)}</td>
                                     <td className="p-4">
                                         <div>
-                                            <p className="font-medium">{record.title}</p>
+                                            <p className="font-medium text-sm">{record.title}</p>
                                             {record.description && (
                                                 <p className="text-sm text-muted-foreground truncate max-w-xs">{record.description}</p>
                                             )}
                                         </div>
                                     </td>
                                     <td className="p-4">
-                                        <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
+                                        <span className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[11px] text-muted-foreground">
                                             {getTypeLabel(record.type, language as Language)}
                                         </span>
                                     </td>
                                     <td className="p-4 text-muted-foreground">{record.source || "-"}</td>
                                     <td className="p-4 text-right">
-                                        <span className="font-semibold text-green-600">{formatCurrency(record.amount)}</span>
+                                        <span className="font-medium font-mono tabular-nums text-ok">{formatCurrency(record.amount)}</span>
                                     </td>
                                     <td className="p-4 text-muted-foreground text-sm">{record.recordedBy}</td>
                                     <td className="p-4">
                                         <div className="flex gap-1">
                                             <button
                                                 onClick={() => openEditModal(record)}
-                                                className="p-1.5 rounded hover:bg-muted"
+                                                className="p-1.5 rounded hover:bg-accent transition-colors"
                                                 title={t("編輯", "Edit")}
                                             >
                                                 <Edit2 className="h-4 w-4" />
@@ -263,7 +262,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                                             <button
                                                 onClick={() => handleDelete(record.id)}
                                                 disabled={isPending}
-                                                className="p-1.5 rounded hover:bg-red-50 text-red-600"
+                                                className="p-1.5 rounded hover:bg-danger/10 text-danger transition-colors"
                                                 title={t("刪除", "Delete")}
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -279,8 +278,8 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
             {/* Add Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-background rounded-xl border shadow-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-card rounded-lg border shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Plus className="h-5 w-5" />
@@ -293,7 +292,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
                         <form action={handleAddSubmit} className="p-4 space-y-4">
                             {addState.message && (
-                                <div className={`p-3 rounded-lg text-sm ${addState.success ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+                                <div className={`p-3 rounded-md border text-sm ${addState.success ? "bg-ok/10 text-ok border-ok/30" : "bg-danger/10 text-danger border-danger/30"}`}>
                                     {addState.message}
                                 </div>
                             )}
@@ -371,8 +370,8 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
             {/* Edit Modal */}
             {editingRecord && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="bg-background rounded-xl border shadow-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                    <div className="bg-card rounded-lg border shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-4 border-b">
                             <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Edit2 className="h-5 w-5" />

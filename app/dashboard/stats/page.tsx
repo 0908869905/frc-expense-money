@@ -15,9 +15,9 @@ interface StatCardProps {
 
 function StatCard({ label, value, colorClass }: StatCardProps): React.JSX.Element {
     return (
-        <div className="rounded-xl border bg-card p-6">
-            <div className="text-sm text-muted-foreground">{label}</div>
-            <div className={`text-3xl font-bold mt-2 ${colorClass ?? ""}`}>{value}</div>
+        <div className="rounded-xl border bg-card p-5">
+            <div className="ledger-label">{label}</div>
+            <div className={`text-3xl font-semibold tech-number mt-2 ${colorClass ?? ""}`}>{value}</div>
         </div>
     )
 }
@@ -51,14 +51,14 @@ export default async function StatsPage(): Promise<React.JSX.Element> {
     return (
         <div className="flex flex-col gap-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">系統統計</h1>
-                <p className="text-muted-foreground">即時數據</p>
+                <h1 className="text-2xl font-semibold tracking-tight">系統統計</h1>
+                <p className="text-sm text-muted-foreground">即時數據</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
                 <StatCard label="總報帳單" value={stats.totalReports} />
-                <StatCard label="已完成付款" value={stats.totalPaid} colorClass="text-green-600" />
-                <StatCard label="近 7 天活動" value={stats.recentActivity} colorClass="text-blue-600" />
+                <StatCard label="已完成付款" value={stats.totalPaid} colorClass="text-ok" />
+                <StatCard label="近 7 天活動" value={stats.recentActivity} colorClass="text-info" />
             </div>
         </div>
     )

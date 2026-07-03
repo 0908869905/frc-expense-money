@@ -49,8 +49,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <div className="min-h-[400px] flex items-center justify-center p-8">
                     <div className="text-center max-w-md">
                         <div className="flex justify-center mb-4">
-                            <div className="p-4 rounded-full bg-red-100 text-red-600">
-                                <AlertTriangle className="h-8 w-8" />
+                            <div className="p-3 rounded-full border border-danger/30 bg-danger/10 text-danger">
+                                <AlertTriangle className="h-6 w-6" />
                             </div>
                         </div>
                         <h2 className="text-xl font-semibold mb-2">
@@ -64,7 +64,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                                 <summary className="cursor-pointer text-sm font-medium">
                                     錯誤詳情 (開發模式)
                                 </summary>
-                                <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap text-red-600">
+                                <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap text-danger">
                                     {this.state.error.toString()}
                                     {this.state.errorInfo?.componentStack}
                                 </pre>
@@ -101,8 +101,8 @@ export function OfflineIndicator({ isOnline }: { isOnline: boolean }) {
 
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-300">
-            <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-yellow-950 rounded-full shadow-lg">
-                <div className="h-2 w-2 rounded-full bg-yellow-950 animate-pulse" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-md border border-warn/40 bg-card text-warn shadow-[0_8px_24px_rgb(0_0_0_/_0.25)]">
+                <div className="status-dot bg-warn" />
                 <span className="text-sm font-medium">
                     您目前離線，部分功能可能無法使用
                 </span>

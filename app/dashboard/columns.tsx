@@ -104,7 +104,7 @@ function ActionCell({ report, userRole }: ActionCellProps): React.JSX.Element {
       <Button
         size="sm"
         variant="outline"
-        className="h-8 border-green-200 hover:bg-green-100 hover:text-green-700 dark:border-green-800 dark:hover:bg-green-900/30"
+        className="h-8 border-ok/40 text-ok hover:bg-ok/10"
         onClick={handleApprove}
         disabled={isPending}
       >

@@ -30,34 +30,34 @@ interface SeverityConfig {
 const SEVERITY_CONFIG: Record<AuditIssueSeverity, SeverityConfig> = {
     error: {
         icon: XCircle,
-        bgColor: "bg-red-100 dark:bg-red-900/30",
-        textColor: "text-red-700 dark:text-red-400",
-        borderColor: "border-red-200 dark:border-red-800",
+        bgColor: "bg-danger/10",
+        textColor: "text-danger",
+        borderColor: "border-danger/30",
     },
     warning: {
         icon: AlertTriangle,
-        bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
-        textColor: "text-yellow-700 dark:text-yellow-400",
-        borderColor: "border-yellow-200 dark:border-yellow-800",
+        bgColor: "bg-warn/10",
+        textColor: "text-warn",
+        borderColor: "border-warn/30",
     },
     info: {
         icon: Info,
-        bgColor: "bg-blue-100 dark:bg-blue-900/30",
-        textColor: "text-blue-700 dark:text-blue-400",
-        borderColor: "border-blue-200 dark:border-blue-800",
+        bgColor: "bg-info/10",
+        textColor: "text-info",
+        borderColor: "border-info/30",
     },
 };
 
 function getScoreColor(score: number): string {
-    if (score >= 80) return "text-green-600 dark:text-green-400";
-    if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
+    if (score >= 80) return "text-ok";
+    if (score >= 60) return "text-warn";
+    return "text-danger";
 }
 
 function getProgressColor(score: number): string {
-    if (score >= 80) return "bg-green-500";
-    if (score >= 60) return "bg-yellow-500";
-    return "bg-red-500";
+    if (score >= 80) return "bg-ok";
+    if (score >= 60) return "bg-warn";
+    return "bg-danger/100";
 }
 
 interface AuditResultDialogProps {
@@ -82,9 +82,9 @@ export function AuditResultDialog({
             title={
                 <span className="flex items-center gap-2">
                     {result.isValid ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <CheckCircle2 className="h-5 w-5 text-ok" />
                     ) : (
-                        <XCircle className="h-5 w-5 text-red-500" />
+                        <XCircle className="h-5 w-5 text-danger" />
                     )}
                     收據審核結果
                 </span>
@@ -114,7 +114,7 @@ export function AuditResultDialog({
                 {/* 審核狀態 Badge */}
                 <div className="flex items-center gap-2">
                     <Badge variant={result.isValid ? "default" : "destructive"}>
-                        {result.isValid ? "✅ 審核通過" : "❌ 審核未通過"}
+                        {result.isValid ? "審核通過" : "審核未通過"}
                     </Badge>
                     {result.extractedData && (
                         <Badge variant="secondary">
@@ -202,9 +202,9 @@ export function AuditResultDialog({
 
                 {/* 無問題時顯示 */}
                 {result.issues.length === 0 && result.isValid && (
-                    <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4 text-center">
-                        <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                        <p className="text-sm text-green-700 dark:text-green-400">
+                    <div className="rounded-lg border border-ok/30 bg-ok/10 p-4 text-center">
+                        <CheckCircle2 className="h-8 w-8 text-ok mx-auto mb-2" />
+                        <p className="text-sm text-ok">
                             收據資訊與報帳項目完全匹配！
                         </p>
                     </div>
