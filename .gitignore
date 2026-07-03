@@ -16,6 +16,9 @@ dist-ssr
 # Database backups (contains real user data - NEVER commit!)
 backups/
 
+# playwright-cli session artifacts
+.playwright-cli/
+
 # Environment
 .env
 .env.local
