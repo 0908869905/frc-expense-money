@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.local
 
+# Database backups (contains real user data - NEVER commit!)
+backups/
+
 # Environment
 .env
 .env.local
