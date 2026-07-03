@@ -11,9 +11,9 @@ export function NavigationProgressBar(): JSX.Element | null {
 
     return (
         <>
-            {/* 頂部進度條 */}
+            {/* 頂部進度條：2px 琥珀實線，無漸層無光暈 */}
             <div
-                className="fixed top-0 left-0 right-0 h-[3px] z-[100] overflow-hidden"
+                className="fixed top-0 left-0 right-0 h-[2px] z-[100] overflow-hidden"
                 role="progressbar"
                 aria-valuenow={progress}
                 aria-valuemin={0}
@@ -21,29 +21,26 @@ export function NavigationProgressBar(): JSX.Element | null {
                 aria-label="Page loading progress"
             >
                 <div
-                    className="h-full bg-gradient-to-r from-purple-500 via-cyan-500 to-emerald-500 transition-all duration-300 ease-out relative"
-                    style={{
-                        width: `${progress}%`,
-                        boxShadow: "0 0 10px rgba(34, 211, 238, 0.5)"
-                    }}
-                >
-                    <div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"
-                        style={{ backgroundSize: "200% 100%" }}
-                    />
-                </div>
+                    className="h-full bg-primary transition-all duration-300 ease-out"
+                    style={{ width: `${progress}%` }}
+                />
             </div>
 
-            {/* 中間走動貓咪動畫 */}
+            {/* 走動小貓（隊伍吉祥物）：置於石墨底小螢幕框中，深淺主題皆成立 */}
             <div className="fixed inset-0 z-[99] flex items-center justify-center pointer-events-none">
-                <video
-                    src="/loading-cat-v2.webm"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-80 h-80 object-contain mix-blend-screen"
-                />
+                <div className="flex flex-col items-center gap-2 rounded-lg border border-border bg-[hsl(220_8%_9%)] px-6 pt-2 pb-3 shadow-[0_8px_24px_rgb(0_0_0_/_0.25)]">
+                    <video
+                        src="/loading-cat-v2.webm"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-48 h-48 object-contain mix-blend-screen"
+                    />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[hsl(220_6%_62%)]">
+                        Loading
+                    </span>
+                </div>
             </div>
         </>
     )

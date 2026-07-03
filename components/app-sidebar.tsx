@@ -164,14 +164,14 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <NavigationLink href="/dashboard" className="group">
-                <div className={`flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden ${org.bgColor} ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all`}>
+                <div className={`flex aspect-square size-8 items-center justify-center rounded-md overflow-hidden border border-border ${org.bgColor} transition-colors`}>
                   <Image src={org.logo} alt={org.name} width={24} height={24} className="size-6 object-contain" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
                     {t(org.title, org.titleEn)}
                   </span>
-                  <span className="truncate text-xs text-muted-foreground">{org.subtitle}</span>
+                  <span className="truncate font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{org.subtitle}</span>
                 </div>
               </NavigationLink>
             </SidebarMenuButton>
@@ -194,7 +194,7 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
                 >
                   <NavigationLink href={item.href} className="relative">
                     {active && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary" />
                     )}
                     <Icon className={active ? "text-primary" : ""} />
                     <span className={active ? "font-medium text-primary" : ""}>
@@ -221,16 +221,16 @@ export function AppSidebar({ userRole, userDepartment, userImage, userName, user
                       alt="Avatar"
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all"
+                      className="w-8 h-8 rounded-full object-cover border border-border"
                     />
-                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-background" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-ok rounded-full border-2 border-background" />
                   </div>
                 ) : (
                   <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-sm font-bold ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                    <div className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center text-foreground text-sm font-semibold">
                       {getInitials()}
                     </div>
-                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-background" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-ok rounded-full border-2 border-background" />
                   </div>
                 )}
                 <div className="flex-1 text-left text-xs leading-tight min-w-0">

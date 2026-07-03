@@ -81,7 +81,7 @@ export function Modal({
             {/* Backdrop */}
             <div
                 className={cn(
-                    "absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-200",
+                    "absolute inset-0 bg-black/60 transition-opacity duration-200",
                     isAnimating ? "opacity-100" : "opacity-0"
                 )}
                 onClick={onClose}
@@ -90,11 +90,11 @@ export function Modal({
             {/* Modal Content */}
             <div
                 className={cn(
-                    "relative w-full bg-card rounded-xl shadow-2xl transition-all duration-200",
+                    "relative w-full bg-card border border-border rounded-lg shadow-[0_8px_24px_rgb(0_0_0_/_0.25)] transition-all duration-200",
                     sizeClasses[size],
                     isAnimating
                         ? "opacity-100 scale-100 translate-y-0"
-                        : "opacity-0 scale-95 translate-y-4",
+                        : "opacity-0 scale-[0.98] translate-y-2",
                     className
                 )}
             >

@@ -55,8 +55,8 @@ export function DatePicker({
                 disabled={disabled}
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "w-full flex items-center justify-between px-3 py-2 border rounded-lg bg-background text-left",
-                    "hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                    "w-full flex items-center justify-between px-3 py-2 border border-input rounded-md bg-card text-left",
+                    "hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
                     !value && "text-muted-foreground"
                 )}
             >

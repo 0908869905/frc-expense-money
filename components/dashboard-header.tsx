@@ -30,13 +30,13 @@ export function DashboardHeader({ userName, children }: DashboardHeaderProps) {
                 {/* Theme Toggle Button */}
                 <button
                     onClick={toggleTheme}
-                    className="theme-toggle-btn p-2.5 rounded-xl transition-all duration-300"
+                    className="theme-toggle-btn p-2 rounded-md"
                     title={theme === "dark" ? "切換至淺色模式" : "切換至深色模式"}
                 >
                     {theme === "dark" ? (
-                        <Sun className="h-5 w-5 text-amber-400" />
+                        <Sun className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                        <Moon className="h-5 w-5 text-slate-600" />
+                        <Moon className="h-4 w-4 text-muted-foreground" />
                     )}
                 </button>
                 <LanguageSwitcher />

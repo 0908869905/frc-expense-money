@@ -19,7 +19,7 @@ const defaultOrg: OrganizationInfo = {
     titleEn: "FRC 6998 Expense System",
     subtitle: "UNIPARDS",
     logo: "/Gemini_Generated_Image_wkar2twkar2twkar.png",
-    bgColor: "bg-gradient-to-br from-purple-600 to-blue-600",
+    bgColor: "bg-foreground",
 }
 
 interface OrganizationContextType {

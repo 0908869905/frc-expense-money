@@ -19,6 +19,28 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        // 工程帳冊字體：Plex Sans（拉丁/UI）→ Noto Sans TC（中文）
+        sans: [
+          "var(--font-plex-sans)",
+          "var(--font-noto-tc)",
+          "Noto Sans TC",
+          "PingFang TC",
+          "Microsoft JhengHei",
+          "system-ui",
+          "sans-serif",
+        ],
+        // 數據字體：金額/日期/SKU/ID 一律 mono
+        mono: [
+          "var(--font-plex-mono)",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "var(--font-noto-tc)",
+          "monospace",
+        ],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -53,11 +75,22 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // 語意狀態色（狀態點/文字）
+        ok: "hsl(var(--ok))",
+        warn: "hsl(var(--warn))",
+        danger: "hsl(var(--danger))",
+        info: "hsl(var(--info))",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        // 工程帳冊幾何：全站圓角收斂到 token 系統
+        // （xl/2xl 重新對映，避免逐檔改 rounded-xl 造成的軟綿感）
+        sm: "calc(var(--radius) - 4px)",   /* 2px */
+        md: "calc(var(--radius) - 2px)",   /* 4px */
+        DEFAULT: "calc(var(--radius) - 2px)",
+        lg: "var(--radius)",               /* 6px */
+        xl: "calc(var(--radius) + 2px)",   /* 8px */
+        "2xl": "calc(var(--radius) + 4px)", /* 10px */
+        "3xl": "calc(var(--radius) + 6px)", /* 12px */
       },
       keyframes: {
         "accordion-down": {
@@ -72,27 +105,11 @@ const config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
-        "cat-body": {
-          "0%": { transform: "translateY(0) rotate(-1deg) translateX(-2px)" },
-          "15%": { transform: "translateY(-12px) rotate(1deg) translateX(0px)" },
-          "30%": { transform: "translateY(-2px) rotate(-1deg) translateX(2px)" },
-          "45%": { transform: "translateY(-14px) rotate(1deg) translateX(0px)" },
-          "60%": { transform: "translateY(-2px) rotate(-1deg) translateX(-2px)" },
-          "75%": { transform: "translateY(-12px) rotate(1deg) translateX(0px)" },
-          "90%": { transform: "translateY(-2px) rotate(-1deg) translateX(2px)" },
-          "100%": { transform: "translateY(0) rotate(-1deg) translateX(-2px)" },
-        },
-        "cat-shadow": {
-          "0%, 30%, 60%, 90%, 100%": { transform: "translateX(-50%) scaleX(1) scaleY(1)", opacity: "0.3" },
-          "15%, 45%, 75%": { transform: "translateX(-50%) scaleX(0.7) scaleY(0.7)", opacity: "0.15" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "shimmer": "shimmer 1.5s ease-in-out infinite",
-        "cat-body": "cat-body 0.5s ease-in-out infinite",
-        "cat-shadow": "cat-shadow 0.5s ease-in-out infinite",
       },
     },
   },

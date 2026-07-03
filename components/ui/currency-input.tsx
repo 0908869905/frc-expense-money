@@ -49,7 +49,7 @@ export function CurrencyInput({
 
     return (
         <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-mono text-sm">
                 {currency}
             </span>
             <input
@@ -60,8 +60,8 @@ export function CurrencyInput({
                 onBlur={handleBlur}
                 onFocus={handleFocus}
                 className={cn(
-                    "w-full pl-12 pr-3 py-2 border rounded-lg bg-background text-right",
-                    "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
+                    "w-full pl-12 pr-3 py-2 border border-input rounded-md bg-card text-right font-mono tabular-nums",
+                    "focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring",
                     className
                 )}
                 {...props}
