@@ -52,7 +52,7 @@
 | `npm run lint` | ✅ 僅 2 個既有警告（receipt-preview `<img>`，base64 資料 URL 不適用 next/image） |
 | 危險模式掃描 | ✅ 無 dangerouslySetInnerHTML/eval；唯一 document.write 是既有 QR 列印功能 |
 | 視覺驗證 | ✅ 深/淺主題 × 桌面/行動 全套 after 截圖（`screenshots/after/`） |
-| Code review agent | 見 PROGRESS.md 最新 session（審查於交付前完成） |
+| Code review | ⚠️ 外部 review agent 因帳號額度上限中止（額度於 2:50am 重置後恢復作業）→ 改由主 agent 自我審查：全部重寫檔案的 handler/onClick/href/i18n 計數與 main 版本 **1:1 相符**（dashboard 7→7、login 4→4、register 11→11、landing 3→3；t() 全數保留），sed 批次置換零誤傷。搭配 tsc/build/lint/視覺四關全過，信心充分；如需更嚴格審查可於額度充裕時跑 `/code-review` |
 
 ## 五、怎麼看成品
 
