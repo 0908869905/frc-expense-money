@@ -193,9 +193,10 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
+            {/* ── 期別標頭 ─────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-5">
+                <div className="space-y-1.5">
+                    <p className="ledger-label text-primary">Storeroom</p>
                     <h1 className="text-2xl font-semibold tracking-tight">
                         {language === "zh" ? "庫存管理" : "Inventory Management"}
                     </h1>
@@ -269,46 +270,50 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                 </div>
             )}
 
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                        type="text"
-                        placeholder={language === "zh" ? "搜尋品名、料號或位置..." : "Search name, SKU or location..."}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-card"
-                    />
+            {/* ── 庫房清單：工具列 + 表格一體 ─────────────── */}
+            <div className="rounded-lg border bg-card overflow-hidden">
+                {/* 工具列 */}
+                <div className="flex flex-col sm:flex-row gap-2 px-3 py-2.5 border-b border-border bg-muted/40">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder={language === "zh" ? "搜尋品名、料號或位置..." : "Search name, SKU or location..."}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full h-9 pl-10 pr-4 border border-input rounded-md bg-card text-sm"
+                        />
+                    </div>
+                    <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="h-9 px-3 border border-input rounded-md bg-card text-sm"
+                    >
+                        <option value="all">{language === "zh" ? "所有類別" : "All Categories"}</option>
+                        {ITEM_CATEGORIES.map((cat) => (
+                            <option key={cat.value} value={cat.value}>
+                                {language === "zh" ? cat.labelZh : cat.labelEn}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        value={locationFilter}
+                        onChange={(e) => setLocationFilter(e.target.value)}
+                        className="h-9 px-3 border border-input rounded-md bg-card text-sm"
+                    >
+                        <option value="all">{language === "zh" ? "所有位置" : "All Locations"}</option>
+                        {uniqueLocations.map((loc) => (
+                            <option key={loc} value={loc}>
+                                {loc}
+                            </option>
+                        ))}
+                    </select>
+                    <span className="ledger-label self-center hidden lg:inline whitespace-nowrap px-1">
+                        {filteredItems.length} / {localItems.length}
+                    </span>
                 </div>
-                <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="px-4 py-2 border border-input rounded-md bg-card"
-                >
-                    <option value="all">{language === "zh" ? "所有類別" : "All Categories"}</option>
-                    {ITEM_CATEGORIES.map((cat) => (
-                        <option key={cat.value} value={cat.value}>
-                            {language === "zh" ? cat.labelZh : cat.labelEn}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                    className="px-4 py-2 border border-input rounded-md bg-card"
-                >
-                    <option value="all">{language === "zh" ? "所有位置" : "All Locations"}</option>
-                    {uniqueLocations.map((loc) => (
-                        <option key={loc} value={loc}>
-                            {loc}
-                        </option>
-                    ))}
-                </select>
-            </div>
 
-            {/* Items Table */}
-            <div className="rounded-xl border bg-card overflow-x-auto">
+                <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
@@ -416,6 +421,7 @@ export function InventoryContent({ items, restockItems, userRole }: InventoryCon
                         )}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {/* Add/Edit Modal */}

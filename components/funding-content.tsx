@@ -133,9 +133,10 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
+            {/* ── 期別標頭 ─────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-5">
+                <div className="space-y-1.5">
+                    <p className="ledger-label text-primary">Statement</p>
                     <h1 className="text-2xl font-semibold tracking-tight">
                         {t("資金記錄", "Funding Records")}
                     </h1>
@@ -143,7 +144,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                         {t("管理贊助、捐款和其他收入來源", "Manage sponsorships, donations, and other income sources")}
                     </p>
                 </div>
-                <Button onClick={() => setShowAddModal(true)} className="gap-2">
+                <Button onClick={() => setShowAddModal(true)} className="gap-2 shrink-0">
                     <Plus className="h-4 w-4" />
                     {t("新增資金", "Add Funding")}
                 </Button>
@@ -157,57 +158,60 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
             )}
 
             {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <div className="rounded-xl border bg-card p-5">
-                    <h3 className="ledger-label mb-2">{t("目前餘額", "Current Balance")}</h3>
-                    <p className={`text-3xl font-semibold tech-number ${isPositive ? "text-foreground" : "text-danger"}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 rounded-lg border border-border bg-card overflow-hidden">
+                <div className="p-4 border-b sm:border-b-0 sm:border-r border-border">
+                    <h3 className="ledger-label">{t("目前餘額", "Current Balance")}</h3>
+                    <p className={`mt-2 text-2xl font-semibold tech-number ${isPositive ? "text-foreground" : "text-danger"}`}>
                         {formatCurrency(financialSummary.currentBalance)}
                     </p>
                 </div>
-                <div className="rounded-xl border bg-card p-5 border-l-2 border-l-ok/60">
-                    <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="h-4 w-4 text-ok" />
-                        <h3 className="ledger-label">{t("總收入", "Total Income")}</h3>
-                    </div>
-                    <p className="text-2xl font-semibold tech-number text-ok">{formatCurrency(financialSummary.totalIncome)}</p>
+                <div className="p-4 border-b sm:border-b-0 sm:border-r border-border">
+                    <h3 className="ledger-label flex items-center gap-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-ok" />
+                        {t("總收入", "Total Income")}
+                    </h3>
+                    <p className="mt-2 text-2xl font-semibold tech-number text-ok">{formatCurrency(financialSummary.totalIncome)}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-5 border-l-2 border-l-danger/60">
-                    <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="h-4 w-4 text-danger" />
-                        <h3 className="ledger-label">{t("總支出", "Total Expense")}</h3>
-                    </div>
-                    <p className="text-2xl font-semibold tech-number text-danger">{formatCurrency(financialSummary.totalExpense)}</p>
+                <div className="p-4">
+                    <h3 className="ledger-label flex items-center gap-2">
+                        <TrendingDown className="h-3.5 w-3.5 text-danger" />
+                        {t("總支出", "Total Expense")}
+                    </h3>
+                    <p className="mt-2 text-2xl font-semibold tech-number text-danger">{formatCurrency(financialSummary.totalExpense)}</p>
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                        type="text"
-                        placeholder={t("搜尋標題或來源...", "Search title or source...")}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-card"
-                    />
+            {/* ── 對帳單：工具列 + 表格一體 ─────────────── */}
+            <div className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex flex-col sm:flex-row gap-2 px-3 py-2.5 border-b border-border bg-muted/40">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder={t("搜尋標題或來源...", "Search title or source...")}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full h-9 pl-10 pr-4 border border-input rounded-md bg-card text-sm"
+                        />
+                    </div>
+                    <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="h-9 px-3 border border-input rounded-md bg-card text-sm"
+                    >
+                        <option value="all">{t("所有類型", "All Types")}</option>
+                        {FUNDING_TYPES.map((type) => (
+                            <option key={type.value} value={type.value}>
+                                {language === "zh" ? type.labelZh : type.labelEn}
+                            </option>
+                        ))}
+                    </select>
+                    <span className="ledger-label self-center hidden lg:inline whitespace-nowrap px-1">
+                        {filteredRecords.length} {t("筆", "entries")}
+                    </span>
                 </div>
-                <select
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                    className="px-4 py-2 border border-input rounded-md bg-card"
-                >
-                    <option value="all">{t("所有類型", "All Types")}</option>
-                    {FUNDING_TYPES.map((type) => (
-                        <option key={type.value} value={type.value}>
-                            {language === "zh" ? type.labelZh : type.labelEn}
-                        </option>
-                    ))}
-                </select>
-            </div>
 
-            {/* Records Table */}
-            <div className="rounded-xl border bg-card overflow-x-auto">
+                <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>
@@ -274,6 +278,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
                         )}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {/* Add Modal */}

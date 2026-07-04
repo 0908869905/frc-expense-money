@@ -213,9 +213,10 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Header with Export Buttons */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
+            {/* ── 期別標頭 ─────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-5">
+                <div className="space-y-1.5">
+                    <p className="ledger-label text-primary">Register</p>
                     <h1 className="text-2xl font-semibold tracking-tight">
                         {language === "zh" ? "所有報表" : "All Reports"}
                     </h1>
@@ -252,78 +253,72 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
                 </div>
             )}
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-5">
-                <div className="rounded-xl border bg-card p-4">
-                    <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="ledger-label">
-                            {language === "zh" ? "總計" : "Total"}
-                        </span>
-                    </div>
+            {/* ── 合計帶：hairline 分欄 ─────────────────── */}
+            <div className="grid grid-cols-2 md:grid-cols-5 rounded-lg border border-border bg-card overflow-hidden">
+                <div className="p-4 border-b md:border-b-0 border-r border-border">
+                    <span className="ledger-label flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5" />
+                        {language === "zh" ? "總計" : "Total"}
+                    </span>
                     <p className="text-2xl font-semibold tech-number mt-2">{localReports.length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
-                    <div className="flex items-center gap-2">
+                <div className="p-4 border-b md:border-b-0 md:border-r border-border">
+                    <span className="ledger-label flex items-center gap-2">
                         <span className="status-dot bg-warn" />
-                        <span className="ledger-label">
-                            {language === "zh" ? "待審核" : "Pending"}
-                        </span>
-                    </div>
+                        {language === "zh" ? "待審核" : "Pending"}
+                    </span>
                     <p className="text-2xl font-semibold tech-number mt-2">{localReports.filter(r => r.status.includes("PENDING")).length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
-                    <div className="flex items-center gap-2">
+                <div className="p-4 border-b md:border-b-0 border-r border-border">
+                    <span className="ledger-label flex items-center gap-2">
                         <span className="status-dot bg-ok" />
-                        <span className="ledger-label">
-                            {language === "zh" ? "已核准" : "Approved"}
-                        </span>
-                    </div>
+                        {language === "zh" ? "已核准" : "Approved"}
+                    </span>
                     <p className="text-2xl font-semibold tech-number mt-2">{localReports.filter(r => r.status === "PAID").length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
-                    <div className="flex items-center gap-2">
+                <div className="p-4 border-b md:border-b-0 md:border-r border-border">
+                    <span className="ledger-label flex items-center gap-2">
                         <span className="status-dot bg-danger" />
-                        <span className="ledger-label">
-                            {language === "zh" ? "已拒絕" : "Rejected"}
-                        </span>
-                    </div>
+                        {language === "zh" ? "已拒絕" : "Rejected"}
+                    </span>
                     <p className="text-2xl font-semibold tech-number mt-2">{localReports.filter(r => r.status === "REJECTED").length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
-                    <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span className="ledger-label">
-                            {language === "zh" ? "總金額" : "Total"}
-                        </span>
-                    </div>
+                <div className="p-4 col-span-2 md:col-span-1">
+                    <span className="ledger-label flex items-center gap-2">
+                        <DollarSign className="h-3.5 w-3.5" />
+                        {language === "zh" ? "總金額" : "Total"}
+                    </span>
                     <p className="text-2xl font-semibold tech-number mt-2">${localReports.reduce((acc, r) => acc + Number(r.totalAmount), 0).toFixed(2)}</p>
                 </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex gap-2 border-b">
-                {[
-                    { key: "all", zh: "全部", en: "All" },
-                    { key: "pending", zh: "待審核", en: "Pending" },
-                    { key: "approved", zh: "已核准", en: "Approved" },
-                    { key: "rejected", zh: "已拒絕", en: "Rejected" }
-                ].map(tab => (
-                    <button
-                        key={tab.key}
-                        onClick={() => setFilter(tab.key)}
-                        className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${filter === tab.key
-                            ? "border-primary text-primary"
-                            : "border-transparent text-muted-foreground hover:text-foreground"
-                            }`}
-                    >
-                        {tab[language as "zh" | "en"]}
-                    </button>
-                ))}
-            </div>
-
-            {/* Reports Table */}
-            <div className="rounded-xl border bg-card overflow-hidden">
+            {/* ── 登記簿：工具列 + 表格一體 ─────────────── */}
+            <div className="rounded-lg border bg-card overflow-hidden">
+                {/* 工具列：分段篩選器 */}
+                <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-border bg-muted/40">
+                    <div className="inline-flex rounded-md border border-border bg-card p-0.5">
+                        {[
+                            { key: "all", zh: "全部", en: "All" },
+                            { key: "pending", zh: "待審核", en: "Pending" },
+                            { key: "approved", zh: "已核准", en: "Approved" },
+                            { key: "rejected", zh: "已拒絕", en: "Rejected" }
+                        ].map(tab => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setFilter(tab.key)}
+                                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${filter === tab.key
+                                    ? "bg-primary text-primary-foreground"
+                                    : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                            >
+                                {tab[language as "zh" | "en"]}
+                            </button>
+                        ))}
+                    </div>
+                    <span className="ledger-label hidden sm:inline">
+                        {filteredReports.length} {language === "zh" ? "筆" : "entries"}
+                    </span>
+                </div>
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>

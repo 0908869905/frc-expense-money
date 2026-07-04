@@ -99,8 +99,9 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Header */}
-            <div>
+            {/* ── 期別標頭 ─────────────────────────────── */}
+            <div className="space-y-1.5 border-b border-border pb-5">
+                <p className="ledger-label text-primary">Data Log</p>
                 <h1 className="text-2xl font-semibold tracking-tight">
                     {language === "zh" ? "數據分析" : "Analytics"}
                 </h1>
@@ -109,55 +110,52 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                 </p>
             </div>
 
-            {/* Overview Cards */}
+            {/* ── 合計帶 ──────────────────────────────── */}
             {overview && (
-                <div className="grid gap-4 md:grid-cols-4">
-                    <div className="rounded-xl border bg-card p-4">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            <span className="ledger-label">
-                                {language === "zh" ? "總報帳單" : "Total Reports"}
-                            </span>
-                        </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 rounded-lg border border-border bg-card overflow-hidden">
+                    <div className="p-4 border-b lg:border-b-0 border-r border-border">
+                        <span className="ledger-label flex items-center gap-2">
+                            <FileText className="h-3.5 w-3.5" />
+                            {language === "zh" ? "總報帳單" : "Total Reports"}
+                        </span>
                         <p className="text-2xl font-semibold tech-number mt-2">{overview.totalReports}</p>
                     </div>
-                    <div className="rounded-xl border bg-card p-4">
-                        <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                            <span className="ledger-label">
-                                {language === "zh" ? "總項目數" : "Total Items"}
-                            </span>
-                        </div>
+                    <div className="p-4 border-b lg:border-b-0 lg:border-r border-border">
+                        <span className="ledger-label flex items-center gap-2">
+                            <Package className="h-3.5 w-3.5" />
+                            {language === "zh" ? "總項目數" : "Total Items"}
+                        </span>
                         <p className="text-2xl font-semibold tech-number mt-2">{overview.totalItems}</p>
                     </div>
-                    <div className="rounded-xl border bg-card p-4">
-                        <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="ledger-label">
-                                {language === "zh" ? "總金額" : "Total Amount"}
-                            </span>
-                        </div>
+                    <div className="p-4 border-r border-border">
+                        <span className="ledger-label flex items-center gap-2">
+                            <DollarSign className="h-3.5 w-3.5" />
+                            {language === "zh" ? "總金額" : "Total Amount"}
+                        </span>
                         <p className="text-2xl font-semibold tech-number mt-2">{formatCurrency(overview.totalAmount)}</p>
                     </div>
-                    <div className="rounded-xl border bg-card p-4">
-                        <div className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                            <span className="ledger-label">
-                                {language === "zh" ? "本月支出" : "This Month"}
-                            </span>
-                        </div>
+                    <div className="p-4">
+                        <span className="ledger-label flex items-center gap-2">
+                            <TrendingUp className="h-3.5 w-3.5" />
+                            {language === "zh" ? "本月支出" : "This Month"}
+                        </span>
                         <p className="text-2xl font-semibold tech-number mt-2">{formatCurrency(overview.thisMonthAmount)}</p>
                     </div>
                 </div>
             )}
 
-            {/* Charts Grid */}
+            {/* ── 圖表章節 ─────────────────────────────── */}
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Monthly Trend Chart */}
-                <div className="rounded-xl border bg-card p-5">
-                    <h3 className="text-base font-semibold mb-4">
-                        {language === "zh" ? "月度支出趨勢" : "Monthly Expense Trend"}
-                    </h3>
+                {/* 01 · 月度支出趨勢 */}
+                <div className="rounded-lg border bg-card overflow-hidden">
+                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40 mb-4">
+                        <span className="ledger-label text-primary/70">01</span>
+                        <h3 className="text-sm font-semibold">
+                            {language === "zh" ? "月度支出趨勢" : "Monthly Expense Trend"}
+                        </h3>
+                        <span className="ledger-label ml-auto">Trend</span>
+                    </header>
+                    <div className="px-4 pb-4">
                     {monthlyStats.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <LineChart data={monthlyStats} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -196,13 +194,19 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                             {language === "zh" ? "暫無數據" : "No data available"}
                         </div>
                     )}
+                    </div>
                 </div>
 
-                {/* Category Bar Chart（名目類別 = 單一系列水平長條，金額遞減） */}
-                <div className="rounded-xl border bg-card p-5">
-                    <h3 className="text-base font-semibold mb-4">
-                        {language === "zh" ? "類別佔比" : "Expense by Category"}
-                    </h3>
+                {/* 02 · 類別佔比（名目類別 = 單一系列水平長條，金額遞減） */}
+                <div className="rounded-lg border bg-card overflow-hidden">
+                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40 mb-4">
+                        <span className="ledger-label text-primary/70">02</span>
+                        <h3 className="text-sm font-semibold">
+                            {language === "zh" ? "類別佔比" : "Expense by Category"}
+                        </h3>
+                        <span className="ledger-label ml-auto">Category</span>
+                    </header>
+                    <div className="px-4 pb-4">
                     {categoryStats.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart
@@ -240,13 +244,19 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                             {language === "zh" ? "暫無數據" : "No data available"}
                         </div>
                     )}
+                    </div>
                 </div>
 
-                {/* Status Distribution：單軸原則 → 件數與金額拆為兩張並列圖，狀態語意上色 */}
-                <div className="rounded-xl border bg-card p-5 lg:col-span-2">
-                    <h3 className="text-base font-semibold mb-4">
-                        {language === "zh" ? "狀態分布" : "Status Distribution"}
-                    </h3>
+                {/* 03 · 狀態分布：單軸原則 → 件數與金額拆為兩張並列圖，狀態語意上色 */}
+                <div className="rounded-lg border bg-card overflow-hidden lg:col-span-2">
+                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40 mb-4">
+                        <span className="ledger-label text-primary/70">03</span>
+                        <h3 className="text-sm font-semibold">
+                            {language === "zh" ? "狀態分布" : "Status Distribution"}
+                        </h3>
+                        <span className="ledger-label ml-auto">Status</span>
+                    </header>
+                    <div className="px-4 pb-4">
                     {statusStats.length > 0 ? (
                         <div className="grid gap-6 md:grid-cols-2">
                             <div>
@@ -292,6 +302,7 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
                             {language === "zh" ? "暫無數據" : "No data available"}
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
         </div>
