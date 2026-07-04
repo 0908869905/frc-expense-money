@@ -34,7 +34,7 @@ const translations: Record<Language, Record<string, string>> = {
         "no_reports": "還沒有報帳單",
         "no_reports_yet": "你還沒有任何報帳單",
         "create_first": "建立第一筆報帳單",
-        "new_report": "+ 新增報帳單",
+        "new_report": "新增報帳單",
 
         // Expenses Page
         "view_manage_expenses": "查看和管理你的所有報帳單",
@@ -269,7 +269,7 @@ const translations: Record<Language, Record<string, string>> = {
         "no_reports": "No expense reports yet",
         "no_reports_yet": "You don't have any expense reports yet",
         "create_first": "Create your first report",
-        "new_report": "+ New Report",
+        "new_report": "New Report",
 
         // Expenses Page
         "view_manage_expenses": "View and manage all your expense reports",

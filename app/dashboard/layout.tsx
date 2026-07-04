@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { DashboardHeader, DashboardWrapper } from "@/components/dashboard-header"
+import { StatusBar } from "@/components/status-bar"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 
@@ -24,21 +25,26 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar 
-        userRole={userRole} 
+      <AppSidebar
+        userRole={userRole}
         userDepartment={userDepartment}
         userImage={userImage}
         userName={userName}
         userEmail={userEmail}
       />
-      <SidebarInset>
+      <SidebarInset className="flex min-h-svh flex-col">
         <DashboardWrapper>
           <DashboardHeader userName={userName || userEmail || "User"}>
             <SidebarTrigger className="-ml-1" />
           </DashboardHeader>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-4">
+          <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
             {children}
           </div>
+          <StatusBar
+            userEmail={userEmail || ""}
+            userRole={userRole}
+            userDepartment={userDepartment}
+          />
         </DashboardWrapper>
       </SidebarInset>
     </SidebarProvider>

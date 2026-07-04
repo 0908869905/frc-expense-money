@@ -7,16 +7,11 @@ import { ExpenseReportFormValues, expenseReportSchema, ExpenseCategoryEnum } fro
 import { createExpense } from "@/app/actions/expenses";
 import { scanInvoice } from "@/app/actions/ocr";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Trash2, Plus, Upload, Loader2, AlertCircle, ScanLine, Building2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFormState } from "react-dom";
 import type { BankAccountData } from "@/app/actions/bank-accounts";
 import { maskAccountNumber } from "@/lib/utils/mask-account";
-
-function FormItem({ className, children }: { className?: string; children?: React.ReactNode }): React.JSX.Element {
-  return <div className={cn("space-y-2", className)}>{children}</div>;
-}
 
 // --- Upload Component with OCR ---
 interface OCRResult {
@@ -200,6 +195,8 @@ function UploadButton({ onUploadComplete, onOCRComplete, defaultUrl }: UploadBut
   );
 };
 
+const FIELD_INPUT_CLASS = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+
 interface ExpenseFormProps {
   bankAccounts?: BankAccountData[];
 }
@@ -247,6 +244,14 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
     control,
     name: "items",
   });
+
+  // 即時摘要（右欄）：監看明細變動
+  const watchedItems = watch("items");
+  const liveTotal = (watchedItems || []).reduce(
+    (acc, item) => acc + (Number(item?.amount) || 0),
+    0
+  );
+  const liveCount = (watchedItems || []).length;
 
   // 處理 OCR 結果，自動填入表單欄位
   const handleOCRResult = (index: number, data: OCRResult) => {
@@ -300,13 +305,18 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
     }
   }, [state.success, reset]);
 
+  // 章節動態編號（無收款帳戶區時不跳號）
+  const hasBankSection = bankAccounts.length > 0;
+  const itemsIndex = hasBankSection ? "03" : "02";
+  const summaryIndex = hasBankSection ? "04" : "03";
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-4xl mx-auto py-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">新增報帳單</h2>
-          <p className="text-sm text-muted-foreground">填寫完成後將直接提交至上級審核。</p>
-        </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+      {/* ── 期別標頭 ─────────────────────────────── */}
+      <div className="space-y-1.5 border-b border-border pb-5">
+        <p className="ledger-label text-primary">New Entry</p>
+        <h2 className="text-2xl font-semibold tracking-tight">新增報帳單</h2>
+        <p className="text-sm text-muted-foreground">填寫完成後將直接提交至上級審核。</p>
       </div>
 
       {state.message && (
@@ -316,218 +326,261 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
         </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>報帳單資訊</CardTitle>
-          <CardDescription>此次報銷的基本資訊。</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <FormItem>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">報帳單標題</label>
-            <input
-              {...register("title")}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="例如：十月客戶拜訪"
-            />
-            {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-          </FormItem>
+      {/* ── 雙欄：左表單 / 右摘要 ─────────────────── */}
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 flex flex-col gap-6">
 
-          <FormItem>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">用途/說明</label>
-            <textarea
-              {...register("description")}
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="詳細說明費用內容..."
-            />
-          </FormItem>
-        </CardContent>
-      </Card>
+          {/* 01 · 報帳單資訊 */}
+          <section className="rounded-lg border border-border bg-card overflow-hidden">
+            <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+              <span className="ledger-label text-primary/70">01</span>
+              <h3 className="text-sm font-semibold">報帳單資訊</h3>
+              <span className="ledger-label ml-auto">Info</span>
+            </header>
+            <div className="p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none">報帳單標題</label>
+                <input
+                  {...register("title")}
+                  className={cn(FIELD_INPUT_CLASS, "h-10")}
+                  placeholder="例如：十月客戶拜訪"
+                />
+                {errors.title && <p className="text-sm text-danger">{errors.title.message}</p>}
+              </div>
 
-      {/* 收款帳戶選擇 */}
-      {bankAccounts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              收款帳戶
-            </CardTitle>
-            <CardDescription>選擇報帳款項匯入的帳戶</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {bankAccounts.map((account) => (
-                <label
-                  key={account.id}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
-                    selectedBankAccountId === account.id
-                      ? "border-primary bg-primary/5"
-                      : "hover:bg-muted/50"
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="bankAccountSelect"
-                    value={account.id}
-                    checked={selectedBankAccountId === account.id}
-                    onChange={() => setSelectedBankAccountId(account.id)}
-                    className="sr-only"
-                  />
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                    selectedBankAccountId === account.id
-                      ? "border-primary bg-primary"
-                      : "border-muted-foreground"
-                  )}>
-                    {selectedBankAccountId === account.id && (
-                      <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none">用途/說明</label>
+                <textarea
+                  {...register("description")}
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="詳細說明費用內容..."
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* 02 · 收款帳戶 */}
+          {bankAccounts.length > 0 && (
+            <section className="rounded-lg border border-border bg-card overflow-hidden">
+              <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                <span className="ledger-label text-primary/70">02</span>
+                <h3 className="text-sm font-semibold inline-flex items-center gap-2">
+                  收款帳戶
+                </h3>
+                <span className="ledger-label ml-auto">Payout</span>
+              </header>
+              <div className="divide-y divide-border">
+                {bankAccounts.map((account) => (
+                  <label
+                    key={account.id}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors",
+                      selectedBankAccountId === account.id
+                        ? "bg-primary/5"
+                        : "hover:bg-accent/60"
                     )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{account.bankName}</span>
-                      {account.branchName && (
-                        <span className="text-muted-foreground text-sm">- {account.branchName}</span>
-                      )}
-                      {account.isDefault && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
-                          <Star className="h-3 w-3" />
-                          預設
-                        </span>
+                  >
+                    <input
+                      type="radio"
+                      name="bankAccountSelect"
+                      value={account.id}
+                      checked={selectedBankAccountId === account.id}
+                      onChange={() => setSelectedBankAccountId(account.id)}
+                      className="sr-only"
+                    />
+                    <div className={cn(
+                      "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      selectedBankAccountId === account.id
+                        ? "border-primary"
+                        : "border-muted-foreground/50"
+                    )}>
+                      {selectedBankAccountId === account.id && (
+                        <div className="w-2 h-2 rounded-full bg-primary" />
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {maskAccountNumber(account.accountNumber)} · {account.accountHolder}
-                    </p>
+                    <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium truncate">{account.bankName}</span>
+                        {account.branchName && (
+                          <span className="text-muted-foreground text-xs truncate">– {account.branchName}</span>
+                        )}
+                        {account.isDefault && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-px rounded border border-primary/40 bg-primary/10 font-mono text-[10px] font-medium text-primary shrink-0">
+                            <Star className="h-2.5 w-2.5" />
+                            預設
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-mono text-xs text-muted-foreground">
+                        {maskAccountNumber(account.accountNumber)} · {account.accountHolder}
+                      </p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* 03 · 費用明細 */}
+          <section className="rounded-lg border border-border bg-card overflow-hidden">
+            <header className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
+              <span className="ledger-label text-primary/70">{itemsIndex}</span>
+              <h3 className="text-sm font-semibold">費用明細項目</h3>
+              <span className="ledger-label ml-auto mr-3 hidden sm:inline">Items</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => append({ date: new Date(), category: "Food", customCategory: "", description: "", amount: 0, receiptUrl: null })}
+              >
+                <Plus className="mr-1.5 h-4 w-4" />新增項目
+              </Button>
+            </header>
+
+            <div className="divide-y divide-border">
+              {fields.map((field, index) => (
+                <div key={field.id} className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-mono text-xs text-primary/70 font-medium">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    {fields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-danger"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                </label>
+
+                  <div className="grid gap-4 md:grid-cols-12">
+                    <div className="md:col-span-3 space-y-1.5">
+                      <label className="ledger-label">日期</label>
+                      <input
+                        type="date"
+                        {...register(`items.${index}.date` as const)}
+                        className={FIELD_INPUT_CLASS}
+                      />
+                    </div>
+
+                    <div className={`${watch(`items.${index}.category`) === 'Other' ? 'md:col-span-2' : 'md:col-span-3'} space-y-1.5`}>
+                      <label className="ledger-label">類別</label>
+                      <select
+                        {...register(`items.${index}.category` as const)}
+                        className={FIELD_INPUT_CLASS}
+                      >
+                        {ExpenseCategoryEnum.options.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 自定義類別輸入框 - 當選擇 Other 時顯示 */}
+                    {watch(`items.${index}.category`) === 'Other' && (
+                      <div className="md:col-span-2 space-y-1.5">
+                        <label className="ledger-label">自訂類別</label>
+                        <input
+                          {...register(`items.${index}.customCategory` as const)}
+                          placeholder="輸入類別名稱"
+                          className={FIELD_INPUT_CLASS}
+                        />
+                      </div>
+                    )}
+
+                    <div className={`${watch(`items.${index}.category`) === 'Other' ? 'md:col-span-5' : 'md:col-span-6'} space-y-1.5`}>
+                      <label className="ledger-label">說明</label>
+                      <input
+                        {...register(`items.${index}.description` as const)}
+                        placeholder="與客戶午餐"
+                        className={FIELD_INPUT_CLASS}
+                      />
+                      {errors.items?.[index]?.description && (
+                        <p className="text-xs text-danger">{errors.items[index]?.description?.message}</p>
+                      )}
+                    </div>
+
+                    <div className="md:col-span-3 space-y-1.5">
+                      <label className="ledger-label">金額</label>
+                      <div className="relative">
+                        <span className="absolute left-2 top-2.5 font-mono text-xs text-muted-foreground">$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          {...register(`items.${index}.amount` as const)}
+                          className={cn(FIELD_INPUT_CLASS, "pl-5 font-mono tabular-nums")}
+                        />
+                      </div>
+                      {errors.items?.[index]?.amount && (
+                        <p className="text-xs text-danger">{errors.items[index]?.amount?.message}</p>
+                      )}
+                    </div>
+
+                    <div className="md:col-span-9 flex items-center">
+                      <Controller
+                        control={control}
+                        name={`items.${index}.receiptUrl`}
+                        render={({ field: { onChange, value } }) => (
+                          <UploadButton
+                            onUploadComplete={onChange}
+                            onOCRComplete={(data) => handleOCRResult(index, data)}
+                            defaultUrl={value}
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium">費用明細項目</h3>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => append({ date: new Date(), category: "Food", customCategory: "", description: "", amount: 0, receiptUrl: null })}
-          >
-            <Plus className="mr-2 h-4 w-4" />新增項目
-          </Button>
+            {errors.items && <p className="px-4 py-2 text-sm text-danger border-t border-border">{errors.items.message}</p>}
+          </section>
         </div>
 
-        {fields.map((field, index) => (
-          <Card key={field.id} className="relative overflow-hidden transition-all hover:border-primary/50">
-            <CardContent className="p-6">
-              <div className="grid gap-6 md:grid-cols-12">
-                <div className="md:col-span-2 space-y-2">
-                  <label className="ledger-label">日期</label>
-                  <input
-                    type="date"
-                    {...register(`items.${index}.date` as const)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-
-                <div className={`${watch(`items.${index}.category`) === 'Other' ? 'md:col-span-1' : 'md:col-span-2'} space-y-2`}>
-                  <label className="ledger-label">類別</label>
-                  <select
-                    {...register(`items.${index}.category` as const)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {ExpenseCategoryEnum.options.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 自定義類別輸入框 - 當選擇 Other 時顯示 */}
-                {watch(`items.${index}.category`) === 'Other' && (
-                  <div className="md:col-span-1 space-y-2">
-                    <label className="ledger-label">自訂類別</label>
-                    <input
-                      {...register(`items.${index}.customCategory` as const)}
-                      placeholder="輸入類別名稱"
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    />
-                  </div>
-                )}
-
-                <div className="md:col-span-4 space-y-2">
-                  <label className="ledger-label">說明</label>
-                  <input
-                    {...register(`items.${index}.description` as const)}
-                    placeholder="與客戶午餐"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                  {errors.items?.[index]?.description && (
-                    <p className="text-[10px] text-destructive">{errors.items[index]?.description?.message}</p>
-                  )}
-                </div>
-
-                <div className="md:col-span-2 space-y-2">
-                  <label className="ledger-label">金額</label>
-                  <div className="relative">
-                    <span className="absolute left-2 top-2.5 font-mono text-xs text-muted-foreground">$</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      {...register(`items.${index}.amount` as const)}
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent pl-5 pr-3 py-1 font-mono text-sm tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    />
-                  </div>
-                  {errors.items?.[index]?.amount && (
-                    <p className="text-[10px] text-destructive">{errors.items[index]?.amount?.message}</p>
-                  )}
-                </div>
-
-                <div className="md:col-span-2 flex items-end justify-between gap-2">
-                  <Controller
-                    control={control}
-                    name={`items.${index}.receiptUrl`}
-                    render={({ field: { onChange, value } }) => (
-                      <UploadButton
-                        onUploadComplete={onChange}
-                        onOCRComplete={(data) => handleOCRResult(index, data)}
-                        defaultUrl={value}
-                      />
-                    )}
-                  />
-                  {fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => remove(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+        {/* ── 右欄：sticky 摘要面板 ─────────────────── */}
+        <aside className="lg:sticky lg:top-16 flex flex-col gap-4">
+          <section className="rounded-lg border border-border bg-card overflow-hidden">
+            <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+              <span className="ledger-label text-primary/70">{summaryIndex}</span>
+              <h3 className="text-sm font-semibold">摘要</h3>
+              <span className="ledger-label ml-auto">Summary</span>
+            </header>
+            <div>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <span className="text-sm text-muted-foreground">項目數</span>
+                <span className="font-mono text-lg font-semibold tabular-nums">{liveCount}</span>
+            </div>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <span className="text-sm text-muted-foreground">總金額</span>
+                <span className="font-mono text-xl font-semibold tabular-nums">
+                  ${liveTotal.toFixed(2)}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-        {errors.items && <p className="text-sm text-destructive">{errors.items.message}</p>}
-      </div>
-
-      <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={() => reset()}>取消</Button>
-        <Button type="submit" disabled={isPending} className="min-w-[150px]">
-          {isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              提交中...
-            </>
-          ) : (
-            "提交報帳單"
-          )}
-        </Button>
+              <div className="p-4 space-y-2">
+                <Button type="submit" disabled={isPending} className="w-full">
+                  {isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      提交中...
+                    </>
+                  ) : (
+                    "提交報帳單"
+                  )}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => reset()} className="w-full">
+                  取消
+                </Button>
+                <p className="pt-1 font-mono text-[11px] text-muted-foreground text-center">
+                  {"// 送出後進入審核流程，無法編輯"}
+                </p>
+              </div>
+            </div>
+          </section>
+        </aside>
       </div>
     </form>
   );
