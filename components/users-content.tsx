@@ -182,7 +182,8 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
 
     return (
         <div className="flex flex-col gap-6">
-            <div>
+            <div className="space-y-1.5 border-b border-border pb-5">
+                <p className="ledger-label text-primary">Roster</p>
                 <h1 className="text-2xl font-semibold tracking-tight">
                     {t("用戶管理", "User Management")}
                 </h1>
@@ -197,32 +198,32 @@ export function UsersContent({ users, currentUserId }: UsersContentProps) {
                 </div>
             )}
 
-            {/* Stats */}
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
-                <div className="rounded-xl border bg-card p-4">
+            {/* ── 合計帶 ──────────────────────────────── */}
+            <div className="grid grid-cols-2 md:grid-cols-5 rounded-lg border border-border bg-card overflow-hidden">
+                <div className="p-4 border-b md:border-b-0 border-r border-border">
                     <p className="ledger-label">{t("總用戶", "Total Users")}</p>
                     <p className="text-2xl font-semibold tech-number mt-2">{localUsers.length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
+                <div className="p-4 border-b md:border-b-0 md:border-r border-border">
                     <p className="ledger-label">{t("管理員", "Admins")}</p>
                     <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.role === "ADMIN").length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
+                <div className="p-4 border-b md:border-b-0 border-r border-border">
                     <p className="ledger-label">{t("組長", "Leaders")}</p>
                     <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.role === "LEADER").length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
+                <div className="p-4 border-b md:border-b-0 md:border-r border-border">
                     <p className="ledger-label">{t("副組長", "Vice Leaders")}</p>
                     <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.role === "VICE_LEADER").length}</p>
                 </div>
-                <div className="rounded-xl border bg-card p-4">
+                <div className="p-4 col-span-2 md:col-span-1">
                     <p className="ledger-label">{t("已驗證", "Verified")}</p>
                     <p className="text-2xl font-semibold tech-number mt-2">{localUsers.filter(u => u.emailVerified).length}</p>
                 </div>
             </div>
 
-            {/* Users Table */}
-            <div className="rounded-xl border bg-card overflow-hidden">
+            {/* ── 名冊表格 ─────────────────────────────── */}
+            <div className="rounded-lg border bg-card overflow-hidden">
                 <table className="w-full">
                     <thead className="bg-muted/50">
                         <tr>

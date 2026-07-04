@@ -126,9 +126,20 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
         setNotificationLoading(false)
     }
 
+    // 章節動態編號（收款帳戶區為條件顯示）
+    const IDX = {
+        avatar: "01",
+        lang: "02",
+        notify: "03",
+        bank: "04",
+        password: canManageBankAccounts ? "05" : "04",
+        account: canManageBankAccounts ? "06" : "05",
+    }
+
     return (
         <div className="flex flex-col gap-6 max-w-2xl">
-            <div>
+            <div className="space-y-1.5 border-b border-border pb-5">
+                <p className="ledger-label text-primary">Preferences</p>
                 <h1 className="text-2xl font-semibold tracking-tight">{t("settings")}</h1>
                 <p className="text-sm text-muted-foreground">
                     {language === "zh" ? "管理你的應用程式設定" : "Manage your application settings"}
@@ -136,11 +147,13 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
             </div>
 
             {/* Avatar Settings */}
-            <div className="rounded-xl border bg-card p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <User className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="font-semibold">{language === "zh" ? "個人頭像" : "Profile Avatar"}</h3>
+            <div className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                    <span className="ledger-label text-primary/70">{IDX.avatar}</span>
+                    <h3 className="text-sm font-semibold">{language === "zh" ? "個人頭像" : "Profile Avatar"}</h3>
+                    <span className="ledger-label ml-auto">Avatar</span>
                 </div>
+                <div className="p-4">
                 <div className="flex items-center gap-6">
                     {/* Avatar Preview */}
                     <div className="relative">
@@ -197,15 +210,17 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
                 <p className="mt-3 text-xs text-muted-foreground">
                     {getText("建議使用正方形圖片，檔案大小不超過 500KB", "Square image recommended, max size 500KB")}
                 </p>
+                </div>
             </div>
 
             {/* Language Settings */}
-            <div className="rounded-xl border bg-card p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Globe className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="font-semibold">{getText("語言設定", "Language Settings")}</h3>
+            <div className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                    <span className="ledger-label text-primary/70">{IDX.lang}</span>
+                    <h3 className="text-sm font-semibold">{getText("語言設定", "Language Settings")}</h3>
+                    <span className="ledger-label ml-auto">Language</span>
                 </div>
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between p-4">
                     <div>
                         <p className="font-medium">{getText("介面語言", "Interface Language")}</p>
                         <p className="text-sm text-muted-foreground">
@@ -231,12 +246,13 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
             </div>
 
             {/* Notification Settings */}
-            <div className="rounded-xl border bg-card p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Bell className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="font-semibold">{getText("通知設定", "Notification Settings")}</h3>
+            <div className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                    <span className="ledger-label text-primary/70">{IDX.notify}</span>
+                    <h3 className="text-sm font-semibold">{getText("通知設定", "Notification Settings")}</h3>
+                    <span className="ledger-label ml-auto">Notify</span>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-3 p-4">
                     <p className="text-sm text-muted-foreground">
                         {getText("選擇接收通知的頻率", "Choose how often you receive notifications")}
                     </p>
@@ -272,18 +288,26 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
 
             {/* Bank Account Settings - 只對 VICE_LEADER 以上角色顯示 */}
             {canManageBankAccounts && (
-                <div className="rounded-xl border bg-card p-6">
-                    <BankAccountSettings initialAccounts={bankAccounts} />
+                <div className="rounded-lg border bg-card overflow-hidden">
+                    <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                        <span className="ledger-label text-primary/70">{IDX.bank}</span>
+                        <h3 className="text-sm font-semibold">{getText("收款帳戶", "Bank Accounts")}</h3>
+                        <span className="ledger-label ml-auto">Payout</span>
+                    </div>
+                    <div className="p-4">
+                        <BankAccountSettings initialAccounts={bankAccounts} />
+                    </div>
                 </div>
             )}
 
             {/* Change Password */}
-            <div className="rounded-xl border bg-card p-6">
-                <div className="flex items-center gap-3 mb-4">
-                    <Lock className="h-5 w-5 text-muted-foreground" />
-                    <h3 className="font-semibold">{getText("更改密碼", "Change Password")}</h3>
+            <div className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                    <span className="ledger-label text-primary/70">{IDX.password}</span>
+                    <h3 className="text-sm font-semibold">{getText("更改密碼", "Change Password")}</h3>
+                    <span className="ledger-label ml-auto">Security</span>
                 </div>
-                <form action={passwordAction} className="space-y-4">
+                <form action={passwordAction} className="space-y-4 p-4">
                     <PasswordField
                         id="currentPassword"
                         label={getText("目前密碼", "Current Password")}
@@ -310,13 +334,17 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
             </div>
 
             {/* Account Actions */}
-            <div className="rounded-xl border bg-card p-6">
-                <h3 className="font-semibold mb-4">{getText("帳戶操作", "Account Actions")}</h3>
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between py-3 border-b">
+            <div className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                    <span className="ledger-label text-primary/70">{IDX.account}</span>
+                    <h3 className="text-sm font-semibold">{getText("帳戶操作", "Account Actions")}</h3>
+                    <span className="ledger-label ml-auto">Session</span>
+                </div>
+                <div className="p-4">
+                    <div className="flex items-center justify-between">
                         <div>
                             <p className="font-medium">{getText("登出", "Sign Out")}</p>
-                            <p className="text-sm text-muted-foreground">{session.user?.email}</p>
+                            <p className="text-sm text-muted-foreground font-mono text-xs">{session.user?.email}</p>
                         </div>
                         <button
                             onClick={handleLogout}
