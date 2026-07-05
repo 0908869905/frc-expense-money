@@ -129,7 +129,7 @@ function LoginPreview({ language }: { language: string }) {
           <p className="font-mono text-sm text-primary mb-4 tracking-[0.2em] uppercase">
             FIRST Robotics Competition
           </p>
-          <p className="text-7xl font-bold tracking-tight leading-none mb-2">FRC</p>
+          <p className="font-serif text-7xl font-bold tracking-tight leading-none mb-2">FRC</p>
           <p className="font-mono text-7xl font-semibold tracking-tight leading-none mb-6">6998</p>
           <p className="font-mono text-xl tracking-[0.35em] text-muted-foreground uppercase">UNIPARDS</p>
           <div className="mt-8 h-px w-24 bg-primary" />
@@ -151,11 +151,11 @@ function LoginPreview({ language }: { language: string }) {
       <div className="w-full lg:w-1/2 flex items-center justify-center px-6 sm:px-12 lg:px-16">
         <div className="w-full max-w-md">
           <div className="lg:hidden text-center mb-12">
-            <p className="text-4xl font-bold tracking-tight">
+            <p className="font-serif text-4xl font-bold tracking-tight">
               FRC <span className="font-mono text-primary">6998</span>
             </p>
           </div>
-          <p className="text-2xl font-semibold mb-2">
+          <p className="font-serif text-2xl font-semibold mb-2">
             {language === "zh" ? "歡迎回來" : "Welcome back"}
           </p>
           <p className="text-sm text-muted-foreground mb-8">
@@ -207,7 +207,7 @@ function LandingCover({ language }: { language: string }) {
             FIRST Robotics Competition
           </p>
           <div>
-            <span className="block text-8xl md:text-9xl lg:text-[11rem] font-bold tracking-tight leading-none">
+            <span className="block font-serif text-8xl md:text-9xl lg:text-[11rem] font-bold tracking-tight leading-none">
               FRC
             </span>
             <span className="block font-mono text-8xl md:text-9xl lg:text-[11rem] font-semibold tracking-tight leading-none -mt-2 md:-mt-4 text-primary">
