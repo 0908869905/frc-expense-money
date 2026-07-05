@@ -1,7 +1,7 @@
 import React from "react"
 import type { Viewport } from "next"
 import "./globals.css"
-import { IBM_Plex_Sans, IBM_Plex_Mono, Noto_Sans_TC } from "next/font/google"
+import { IBM_Plex_Sans, IBM_Plex_Mono, Noto_Sans_TC, Noto_Serif_TC } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { LanguageProvider } from "@/lib/language-context"
 import { OrganizationProvider } from "@/lib/organization-context"
@@ -29,6 +29,14 @@ const notoSansTC = Noto_Sans_TC({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   variable: "--font-noto-tc",
+  display: "swap",
+})
+
+// 明朝體標題（極簡日式變體）
+const notoSerifTC = Noto_Serif_TC({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  variable: "--font-serif-tc",
   display: "swap",
 })
 
@@ -66,7 +74,8 @@ export default function RootLayout({
           "min-h-screen font-sans antialiased",
           plexSans.variable,
           plexMono.variable,
-          notoSansTC.variable
+          notoSansTC.variable,
+          notoSerifTC.variable
         )}
       >
         <ThemeProvider>

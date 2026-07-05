@@ -11,84 +11,88 @@
 /* 主題變數置於 @layer 之外：Tailwind 會 tree-shake @layer 內未被內容引用的
    selector（.light 曾因此被整塊清除，導致淺色主題失效）。頂層 CSS 不受 purge 影響。 */
 
-/* ---- 深色主題「石墨車間」（預設）---- */
+/* ============================================================
+   極簡日式變體「和紙と墨」（jp-minimal 預覽分支）
+   和紙暖白 / 墨色炭黑 / 朱印紅（印章式點綴）/ 苔·柿·藍 語意色
+   ============================================================ */
+
+/* ---- 深色主題「墨」（預設）---- */
 :root,
 .dark {
     color-scheme: dark;
 
-    --background: 220 8% 9%;
-    --foreground: 40 12% 92%;
-    --card: 220 7% 12%;
-    --card-foreground: 40 12% 92%;
-    --popover: 220 7% 11%;
-    --popover-foreground: 40 12% 92%;
-    --primary: 26 95% 55%;
-    --primary-foreground: 220 10% 8%;
-    --secondary: 220 6% 16%;
-    --secondary-foreground: 40 12% 92%;
-    --muted: 220 6% 15%;
-    --muted-foreground: 220 6% 62%;
-    --accent: 220 6% 17%;
-    --accent-foreground: 40 12% 92%;
-    --destructive: 4 70% 52%;
-    --destructive-foreground: 40 20% 96%;
-    --border: 220 6% 21%;
-    --input: 220 6% 26%;
-    --ring: 26 95% 55%;
-    --radius: 0.375rem;
+    --background: 30 6% 11%;
+    --foreground: 40 18% 90%;
+    --card: 30 5% 13%;
+    --card-foreground: 40 18% 90%;
+    --popover: 30 5% 12%;
+    --popover-foreground: 40 18% 90%;
+    --primary: 8 68% 52%;
+    --primary-foreground: 40 25% 96%;
+    --secondary: 30 5% 17%;
+    --secondary-foreground: 40 18% 90%;
+    --muted: 30 5% 16%;
+    --muted-foreground: 35 8% 60%;
+    --accent: 30 5% 18%;
+    --accent-foreground: 40 18% 90%;
+    --destructive: 355 60% 50%;
+    --destructive-foreground: 40 25% 96%;
+    --border: 30 5% 22%;
+    --input: 30 5% 27%;
+    --ring: 8 68% 52%;
+    --radius: 0.25rem;
 
-    /* 語意狀態色（狀態點、文字、圖表） */
-    --ok: 150 40% 48%;
-    --warn: 40 85% 55%;
-    --danger: 4 70% 55%;
-    --info: 212 55% 60%;
+    /* 語意狀態色：苔 / 山吹 / 紅 / 藍 */
+    --ok: 125 22% 48%;
+    --warn: 38 65% 52%;
+    --danger: 355 60% 55%;
+    --info: 215 30% 58%;
 
-    /* 圖表分類色盤（dataviz 六項檢查驗證通過，深色帶域 L 0.48-0.67） */
-    --chart-1: 26 85% 48%;   /* 琥珀（主） */
-    --chart-2: 212 60% 55%;  /* 鋼藍 */
-    --chart-3: 150 50% 42%;  /* 苔綠 */
-    --chart-4: 42 85% 39%;   /* 土黃 */
-    --chart-5: 4 60% 55%;    /* 磚紅 */
-    --chart-grid: 220 6% 20%;
+    /* 圖表分類色盤（朱 / 藍 / 苔 / 山吹 / 茶） */
+    --chart-1: 8 68% 52%;
+    --chart-2: 215 35% 55%;
+    --chart-3: 125 25% 46%;
+    --chart-4: 38 60% 48%;
+    --chart-5: 25 30% 45%;
+    --chart-grid: 30 5% 20%;
 }
 
-/* ---- 淺色主題「圖紙」---- */
+/* ---- 淺色主題「和紙」---- */
 .light {
     color-scheme: light;
 
-    --background: 45 30% 96%;
-    --foreground: 220 25% 13%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 13%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 13%;
-    --primary: 24 90% 46%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 45 20% 92%;
-    --secondary-foreground: 220 25% 13%;
-    --muted: 45 22% 93%;
-    --muted-foreground: 220 10% 42%;
-    --accent: 45 25% 90%;
-    --accent-foreground: 220 25% 13%;
-    --destructive: 4 72% 44%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 14% 86%;
-    --input: 220 14% 80%;
-    --ring: 24 90% 46%;
-    --radius: 0.375rem;
+    --background: 43 28% 94%;
+    --foreground: 30 10% 22%;
+    --card: 43 24% 96%;
+    --card-foreground: 30 10% 22%;
+    --popover: 43 24% 97%;
+    --popover-foreground: 30 10% 22%;
+    --primary: 7 70% 45%;
+    --primary-foreground: 43 30% 97%;
+    --secondary: 42 20% 89%;
+    --secondary-foreground: 30 10% 22%;
+    --muted: 42 20% 90%;
+    --muted-foreground: 32 8% 45%;
+    --accent: 42 22% 88%;
+    --accent-foreground: 30 10% 22%;
+    --destructive: 355 62% 42%;
+    --destructive-foreground: 43 30% 97%;
+    --border: 38 16% 85%;
+    --input: 38 14% 78%;
+    --ring: 7 70% 45%;
+    --radius: 0.25rem;
 
-    --ok: 152 45% 32%;
-    --warn: 40 85% 38%;
-    --danger: 4 72% 44%;
-    --info: 215 55% 42%;
+    --ok: 125 25% 36%;
+    --warn: 36 70% 40%;
+    --danger: 355 62% 42%;
+    --info: 216 32% 42%;
 
-    /* 圖表分類色盤（dataviz 六項檢查驗證通過，淺色帶域 L 0.43-0.77） */
-    --chart-1: 24 90% 46%;
-    --chart-2: 215 55% 45%;
-    --chart-3: 152 55% 33%;
-    --chart-4: 40 80% 42%;
-    --chart-5: 4 60% 48%;
-    --chart-grid: 220 14% 88%;
+    --chart-1: 7 70% 45%;
+    --chart-2: 216 38% 42%;
+    --chart-3: 125 30% 34%;
+    --chart-4: 36 65% 38%;
+    --chart-5: 25 35% 38%;
+    --chart-grid: 38 16% 87%;
 }
 
 @layer base {
@@ -108,8 +112,12 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  /* 標題：緊排距、不做任何漸層/光暈 */
-  h1, h2, h3, h4 {
+  /* 標題：主標明朝體（極簡日式），次標黑體 */
+  h1, h2 {
+    @apply font-serif font-medium tracking-normal;
+  }
+
+  h3, h4 {
     @apply font-semibold tracking-tight;
   }
 
@@ -249,12 +257,12 @@
 
   /* ---- 工程圖細節 ---- */
 
-  /* 卡片/區塊小標：mono 大寫索引標籤 */
+  /* 卡片/區塊小標：mono 大寫索引標籤（日式：更寬鬆的字距） */
   .ledger-label {
     font-family: theme(fontFamily.mono);
     font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
+    font-weight: 400;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: hsl(var(--muted-foreground));
   }

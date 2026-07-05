@@ -37,7 +37,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
           <DashboardHeader userName={userName || userEmail || "User"}>
             <SidebarTrigger className="-ml-1" />
           </DashboardHeader>
-          <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+          <div className="flex flex-1 flex-col gap-4 p-4 md:p-8">
             {children}
           </div>
           <StatusBar
