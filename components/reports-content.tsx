@@ -295,7 +295,7 @@ export function ReportsContent({ reports, stats, userRole }: ReportsContentProps
             {/* ── 登記簿：工具列 + 表格一體 ─────────────── */}
             <div className="rounded-lg border bg-card overflow-hidden">
                 {/* 工具列：分段篩選器 */}
-                <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-border bg-muted/40">
+                <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-border">
                     <div className="inline-flex rounded-md border border-border bg-card p-0.5">
                         {[
                             { key: "all", zh: "全部", en: "All" },

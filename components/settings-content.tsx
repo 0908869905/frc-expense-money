@@ -148,8 +148,8 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
 
             {/* Avatar Settings */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                    <span className="ledger-label text-primary/70">{IDX.avatar}</span>
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                    <span className="seal-index">{IDX.avatar}</span>
                     <h3 className="text-sm font-semibold">{language === "zh" ? "個人頭像" : "Profile Avatar"}</h3>
                     <span className="ledger-label ml-auto">Avatar</span>
                 </div>
@@ -215,8 +215,8 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
 
             {/* Language Settings */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                    <span className="ledger-label text-primary/70">{IDX.lang}</span>
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                    <span className="seal-index">{IDX.lang}</span>
                     <h3 className="text-sm font-semibold">{getText("語言設定", "Language Settings")}</h3>
                     <span className="ledger-label ml-auto">Language</span>
                 </div>
@@ -247,8 +247,8 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
 
             {/* Notification Settings */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                    <span className="ledger-label text-primary/70">{IDX.notify}</span>
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                    <span className="seal-index">{IDX.notify}</span>
                     <h3 className="text-sm font-semibold">{getText("通知設定", "Notification Settings")}</h3>
                     <span className="ledger-label ml-auto">Notify</span>
                 </div>
@@ -289,8 +289,8 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
             {/* Bank Account Settings - 只對 VICE_LEADER 以上角色顯示 */}
             {canManageBankAccounts && (
                 <div className="rounded-lg border bg-card overflow-hidden">
-                    <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                        <span className="ledger-label text-primary/70">{IDX.bank}</span>
+                    <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                        <span className="seal-index">{IDX.bank}</span>
                         <h3 className="text-sm font-semibold">{getText("收款帳戶", "Bank Accounts")}</h3>
                         <span className="ledger-label ml-auto">Payout</span>
                     </div>
@@ -302,8 +302,8 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
 
             {/* Change Password */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                    <span className="ledger-label text-primary/70">{IDX.password}</span>
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                    <span className="seal-index">{IDX.password}</span>
                     <h3 className="text-sm font-semibold">{getText("更改密碼", "Change Password")}</h3>
                     <span className="ledger-label ml-auto">Security</span>
                 </div>
@@ -335,8 +335,8 @@ export function SettingsContent({ session, bankAccounts = [], canManageBankAccou
 
             {/* Account Actions */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                    <span className="ledger-label text-primary/70">{IDX.account}</span>
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                    <span className="seal-index">{IDX.account}</span>
                     <h3 className="text-sm font-semibold">{getText("帳戶操作", "Account Actions")}</h3>
                     <span className="ledger-label ml-auto">Session</span>
                 </div>

@@ -153,9 +153,9 @@ export function DashboardContent({
 
                 {/* 01 · 近期帳目 */}
                 <section className="lg:col-span-2 rounded-lg border border-border bg-card overflow-hidden">
-                    <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/40">
+                    <header className="flex items-center justify-between px-4 py-3 border-b border-border">
                         <div className="flex items-baseline gap-2">
-                            <span className="ledger-label text-primary/70">01</span>
+                            <span className="seal-index">01</span>
                             <h2 className="text-sm font-semibold">{t("recent_reports")}</h2>
                         </div>
                         <Link
@@ -225,8 +225,8 @@ export function DashboardContent({
 
                     {/* 02 · 待辦 */}
                     <section className="rounded-lg border border-border bg-card overflow-hidden">
-                        <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                            <span className="ledger-label text-primary/70">02</span>
+                        <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                            <span className="seal-index">02</span>
                             <h2 className="text-sm font-semibold">{language === "zh" ? "待辦" : "To-Do"}</h2>
                         </header>
                         <div>
@@ -271,8 +271,8 @@ export function DashboardContent({
 
                     {/* 03 · 快速動作 */}
                     <section className="rounded-lg border border-border bg-card overflow-hidden">
-                        <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                            <span className="ledger-label text-primary/70">03</span>
+                        <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                            <span className="seal-index">03</span>
                             <h2 className="text-sm font-semibold">{language === "zh" ? "快速動作" : "Quick Actions"}</h2>
                         </header>
                         <nav className="divide-y divide-border">

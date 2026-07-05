@@ -33,33 +33,47 @@ interface ChartColorSet {
 }
 
 const DARK: ChartColorSet = {
-    categorical: ["#e26d12", "#4788d1", "#36a16b", "#b8850f", "#d15147"],
+    // 墨主題：朱 / 藍 / 苔 / 山吹 / 江戶紫（dataviz 驗證通過）
+    categorical: [
+        "hsl(8, 68%, 52%)",
+        "hsl(215, 48%, 56%)",
+        "hsl(125, 32%, 45%)",
+        "hsl(38, 64%, 44%)",
+        "hsl(285, 32%, 58%)",
+    ],
     status: {
-        ok: "hsl(150, 40%, 48%)",
-        warn: "hsl(40, 85%, 55%)",
-        info: "hsl(212, 55%, 60%)",
-        danger: "hsl(4, 70%, 55%)",
+        ok: "hsl(125, 22%, 48%)",
+        warn: "hsl(38, 65%, 52%)",
+        info: "hsl(215, 30%, 58%)",
+        danger: "hsl(355, 60%, 55%)",
     },
-    grid: "hsl(220, 6%, 20%)",
-    axis: "hsl(220, 6%, 62%)",
-    tooltipBg: "hsl(220, 7%, 11%)",
-    tooltipBorder: "hsl(220, 6%, 24%)",
-    tooltipText: "hsl(40, 12%, 92%)",
+    grid: "hsl(30, 5%, 20%)",
+    axis: "hsl(35, 8%, 60%)",
+    tooltipBg: "hsl(30, 5%, 12%)",
+    tooltipBorder: "hsl(30, 5%, 24%)",
+    tooltipText: "hsl(40, 18%, 90%)",
 }
 
 const LIGHT: ChartColorSet = {
-    categorical: ["#df600c", "#3468b2", "#268257", "#c18815", "#c43b31"],
+    // 和紙主題：朱 / 藍 / 苔 / 山吹 / 江戶紫（dataviz 驗證通過）
+    categorical: [
+        "hsl(7, 70%, 45%)",
+        "hsl(216, 50%, 42%)",
+        "hsl(125, 40%, 33%)",
+        "hsl(36, 68%, 38%)",
+        "hsl(287, 36%, 44%)",
+    ],
     status: {
-        ok: "hsl(152, 45%, 32%)",
-        warn: "hsl(40, 85%, 38%)",
-        info: "hsl(215, 55%, 42%)",
-        danger: "hsl(4, 72%, 44%)",
+        ok: "hsl(125, 25%, 36%)",
+        warn: "hsl(36, 70%, 40%)",
+        info: "hsl(216, 32%, 42%)",
+        danger: "hsl(355, 62%, 42%)",
     },
-    grid: "hsl(220, 14%, 88%)",
-    axis: "hsl(220, 10%, 42%)",
-    tooltipBg: "#ffffff",
-    tooltipBorder: "hsl(220, 14%, 86%)",
-    tooltipText: "hsl(220, 25%, 13%)",
+    grid: "hsl(38, 16%, 87%)",
+    axis: "hsl(32, 8%, 45%)",
+    tooltipBg: "hsl(43, 24%, 97%)",
+    tooltipBorder: "hsl(38, 16%, 85%)",
+    tooltipText: "hsl(30, 10%, 22%)",
 }
 
 export function getChartColors(theme: ChartTheme): ChartColorSet {

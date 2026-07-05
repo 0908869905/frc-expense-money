@@ -30,6 +30,13 @@ const config = {
           "system-ui",
           "sans-serif",
         ],
+        // 明朝體：極簡日式標題
+        serif: [
+          "var(--font-serif-tc)",
+          "Noto Serif TC",
+          "Songti TC",
+          "serif",
+        ],
         // 數據字體：金額/日期/SKU/ID 一律 mono
         mono: [
           "var(--font-plex-mono)",

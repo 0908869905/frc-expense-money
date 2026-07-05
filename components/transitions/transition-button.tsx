@@ -462,7 +462,7 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
       <path
         d={pathData}
         fill="none"
-        stroke="hsl(26 95% 55% / 0.25)"
+        stroke="hsl(8 68% 52% / 0.25)"
         strokeWidth="10"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -472,7 +472,7 @@ function TearEdgeLine({ progress, seed }: { progress: number; seed: number }) {
       <path
         d={pathData}
         fill="none"
-        stroke="hsl(26 95% 55%)"
+        stroke="hsl(8 68% 52%)"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"

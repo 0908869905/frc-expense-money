@@ -149,14 +149,14 @@ export function LoadingScreen({ language, onComplete, loginPromise }: LoadingScr
   const t = (zh: string, en: string) => language === "zh" ? zh : en
 
   return (
-    <div className="fixed inset-0 z-[200] bg-[hsl(220_8%_9%)] text-[hsl(40_12%_92%)] overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-[hsl(30_6%_11%)] text-[hsl(40_18%_90%)] overflow-hidden">
       {/* 藍圖網格背景 */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-40"
         style={{
           backgroundImage:
-            "linear-gradient(hsl(220 6% 21% / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(220 6% 21% / 0.5) 1px, transparent 1px)",
+            "linear-gradient(hsl(30 5% 22% / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(30 5% 22% / 0.5) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}
       />
@@ -170,13 +170,13 @@ export function LoadingScreen({ language, onComplete, loginPromise }: LoadingScr
         {/* 隊伍識別 */}
         <div className="mb-2 text-center">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-none">
-            FRC <span className="font-mono font-semibold text-[hsl(26_95%_55%)]">6998</span>
+            FRC <span className="font-mono font-semibold text-[hsl(8_68%_52%)]">6998</span>
           </h1>
         </div>
 
         {/* UNIPARDS 字母逐一顯示 */}
         <div className="mb-10">
-          <p className="font-mono text-lg md:text-xl tracking-[0.4em] text-[hsl(220_6%_62%)] uppercase">
+          <p className="font-mono text-lg md:text-xl tracking-[0.4em] text-[hsl(35_8%_60%)] uppercase">
             {teamName.split("").map((letter, i) => (
               <span
                 key={i}
@@ -191,8 +191,8 @@ export function LoadingScreen({ language, onComplete, loginPromise }: LoadingScr
         </div>
 
         {/* 載入步驟：POST 自檢清單 */}
-        <div className="w-full max-w-sm mb-8 rounded-md border border-[hsl(220_6%_21%)] bg-[hsl(220_7%_12%)] p-4 font-mono text-sm">
-          <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[hsl(220_6%_62%)]">
+        <div className="w-full max-w-sm mb-8 rounded-md border border-[hsl(30_5%_22%)] bg-[hsl(30_5%_13%)] p-4 font-mono text-sm">
+          <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-[hsl(35_8%_60%)]">
             System Check
           </p>
           <div className="space-y-2.5">
@@ -209,20 +209,20 @@ export function LoadingScreen({ language, onComplete, loginPromise }: LoadingScr
                 >
                   <span className="flex items-center justify-center w-5 h-5 shrink-0">
                     {isCompleted ? (
-                      <Check className="w-4 h-4 text-[hsl(150_40%_48%)]" />
+                      <Check className="w-4 h-4 text-[hsl(125_22%_48%)]" />
                     ) : isCurrent ? (
-                      <Loader2 className="w-4 h-4 text-[hsl(26_95%_55%)] animate-spin" />
+                      <Loader2 className="w-4 h-4 text-[hsl(8_68%_52%)] animate-spin" />
                     ) : (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[hsl(220_6%_35%)]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[hsl(30_5%_35%)]" />
                     )}
                   </span>
                   <span
                     className={`transition-colors duration-300 ${
                       isCompleted
-                        ? "text-[hsl(150_40%_48%)]"
+                        ? "text-[hsl(125_22%_48%)]"
                         : isCurrent
-                          ? "text-[hsl(40_12%_92%)]"
-                          : "text-[hsl(220_6%_50%)]"
+                          ? "text-[hsl(40_18%_90%)]"
+                          : "text-[hsl(35_6%_50%)]"
                     }`}
                   >
                     {t(step.labelZh, step.labelEn)}
@@ -235,17 +235,17 @@ export function LoadingScreen({ language, onComplete, loginPromise }: LoadingScr
 
         {/* 進度條：hairline 軌道 + 琥珀實線 */}
         <div className="w-full max-w-sm mb-8">
-          <div className="relative h-1 bg-[hsl(220_6%_18%)] rounded-full overflow-hidden">
+          <div className="relative h-1 bg-[hsl(30_5%_17%)] rounded-full overflow-hidden">
             <div
-              className="absolute left-0 top-0 h-full bg-[hsl(26_95%_55%)] transition-all duration-300"
+              className="absolute left-0 top-0 h-full bg-[hsl(8_68%_52%)] transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
           <div className="flex justify-between mt-2 font-mono text-xs">
-            <span className="text-[hsl(220_6%_62%)] uppercase tracking-wider">
+            <span className="text-[hsl(35_8%_60%)] uppercase tracking-wider">
               {t("載入中", "Loading")}
             </span>
-            <span className="text-[hsl(26_95%_55%)] tabular-nums">
+            <span className="text-[hsl(8_68%_52%)] tabular-nums">
               {Math.round(progress)}%
             </span>
           </div>
@@ -256,7 +256,7 @@ export function LoadingScreen({ language, onComplete, loginPromise }: LoadingScr
           {funFacts.map((fact, index) => (
             <p
               key={index}
-              className={`absolute inset-0 flex items-center justify-center text-center font-mono text-xs text-[hsl(220_6%_62%)] transition-all duration-500 ${
+              className={`absolute inset-0 flex items-center justify-center text-center font-mono text-xs text-[hsl(35_8%_60%)] transition-all duration-500 ${
                 index === funFactIndex
                   ? "opacity-100 translate-y-0"
                   : index === (funFactIndex - 1 + funFacts.length) % funFacts.length
@@ -264,7 +264,7 @@ export function LoadingScreen({ language, onComplete, loginPromise }: LoadingScr
                     : "opacity-0 translate-y-3"
               }`}
             >
-              <span className="text-[hsl(26_95%_55%)] mr-2">{"//"}</span>
+              <span className="text-[hsl(8_68%_52%)] mr-2">{"//"}</span>
               {fact}
             </p>
           ))}
