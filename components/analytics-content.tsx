@@ -148,8 +148,8 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* 01 · 月度支出趨勢 */}
                 <div className="rounded-lg border bg-card overflow-hidden">
-                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40 mb-4">
-                        <span className="ledger-label text-primary/70">01</span>
+                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border mb-4">
+                        <span className="seal-index">01</span>
                         <h3 className="text-sm font-semibold">
                             {language === "zh" ? "月度支出趨勢" : "Monthly Expense Trend"}
                         </h3>
@@ -199,8 +199,8 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
 
                 {/* 02 · 類別佔比（名目類別 = 單一系列水平長條，金額遞減） */}
                 <div className="rounded-lg border bg-card overflow-hidden">
-                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40 mb-4">
-                        <span className="ledger-label text-primary/70">02</span>
+                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border mb-4">
+                        <span className="seal-index">02</span>
                         <h3 className="text-sm font-semibold">
                             {language === "zh" ? "類別佔比" : "Expense by Category"}
                         </h3>
@@ -249,8 +249,8 @@ export function AnalyticsContent({ monthlyStats, categoryStats, statusStats, ove
 
                 {/* 03 · 狀態分布：單軸原則 → 件數與金額拆為兩張並列圖，狀態語意上色 */}
                 <div className="rounded-lg border bg-card overflow-hidden lg:col-span-2">
-                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40 mb-4">
-                        <span className="ledger-label text-primary/70">03</span>
+                    <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border mb-4">
+                        <span className="seal-index">03</span>
                         <h3 className="text-sm font-semibold">
                             {language === "zh" ? "狀態分布" : "Status Distribution"}
                         </h3>

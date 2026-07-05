@@ -1082,6 +1082,39 @@
 
 ---
 
+## Session: 2026-02-03 - 儀表板 404 修復 + 附件安全加固
+
+### 完成項目
+- [x] 儀表板近期報表 404 修復：`dashboard-content.tsx` 連結指向不存在的 `/dashboard/expenses/${report.id}` 動態路由，改為 `/dashboard/expenses`（列表頁）
+- [x] deleteReport 加入 audit log（transaction 內記錄完整資料）— 來自 2026-02-02 安全掃描
+- [x] 上傳加入 client-side 10MB 檔案大小限制
+- [x] receipt-preview 過濾 SVG MIME（白名單 jpeg/png/webp/gif）
+- [x] receiptUrl server-side 驗證（前綴白名單 + 長度限制）
+- [x] canvas 像素上限 16M（超過自動等比縮放）
+- [x] CSS 無樣式問題修復：清除 `.next` 快取目錄並重啟 dev server
+- [x] Git 提交推送：commit `aecfb2c` 推送至 GitHub main 分支
+
+### 修改檔案
+- `components/dashboard-content.tsx` — 近期報表連結從 `/expenses/${report.id}` 改為 `/expenses`
+- `app/actions/expenses.ts` — deleteReport audit log + receiptUrl server-side 驗證（isValidReceiptUrl）
+- `components/expense-form.tsx` — 10MB 檔案大小限制 + canvas 16M 像素上限
+- `components/receipt-preview.tsx` — SAFE_DATA_PREFIXES 白名單（jpeg/png/webp/gif only）
+- `CLAUDE.md`, `ERROR.md`, `findings.md`, `progress.md` — 文件更新
+
+### Git Commits (2026-02-03)
+| Commit | Message |
+|--------|---------|
+| `aecfb2c` | fix: 儀表板 404 修復 + 附件安全加固 |
+
+### 5-Question Reboot Check
+1. **做什麼？** 修復儀表板近期報表 404 問題 + 完成 2026-02-02 安全掃描的附件安全加固項目
+2. **進度？** 本次 session 全部完成。Dashboard 404 已修復，附件安全 5/6 項已修復（CSP nonce 跳過）
+3. **下一步？** Next.js 15 升級（修復 DoS + CSP nonce）、xlsx 替換為 exceljs、iOS App 階段 3-7（需 Mac）
+4. **阻礙？** Next.js 升級為 major change 需獨立 session；iOS 需 Mac + Xcode 環境
+5. **檔案？** `next.config.mjs`（Next.js 升級）、`package.json`（xlsx 替換）、`capacitor.config.ts`（iOS URL 更新）
+
+---
+
 ## 待處理項目（2026-02-02 onwards）
 1. ~~**資料庫遷移**：先用 SQL 更新現有 DRAFT 記錄為 PENDING_MANAGER，再 `prisma db push`~~ **已完成 (62b1fc9)**
 2. **npm 依賴漏洞修復**：~~lodash~~ **已修復**；next DoS 漏洞（需 15.x）、xlsx Prototype Pollution（需替換為 exceljs）、eslint/glob（需 eslint-config-next 16.x）
@@ -1099,3 +1132,53 @@
 14. **xlsx 替換**：xlsx -> exceljs（修復 Prototype Pollution，無修復版本）
 15. **ESLint 升級**：eslint-config-next 16.x（隨 Next.js 升級一併處理）
 16. **CSP 改善**：考慮 nonce-based CSP 替代 unsafe-inline（建議隨 Next.js 15 升級一併處理）
+
+---
+
+## Session: 2026-07-03 深夜 ~ 07-04 (Endurance #1) - 前端全面重設計「工程帳冊」
+
+### 完成項目
+- [x] DB 完整備份（14 model / 270 筆 → backups/2026-07-03_222735/ + restore 腳本）
+- [x] 3 agent 並行研究：UI 盤點 3,344 行 / 去AI味原則 / 樣式審計
+- [x] 基線截圖 27 張（before）+ 成果截圖 27 張（after，深淺×桌面行動）
+- [x] 設計系統 v2「工程帳冊」：石墨/圖紙雙主題、琥珀信號色、IBM Plex + Noto Sans TC、mono 數據
+- [x] 18 頁 + 40+ 元件全數重作（Fable 5 親自；功能/文案/雙語/角色條件 100% 保留）
+- [x] 圖表重造：dataviz 六項檢查驗證色盤、圓餅→水平長條、雙軸→兩張單軸
+- [x] 修復既有 bug：.light 被 Tailwind purge（淺色主題從未生效）、theme-context localStorage 覆寫
+- [x] 品質關卡：tsc 0 錯、build 24 頁通過、lint 僅 2 既有警告、危險模式掃描乾淨
+- [x] 交付：docs/redesign/REDESIGN_SUMMARY.md + before/after 截圖
+
+### 修改檔案（核心）
+- `app/globals.css` `tailwind.config.ts` `app/layout.tsx` — 設計 token 系統 + 字體
+- `lib/ui-constants.ts` `lib/chart-colors.ts` `lib/constants/expense-status.ts` — 樣式常數/圖表色/狀態點 helpers
+- `lib/theme-context.tsx` — 主題持久化 bug 修復
+- `components/**`（40+）、`app/**/page.tsx`（18 頁）— 工程帳冊風格重作
+- `scripts/backup-db.ts` `restore-db.ts` `create-test-user.ts` — 新增
+
+### 5-Question Reboot Check
+1. **做什麼？** 全前端去 AI 味重設計（用戶睡前指派，通宵自主完成）
+2. **進度？** 全部完成。分支 redesign/ui-v2，main 未動、未部署
+3. **下一步？** 用戶醒來檢視成品（dev server 已跑）→ 滿意則 merge main 部署；測試帳號用完可刪
+4. **阻礙？** 無。既有問題清單（MANAGER 死碼、customType 丟棄等）記於 REDESIGN_SUMMARY §7 供排程
+5. **檔案？** `docs/redesign/REDESIGN_SUMMARY.md`（總報告）、`DESIGN_SYSTEM.md`（規範）、`screenshots/{before,after}/`
+
+---
+
+## Session: 2026-07-04 (Endurance #2) - v3 白紙重構
+
+### 完成項目
+- [x] 用戶澄清「完全不需要保留原先任何東西」→ 全頁版面/IA 從零重設計（功能佈線不動）
+- [x] Shell：分組側欄（mono 分區碼）+ mono 麵包屑 + 底部工程狀態列（新元件 status-bar.tsx）
+- [x] Dashboard：帳冊首頁（期別標頭/合計列/journal/行動欄），廢除 bento
+- [x] Expenses：分錄簿總帳；表單改採購單雙欄（sticky 即時摘要）
+- [x] Approvals：審核收件匣（操作艙）；Reports：登記簿（分段篩選器）
+- [x] Analytics/Inventory/Funding/Users/Settings/Profile：合計帶/一體式容器/編號章節/檔案卡
+- [x] About：全面重造為工程日誌 LOGBOOK（內容保留、Playfair 移除）
+- [x] 品質：tsc 0 錯、build 24 頁、lint 乾淨；v3 全套截圖
+
+### 5-Question Reboot Check
+1. **做什麼？** v3 白紙重構：版面結構全部從零（v2 僅換皮之修正）
+2. **進度？** 全部完成並推送 redesign/ui-v2
+3. **下一步？** 用戶檢視 → 滿意則 merge main；測試帳號可刪
+4. **阻礙？** 無
+5. **檔案？** docs/redesign/REDESIGN_SUMMARY.md（v3 節）、screenshots/v3/

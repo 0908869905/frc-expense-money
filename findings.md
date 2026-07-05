@@ -1237,3 +1237,77 @@ setValue("bankCode", account.bankCode);
 34. **MIME 白名單優於黑名單** -- SVG 等格式可嵌入腳本，白名單更安全
 35. **Canvas 有像素上限** -- 超大圖片會導致瀏覽器崩潰，需要在載入前檢查
 36. **架構改動可以延後** -- CSP nonce 改動大但目前風險可控，留待大版本升級時一併處理
+
+---
+
+## Session: 2026-02-03 - 儀表板 404 修復 + CSS 快取問題
+
+### Dashboard 近期報表 404 路由問題
+
+**問題**：Dashboard 儀表板的「近期報表」卡片點擊後出現 404 錯誤。
+
+**原因**：`components/dashboard-content.tsx` 中近期報表卡片的連結指向 `/dashboard/expenses/${report.id}`，但 `app/dashboard/expenses/[id]/page.tsx` 動態路由從未建立過。該路由不存在於專案中。
+
+**解決方案**：將連結目標從 `/dashboard/expenses/${report.id}`（不存在的詳情頁）改為 `/dashboard/expenses`（列表頁）。
+
+**決策理由**：
+- 目前沒有單一報帳單詳情頁的需求，列表頁已可查看所有報帳單資訊
+- 避免為了一個連結建立新的動態路由頁面（YAGNI 原則）
+- 如果未來需要詳情頁，再建立 `app/dashboard/expenses/[id]/page.tsx`
+
+**教訓**：
+37. **連結目標必須對應存在的路由** -- 在建立導航連結時，應確認目標路由頁面已建立
+38. **測試所有可點擊的連結** -- Dashboard 等入口頁面的連結要逐一測試，避免 404
+
+### .next 快取損壞導致 CSS 消失
+
+**問題**：本地 dev server 執行中，所有 CSS 樣式突然完全消失，頁面顯示為純 HTML 無樣式。
+
+**原因**：`.next` 快取目錄損壞。Next.js dev server 的增量編譯快取可能在某些操作（如 Git 操作、檔案系統變更、磁碟寫入中斷）後進入不一致狀態。
+
+**解決方案**：
+```bash
+# 1. 停止 dev server (Ctrl+C)
+# 2. 刪除 .next 快取目錄
+rm -rf .next
+# 3. 重新啟動 dev server
+npm run dev
+```
+
+**決策理由**：
+- 清除快取是最簡單可靠的方法，比嘗試修復快取更快
+- `.next` 目錄完全是可重建的，刪除不會丟失任何原始碼
+
+**教訓**：
+39. **CSS 全部消失時先清 .next** -- 這是 Next.js dev server 的已知問題，清除快取即可
+40. **.next 目錄是可安全刪除的** -- 它只是編譯快取，重啟 dev server 會自動重建
+
+---
+
+## 2026-07-04：重設計期間的技術發現
+
+### Tailwind @layer 會 tree-shake 未被內容引用的 selector
+`.light { --vars }` 放在 `@layer base` 內會被 purge（"light" 未被視為使用中的 class），
+導致淺色主題整組變數從 served CSS 消失——**這是原版淺色模式從未生效的根因**。
+解法：主題變數區塊移到 @layer 之外（頂層 CSS 不受 purge 影響）。
+
+### ThemeProvider 掛載順序 bug（StrictMode 放大）
+「套用 theme 的 effect」在「讀取 localStorage 的 effect」的 setState 生效前，
+就以預設值執行並回寫 localStorage → StrictMode 雙重執行下把使用者儲存的主題覆寫。
+解法：localStorage 寫入只放在 toggleTheme（使用者主動行為），套用-effect 不寫 storage。
+
+### recharts 無法使用 CSS 變數
+SVG presentation attribute 不解析 var() → 建 lib/chart-colors.ts 提供主題感知 hex 色盤
+（與 globals.css --chart-* 同步，經 dataviz validate_palette.js 六項檢查）。
+
+### tailwind.config 變更需重啟 dev server
+新增顏色（ok/warn/danger/info）後 JIT 不會 hot-reload config → text-danger 等 utility 不存在。
+另：長時間 dev server + 大量檔案變更會出現 chunk 404（清 .next 重啟即復原）。
+
+### Windows 上 TaskStop 殺不乾淨 npm run dev
+npm wrapper 死了但 node 子行程存活占住 port → 下次啟動跳 3001/3002。
+需 Get-NetTCPConnection 找 OwningProcess 強制終止。
+
+### Prisma generate 與 dev server 衝突
+dev server 鎖住 query_engine dll → npm run build（含 prisma generate）EPERM。
+build 前必須先停 dev server。

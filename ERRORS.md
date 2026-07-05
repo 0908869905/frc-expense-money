@@ -430,5 +430,462 @@ npx tsx scripts/clear-login-lock.ts admin@example.com
 
 ---
 
-*最後更新：2026-01-25*
-*新增：第三方函式庫類型不匹配解決方案*
+---
+
+## 屬性重命名後遺漏更新
+
+### 問題：2026-01-27 Vercel 部署失敗
+
+**症狀**：
+```
+Type error: Property 'label' does not exist on type 'FundingTypeOption'. Did you mean 'labelZh'?
+```
+
+**原因**：
+程式碼簡化時將 `FundingTypeOption` 的 `label` 屬性改為 `labelZh`/`labelEn`，但有些檔案沒有同步更新。
+
+**遺漏的檔案**：
+- `components/funding-content.tsx` - `type.labelZhZh`（typo）、`type.labelZhEn`
+- `components/balance-card.tsx` - `type.label`
+- `components/funding-dialog.tsx` - `type.label`
+
+**解決方案**：
+將所有 `type.label` 改為 `type.labelZh`（或根據語言使用 `type.labelEn`）
+
+**預防措施**：
+1. 重命名屬性時，使用 IDE 的「重構/重新命名」功能
+2. 或執行全域搜尋確認所有引用都已更新：
+   ```bash
+   grep -r "\.label" --include="*.tsx" | grep -v "labelZh\|labelEn"
+   ```
+3. 推送前執行 `npm run build` 驗證
+
+---
+
+## Re-export 類型未能內部使用
+
+### 問題：2026-01-27 Vercel 部署失敗
+
+**症狀**：
+```
+Type error: Cannot find name 'Language'.
+  46 | export function getLocalizedLabel(..., language: Language): string {
+```
+
+**原因**：
+使用 `export type { Language } from "..."` 只會 re-export 類型給外部使用，但不會在當前檔案中導入該類型。
+
+**錯誤範例**：
+```typescript
+// ❌ 只 re-export，無法在本檔案使用
+export type { Language } from "@/lib/language-context";
+
+function foo(language: Language) { ... }  // Error: Cannot find name 'Language'
+```
+
+**正確做法**：
+```typescript
+// ✅ 先導入再 re-export
+import type { Language } from "@/lib/language-context";
+export type { Language };
+
+function foo(language: Language) { ... }  // OK
+```
+
+**預防措施**：
+如果需要在當前檔案使用類型，必須先 `import`，再 `export`。
+
+---
+
+---
+
+## Prisma Client 未正確生成
+
+### 問題：2026-01-28
+
+**症狀**：
+```
+Type error: Property 'bankAccount' does not exist on type 'PrismaClient<...>'
+```
+
+**原因**：
+修改 `prisma/schema.prisma` 後，`prisma generate` 未正確執行或未重新載入。
+
+**解決方案**：
+```bash
+# 方法 1：強制重新生成
+npx prisma generate --force
+
+# 方法 2：使用 node -e 執行（Windows 環境）
+node -e "require('child_process').execSync('npx prisma generate', {stdio: 'inherit'})"
+
+# 方法 3：刪除 node_modules/.prisma 後重新生成
+rm -rf node_modules/.prisma
+npx prisma generate
+```
+
+**預防措施**：
+修改 schema 後，確認執行 `prisma generate` 且無錯誤訊息。
+
+---
+
+## Modal 對話框被父元素遮擋
+
+### 問題：2026-01-28
+
+**症狀**：
+Modal 對話框出現後被其他 UI 元素遮住，即使設定了 `z-index: 9999`。
+
+**原因**：
+CSS stacking context 問題。當父元素設定了 `position`, `transform`, `opacity` 等屬性時，會創建新的 stacking context，導致子元素的 z-index 只在該 context 內有效。
+
+**錯誤範例**：
+```tsx
+// ❌ Modal 在父元素內，受 stacking context 影響
+function ParentComponent() {
+  return (
+    <div className="relative">
+      <Modal isOpen={true}>...</Modal>
+    </div>
+  )
+}
+```
+
+**正確做法**：
+```tsx
+import { createPortal } from "react-dom";
+
+// ✅ 使用 createPortal 渲染到 document.body
+function Modal({ isOpen, children }) {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 bg-black/50">
+      <div className="fixed inset-0 flex items-center justify-center">
+        {children}
+      </div>
+    </div>,
+    document.body
+  );
+}
+```
+
+**預防措施**：
+所有 Modal/Dialog 組件都應使用 `createPortal` 渲染到 `document.body`。
+
+---
+
+## 資料庫欄位不存在
+
+### 問題：2026-01-28
+
+**症狀**：
+```
+PrismaClientKnownRequestError:
+Invalid `prisma.expenseReport.findMany()` invocation:
+The column `ExpenseReport.bankAccountId` does not exist in the current database.
+```
+
+**原因**：
+修改了 `prisma/schema.prisma` 但未執行 `prisma db push` 同步到資料庫。
+
+**解決方案**：
+```bash
+# 開發環境：直接推送 schema
+npx prisma db push
+
+# 生產環境：使用 migration
+npx prisma migrate dev --name add_bank_account
+npx prisma migrate deploy
+```
+
+**預防措施**：
+1. 修改 schema 後立即執行 `prisma db push`（開發環境）
+2. 部署前確認 migration 已執行
+
+---
+
+---
+
+## CapacitorConfig 型別匯入錯誤
+
+### 問題：2026-02-01
+
+**症狀**：
+```
+Cannot find name 'CapacitorConfig'.
+```
+
+**原因**：
+`CapacitorConfig` 型別定義在 `@capacitor/cli` 而非 `@capacitor/core`。Core 套件只包含運行時 API。
+
+**解決方案**：
+```typescript
+// ❌ 錯誤
+import type { CapacitorConfig } from '@capacitor/core';
+
+// ✅ 正確
+import type { CapacitorConfig } from '@capacitor/cli';
+```
+
+**預防措施**：
+Capacitor 套件職責分離：`@capacitor/cli` 負責配置和建構，`@capacitor/core` 負責運行時 API。
+
+---
+
+## capacitor.config.ts 被 Next.js Build 編譯
+
+### 問題：2026-02-01
+
+**症狀**：
+```
+npm run build 失敗，錯誤指向 capacitor.config.ts
+```
+
+**原因**：
+Next.js build 會掃描專案根目錄的所有 .ts 檔案進行編譯。`capacitor.config.ts` 使用不同的 module 格式（Capacitor CLI 自行處理），與 Next.js 的 tsconfig 不相容。
+
+**解決方案**：
+在 `tsconfig.json` 的 `exclude` 陣列中添加：
+```json
+{
+  "exclude": ["capacitor.config.ts", "ios/"]
+}
+```
+
+**預防措施**：
+專案根目錄新增非 Next.js 的 .ts 配置檔時，都應加入 tsconfig exclude。
+
+---
+
+## window 型別斷言失敗
+
+### 問題：2026-02-01
+
+**症狀**：
+```
+Conversion of type 'Window & typeof globalThis' to type 'Record<string, unknown>'
+may be a mistake because neither type sufficiently overlaps with the other.
+```
+
+**原因**：
+TypeScript strict 模式下，`window as Record<string, unknown>` 被視為不安全的型別斷言。
+
+**解決方案**：
+使用 TypeScript 聲明合併擴展 Window interface：
+```typescript
+// ❌ 錯誤
+const cap = (window as Record<string, unknown>).Capacitor;
+
+// ✅ 正確
+declare global {
+  interface Window {
+    Capacitor?: {
+      isNativePlatform?: () => boolean;
+      getPlatform?: () => string;
+    }
+  }
+}
+const cap = window.Capacitor;
+```
+
+**預防措施**：
+需要存取 `window` 上的自訂屬性時，永遠使用 `declare global { interface Window }` 擴展，不要使用型別斷言。
+
+---
+
+---
+
+## 收據附件顯示為空白/損壞圖片
+
+### 問題：2026-02-02
+
+**症狀**：
+收據附件在審核頁面和報帳頁面顯示為空白或損壞的圖片，圖片無法載入。
+
+**原因**：
+`receiptUrl` 欄位存的是 `blob:http://localhost:3000/...` 格式的 URL。Blob URL 是瀏覽器內存中的臨時引用，只在建立它的 session 內有效。頁面重新載入或其他用戶存取時，該 URL 已失效。
+
+**解決方案**：
+1. 上傳時改用客戶端壓縮 base64 data URL 存入 DB：
+```typescript
+// components/expense-form.tsx
+async function compressImage(file: File): Promise<string> {
+  // Canvas resize → max 1200px → JPEG 70% → base64
+}
+```
+2. 清除 DB 中已有的無效 blob URL：
+```sql
+UPDATE "ExpenseItem" SET "receiptUrl" = NULL WHERE "receiptUrl" LIKE 'blob:%';
+```
+
+**預防措施**：
+- 永遠不要將 `URL.createObjectURL()` 的結果存入資料庫
+- 需要持久化的檔案使用 base64 data URL 或外部存儲服務（S3/Vercel Blob）
+
+---
+
+## 已拒絕報帳單計入統計總金額
+
+### 問題：2026-02-02
+
+**症狀**：
+Dashboard 的 Stats Cards 顯示的「總金額」包含已被拒絕（REJECTED）的報帳單金額，導致數字不準確。
+
+**原因**：
+`app/dashboard/expenses/page.tsx` 中的 `activeReports` 查詢沒有排除 `REJECTED` 狀態的報帳單。
+
+**解決方案**：
+在查詢中加入狀態過濾：
+```typescript
+const activeReports = await prisma.expenseReport.findMany({
+  where: {
+    userId: session.user.id,
+    NOT: { status: "REJECTED" },
+  },
+});
+```
+
+**預防措施**：
+統計查詢應明確定義「有效」資料的範圍，排除已取消/拒絕/刪除等終態記錄。
+
+---
+
+## Server Action Payload Too Large
+
+### 問題：2026-02-02
+
+**症狀**：
+```
+Error: Body exceeded 1mb limit
+```
+或提交含有收據圖片的報帳單時靜默失敗。
+
+**原因**：
+Next.js server actions 預設 body 大小限制為 1MB。壓縮後的 base64 圖片加上其他表單資料可能超過此限制。
+
+**解決方案**：
+1. 調整 `next.config.mjs` 的 server actions body 限制：
+```javascript
+experimental: {
+  serverActions: {
+    bodySizeLimit: "10mb",
+  },
+},
+```
+2. 調整 `app/actions/expenses.ts` 的 JSON 大小限制常數為 10MB。
+
+**預防措施**：
+- 上傳含大檔案的 server action 需要確認 body 限制足夠
+- 客戶端壓縮可有效減小上傳大小（1200px/JPEG 70% 通常 100-300KB）
+
+---
+
+---
+
+## Prisma Enum 值已從 Schema 移除但資料庫仍有記錄
+
+### 問題：2026-02-02
+
+**症狀**：
+```
+PrismaClientKnownRequestError:
+Value 'DRAFT' not found in enum 'ReportStatus'
+```
+Vercel 部署後，任何涉及 ExpenseReport 查詢的頁面都會報錯。
+
+**原因**：
+1. Prisma schema 已移除 `DRAFT` enum 值（在先前 session 中）
+2. `prisma db push` 同步了 schema，但資料庫中仍有 1 筆 `status = 'DRAFT'` 的記錄
+3. Prisma 查詢在反序列化結果時，遇到不在 enum 定義中的值，拋出錯誤
+
+**解決方案**：
+
+```bash
+# 步驟 1：用 SQL 將 DRAFT 記錄更新為有效的 enum 值
+# 可透過 Supabase SQL Editor 或 psql 執行
+UPDATE "ExpenseReport" SET status = 'PENDING_MANAGER' WHERE status = 'DRAFT';
+
+# 步驟 2：確認無剩餘 DRAFT 記錄
+SELECT COUNT(*) FROM "ExpenseReport" WHERE status = 'DRAFT';
+
+# 步驟 3：同步 schema 移除 DRAFT enum（如果尚未執行）
+npx prisma db push --accept-data-loss
+```
+
+也可使用遷移腳本：
+```bash
+npx tsx scripts/migrate-draft.ts
+```
+
+**預防措施**：
+1. **移除 enum 值前必須先遷移資料** - 順序：SQL 更新記錄 -> prisma db push
+2. **建立遷移腳本** - 不要手動執行 SQL，建立可重複執行的腳本
+3. **在 staging 環境測試** - 先在測試環境確認遷移成功再推到生產
+4. **`--accept-data-loss` 旗標** - 移除 enum 值會被 Prisma 視為破壞性變更，需要此旗標確認
+
+**相關檔案**：
+- `prisma/schema.prisma` - ReportStatus enum 定義
+- `scripts/migrate-draft.ts` - DRAFT 遷移腳本
+- `app/actions/expenses.ts` - createExpense() 已改為直接使用 PENDING_MANAGER
+
+---
+
+---
+
+## Dashboard 近期報表連結 404
+
+### 問題：2026-02-03
+
+**症狀**：
+儀表板（Dashboard）的「近期報表」卡片點擊後顯示 404 Not Found 頁面。
+
+**原因**：
+`components/dashboard-content.tsx` 中近期報表卡片的連結指向 `/dashboard/expenses/${report.id}`，但 `app/dashboard/expenses/[id]/page.tsx` 動態路由從未建立過，該路徑不存在於專案中。
+
+**解決方案**：
+將連結目標改為已存在的列表頁：
+```typescript
+// 修復前
+href={`/dashboard/expenses/${report.id}`}
+
+// 修復後
+href="/dashboard/expenses"
+```
+
+**預防措施**：
+1. 建立導航連結時，確認目標路由頁面已存在
+2. 測試所有可點擊的連結，特別是 Dashboard 等入口頁面
+3. 如果需要動態路由，先建立對應的 `[id]/page.tsx` 再連結
+
+---
+
+## CSS 樣式完全消失（.next 快取損壞）
+
+### 問題：2026-02-03
+
+**症狀**：
+本地 dev server 運行中，所有 CSS 樣式突然完全消失，頁面顯示為純 HTML 無任何樣式。重新整理頁面問題依舊。
+
+**原因**：
+`.next` 快取目錄損壞。Next.js dev server 的增量編譯快取可能在 Git 操作、檔案系統變更或磁碟寫入中斷後進入不一致狀態，導致 CSS 模組無法正確載入。
+
+**解決方案**：
+```bash
+# 1. 停止 dev server (Ctrl+C)
+# 2. 刪除 .next 快取目錄
+rm -rf .next
+# (Windows: rmdir /s /q .next)
+# 3. 重新啟動 dev server
+npm run dev
+```
+
+**預防措施**：
+1. 遇到 CSS 全部消失時，第一步就是清除 `.next` 目錄
+2. `.next` 是完全可重建的編譯快取，刪除不會丟失原始碼
+3. 在 Git 大量操作（reset, merge, rebase）後，建議清除 `.next` 再重啟 dev server
+
+---
+
+*最後更新：2026-02-03*
+*新增：Dashboard 連結 404、CSS 快取損壞問題*

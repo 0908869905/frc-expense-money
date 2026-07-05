@@ -33,13 +33,13 @@ interface ChartColorSet {
 }
 
 const DARK: ChartColorSet = {
-    // 墨主題：朱 / 藍 / 苔 / 山吹 / 茶
+    // 墨主題：朱 / 藍 / 苔 / 山吹 / 江戶紫（dataviz 驗證通過）
     categorical: [
         "hsl(8, 68%, 52%)",
-        "hsl(215, 35%, 55%)",
-        "hsl(125, 25%, 46%)",
-        "hsl(38, 60%, 48%)",
-        "hsl(25, 30%, 45%)",
+        "hsl(215, 48%, 56%)",
+        "hsl(125, 32%, 45%)",
+        "hsl(38, 64%, 44%)",
+        "hsl(285, 32%, 58%)",
     ],
     status: {
         ok: "hsl(125, 22%, 48%)",
@@ -55,13 +55,13 @@ const DARK: ChartColorSet = {
 }
 
 const LIGHT: ChartColorSet = {
-    // 和紙主題
+    // 和紙主題：朱 / 藍 / 苔 / 山吹 / 江戶紫（dataviz 驗證通過）
     categorical: [
         "hsl(7, 70%, 45%)",
-        "hsl(216, 38%, 42%)",
-        "hsl(125, 30%, 34%)",
-        "hsl(36, 65%, 38%)",
-        "hsl(25, 35%, 38%)",
+        "hsl(216, 50%, 42%)",
+        "hsl(125, 40%, 33%)",
+        "hsl(36, 68%, 38%)",
+        "hsl(287, 36%, 44%)",
     ],
     status: {
         ok: "hsl(125, 25%, 36%)",

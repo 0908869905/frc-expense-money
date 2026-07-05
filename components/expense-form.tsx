@@ -332,8 +332,8 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
 
           {/* 01 · 報帳單資訊 */}
           <section className="rounded-lg border border-border bg-card overflow-hidden">
-            <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-              <span className="ledger-label text-primary/70">01</span>
+            <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+              <span className="seal-index">01</span>
               <h3 className="text-sm font-semibold">報帳單資訊</h3>
               <span className="ledger-label ml-auto">Info</span>
             </header>
@@ -362,8 +362,8 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
           {/* 02 · 收款帳戶 */}
           {bankAccounts.length > 0 && (
             <section className="rounded-lg border border-border bg-card overflow-hidden">
-              <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                <span className="ledger-label text-primary/70">02</span>
+              <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                <span className="seal-index">02</span>
                 <h3 className="text-sm font-semibold inline-flex items-center gap-2">
                   收款帳戶
                 </h3>
@@ -424,8 +424,8 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
 
           {/* 03 · 費用明細 */}
           <section className="rounded-lg border border-border bg-card overflow-hidden">
-            <header className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
-              <span className="ledger-label text-primary/70">{itemsIndex}</span>
+            <header className="flex items-center gap-2 px-4 py-3 border-b border-border">
+              <span className="seal-index">{itemsIndex}</span>
               <h3 className="text-sm font-semibold">費用明細項目</h3>
               <span className="ledger-label ml-auto mr-3 hidden sm:inline">Items</span>
               <Button
@@ -544,8 +544,8 @@ export function ExpenseForm({ bankAccounts = [] }: ExpenseFormProps) {
         {/* ── 右欄：sticky 摘要面板 ─────────────────── */}
         <aside className="lg:sticky lg:top-16 flex flex-col gap-4">
           <section className="rounded-lg border border-border bg-card overflow-hidden">
-            <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-              <span className="ledger-label text-primary/70">{summaryIndex}</span>
+            <header className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+              <span className="seal-index">{summaryIndex}</span>
               <h3 className="text-sm font-semibold">摘要</h3>
               <span className="ledger-label ml-auto">Summary</span>
             </header>

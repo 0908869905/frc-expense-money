@@ -119,7 +119,7 @@ export function ExpensesContent({ reports }: ExpensesContentProps): JSX.Element 
                     {localReports.map((report, reportIndex) => (
                         <section key={report.id} className="border-b-4 border-background last:border-b-0">
                             {/* 分錄標頭列 */}
-                            <header className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 bg-muted/40 border-b border-border">
+                            <header className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-b border-border">
                                 <span className="font-mono text-xs text-primary/70 font-medium">
                                     {String(reportIndex + 1).padStart(2, "0")}
                                 </span>

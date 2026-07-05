@@ -34,7 +34,7 @@ export function ProfileContent({ user, stats, session }: ProfileContentProps) {
 
             {/* ── 隊員檔案卡：識別列 + 定義表 ─────────────── */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-center gap-4 px-4 py-4 border-b border-border bg-muted/40">
+                <div className="flex items-center gap-4 px-4 py-4 border-b border-border">
                     <div className="h-14 w-14 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0">
                         <span className="text-xl font-semibold text-foreground">
                             {(user?.name || user?.email || "U")[0].toUpperCase()}
@@ -70,8 +70,8 @@ export function ProfileContent({ user, stats, session }: ProfileContentProps) {
 
             {/* ── 報帳統計帶 ───────────────────────────── */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                    <span className="ledger-label text-primary/70">01</span>
+                <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                    <span className="seal-index">01</span>
                     <h3 className="text-sm font-semibold">{t("expense_stats")}</h3>
                     <span className="ledger-label ml-auto">Stats</span>
                 </div>
@@ -90,12 +90,12 @@ export function ProfileContent({ user, stats, session }: ProfileContentProps) {
             {/* Session Info - Only show in development */}
             {process.env.NODE_ENV === "development" && (
                 <div className="rounded-lg border bg-card overflow-hidden">
-                    <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                        <span className="ledger-label text-primary/70">02</span>
+                    <div className="flex items-baseline gap-2 px-4 py-3 border-b border-border">
+                        <span className="seal-index">02</span>
                         <h3 className="text-sm font-semibold">{t("session_info")}</h3>
                         <span className="ledger-label ml-auto">Dev Only</span>
                     </div>
-                    <pre className="text-xs bg-muted/40 p-4 overflow-auto font-mono">
+                    <pre className="text-xs p-4 overflow-auto font-mono">
                         {JSON.stringify({
                             id: session.user?.id ? "[REDACTED]" : null,
                             role: session.user?.role,

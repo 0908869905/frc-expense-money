@@ -183,7 +183,7 @@ export function FundingContent({ fundingRecords, financialSummary }: FundingCont
 
             {/* ── 對帳單：工具列 + 表格一體 ─────────────── */}
             <div className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex flex-col sm:flex-row gap-2 px-3 py-2.5 border-b border-border bg-muted/40">
+                <div className="flex flex-col sm:flex-row gap-2 px-3 py-2.5 border-b border-border">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <input

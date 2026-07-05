@@ -48,12 +48,12 @@
     --danger: 355 60% 55%;
     --info: 215 30% 58%;
 
-    /* 圖表分類色盤（朱 / 藍 / 苔 / 山吹 / 茶） */
+    /* 圖表分類色盤（朱/藍/苔/山吹/江戶紫，dataviz 六項檢查通過） */
     --chart-1: 8 68% 52%;
-    --chart-2: 215 35% 55%;
-    --chart-3: 125 25% 46%;
-    --chart-4: 38 60% 48%;
-    --chart-5: 25 30% 45%;
+    --chart-2: 215 48% 56%;
+    --chart-3: 125 32% 45%;
+    --chart-4: 38 64% 44%;
+    --chart-5: 285 32% 58%;
     --chart-grid: 30 5% 20%;
 }
 
@@ -87,11 +87,12 @@
     --danger: 355 62% 42%;
     --info: 216 32% 42%;
 
+    /* 圖表分類色盤（dataviz 六項檢查通過） */
     --chart-1: 7 70% 45%;
-    --chart-2: 216 38% 42%;
-    --chart-3: 125 30% 34%;
-    --chart-4: 36 65% 38%;
-    --chart-5: 25 35% 38%;
+    --chart-2: 216 50% 42%;
+    --chart-3: 125 40% 33%;
+    --chart-4: 36 68% 38%;
+    --chart-5: 287 36% 44%;
     --chart-grid: 38 16% 87%;
 }
 
@@ -265,6 +266,19 @@
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: hsl(var(--muted-foreground));
+  }
+
+  /* 章節印章索引：小型朱印（hanko）風格 */
+  .seal-index {
+    font-family: theme(fontFamily.mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.45);
+    padding: 1px 4px;
+    border-radius: 2px;
   }
 
   /* 狀態點：4px 實心圓 */
