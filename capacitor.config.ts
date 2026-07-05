@@ -4,7 +4,8 @@ const config: CapacitorConfig = {
   appId: 'com.budgetflow.app',
   appName: 'BudgetFlow',
   server: {
-    url: 'https://project-money.vercel.app',
+    // 正式站網域（project-money.vercel.app 屬於另一個舊 Vite 專案，勿使用）
+    url: 'https://two-chi-74.vercel.app',
     cleartext: false,
   },
   ios: {
@@ -15,7 +16,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#0f172a',
+      backgroundColor: '#1e1c1b', // 墨主題底色（和紙と墨）
       showSpinner: false,
     },
     StatusBar: {
