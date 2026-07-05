@@ -1182,3 +1182,52 @@
 3. **下一步？** 用戶檢視 → 滿意則 merge main；測試帳號可刪
 4. **阻礙？** 無
 5. **檔案？** docs/redesign/REDESIGN_SUMMARY.md（v3 節）、screenshots/v3/
+
+---
+
+## Session: 2026-07-05 - 定案極簡日式「和紙と墨」
+
+### 完成項目
+- [x] jp-minimal 變體（和紙/墨雙主題、朱印紅、明朝體標題、近直角、和風五色圖表）
+- [x] 圖表色盤 dataviz 驗證：茶→江戶紫（彩度不足），雙主題全 PASS
+- [x] 日式深化：.seal-index 朱印章節索引、標頭去底色、LoadingScreen/跑貓/豹爪換裝朱墨
+- [x] 用戶定案採用 → merge 回 redesign/ui-v2 並推送；build/lint 過
+- [x] 註：merge 一併固化了工作區既有的 ERROR.md→ERRORS.md 整併（用戶先前變更，無資料遺失）
+
+### 5-Question Reboot Check
+1. **做什麼？** 日式極簡變體製作與定案採用
+2. **進度？** 完成。redesign/ui-v2 = 和紙と墨
+3. **下一步？** 用戶驗收 → merge main 部署；刪測試帳號；jp-minimal 分支可刪
+4. **阻礙？** 無
+5. **檔案？** REDESIGN_SUMMARY.md（定案節）、screenshots/jp-minimal/final-*.png
+
+---
+
+## Session: 2026-07-05（下半場）- 正式上線
+
+### 完成項目
+- [x] 豹爪過渡字體修正：`transition-button.tsx` 內嵌假頁快照（LoginPreview / LandingCover）以 p/span 標籤呈現，吃不到 globals 對 h1/h2 的 `font-serif` 規則，明確補上 `font-serif` utility（commit `ae8f5ec`），實測撕裂動畫中段畫面與真頁一致
+- [x] **正式上線**：main 由 `3797c55` 快轉合併至 `ae8f5ec`（20 commits，「和紙と墨」日式極簡設計全量），`git push` 觸發 Vercel 自動部署，GitHub deployment status 顯示 Production success
+- [x] **重大發現**：capacitor.config.ts 原設定的 `project-money.vercel.app` 實際屬於**另一個舊 Vite 專案「個人記帳App」**（回應 430 bytes Vite SPA），並非本專案！本專案真正的正式站是 **https://two-chi-74.vercel.app**（由用戶提供並經實測驗證新版已上線，線上截圖存於 `docs/redesign/screenshots/jp-minimal/PROD-live-landing.png`）
+- [x] capacitor.config.ts 修正（commit `d8d8a08`）：`server.url` → `https://two-chi-74.vercel.app`、SplashScreen `backgroundColor` → `#1e1c1b`（墨主題）
+- [x] 測試帳號 `design-review@unipards.test` 已由用戶手動刪除；`backups/test-user-credentials.txt` 失效
+- [x] merge 過程曾以 stash 保護用戶本地 progress.md 未提交編輯，已 `pop` 還原
+
+### 修改檔案
+- `components/transition-button.tsx` — 假頁快照標題補 `font-serif` utility（`ae8f5ec`）
+- `capacitor.config.ts` — `server.url` 改 `two-chi-74.vercel.app` + SplashScreen 墨色 `#1e1c1b`（`d8d8a08`）
+- `docs/redesign/screenshots/jp-minimal/PROD-live-landing.png` — 線上正式站截圖（新增）
+
+### 目前狀態
+- Production = 和紙と墨（main @ `d8d8a08`）
+- 分支：`redesign/ui-v2`（= main 前一步）、`redesign/jp-minimal`（可刪）皆已推送
+- DB 備份：`backups/2026-07-03_222735/`（14 model 270 筆 + `restore-db.ts`）
+- Vercel 團隊網址 `*-0908869905s-projects.vercel.app` 開啟 Deployment Protection（SSO），外部無法直接存取——驗證部署改用 `gh api repos/0908869905/Money/deployments` 查 GitHub deployment statuses
+- 待辦（既有問題，見 `docs/redesign/REDESIGN_SUMMARY.md` §7）：MANAGER 死碼分支、customType 被後端丟棄、`/dashboard/stats` 孤兒路由、訊息機制不一致、部分 Modal 未用 createPortal、useAutoSave 未接、登入 hydration 前送出會把帳密放進 URL query
+
+### 5-Question Reboot Check
+1. **做什麼？** 豹爪過渡字體收尾 + 「和紙と墨」正式上線至 Production
+2. **進度？** 全部完成。Production = main @ `d8d8a08`，GitHub deployment 顯示 success，正式站 `two-chi-74.vercel.app` 實測新版已上線
+3. **下一步？** 日常維運；`REDESIGN_SUMMARY.md` §7 既有問題排程（MANAGER 死碼、customType 被丟棄、/dashboard/stats 孤兒路由、訊息機制不一致、部分 Modal 未用 createPortal、useAutoSave 未接、登入 hydration 前送出把帳密放進 URL query）；用戶在 Mac 上 `npx cap sync ios` 讓 iOS 殼吃到新網址
+4. **阻礙？** iOS 殼更新需 Mac + Xcode 環境（`npx cap sync ios`）
+5. **檔案？** `docs/redesign/REDESIGN_SUMMARY.md`（§7 既有問題清單）、`capacitor.config.ts`

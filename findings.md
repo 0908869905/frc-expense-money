@@ -1311,3 +1311,23 @@ npm wrapper 死了但 node 子行程存活占住 port → 下次啟動跳 3001/3
 ### Prisma generate 與 dev server 衝突
 dev server 鎖住 query_engine dll → npm run build（含 prisma generate）EPERM。
 build 前必須先停 dev server。
+
+---
+
+## 2026-07-05：上線期間發現
+
+### capacitor / 文件記載的 project-money.vercel.app 並非本專案
+**問題**：capacitor.config.ts 與文件長期記載的正式站 `project-money.vercel.app`，實測只回應約 430 bytes 的 Vite SPA，內容與本專案（Next.js App Router）完全不符。
+
+**原因**：`project-money.vercel.app` 這個網域被另一個同名舊 Vite 專案「個人記帳App」佔用，從來就不是本專案的部署網址；文件沿用了錯誤的網域。
+
+**解決**：本專案真正的正式站為 **https://two-chi-74.vercel.app**（由用戶提供、實測驗證新版已上線，截圖存 `docs/redesign/screenshots/jp-minimal/PROD-live-landing.png`）。capacitor.config.ts 的 `server.url` 已更正（commit `d8d8a08`）。
+
+**教訓**：部署驗證不可信文件記載的網域，應以 GitHub deployment statuses（`gh api repos/<owner>/<repo>/deployments`）的 state / environment_url + 頁面實際標記實測為準。
+
+### Vercel 團隊 *.vercel.app 網址 302 轉址到 SSO
+**問題**：Vercel 團隊網址 `*-0908869905s-projects.vercel.app` 從外部開啟時 302 轉址到 Vercel SSO 登入頁，無法直接驗證部署內容。
+
+**原因**：該部署開啟了 Deployment Protection（Vercel Authentication / SSO），team-scoped 網址受保護。
+
+**解決**：外部驗證改用公開的正式網域（`two-chi-74.vercel.app`）；程式面則查 `gh api` 的 deployments / statuses，讀取每筆 status 的 `environment_url` 與 `state`（success）來判斷部署結果，繞過 SSO 保護。

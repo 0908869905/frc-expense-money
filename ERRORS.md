@@ -887,5 +887,30 @@ npm run dev
 
 ---
 
-*最後更新：2026-02-03*
-*新增：Dashboard 連結 404、CSS 快取損壞問題*
+## Vercel 正式站網域誤導（文件記載網域非本專案）
+
+### 問題：2026-07-05
+
+**症狀**：
+capacitor.config.ts 與文件記載的正式站 `project-money.vercel.app` 開啟後只回應約 430 bytes 的 Vite SPA，內容與本專案（Next.js App Router）完全不符，無法用來驗證部署。此外 Vercel 團隊網址 `*-0908869905s-projects.vercel.app` 從外部開啟會 302 轉址到 SSO 登入頁。
+
+**原因**：
+1. `project-money.vercel.app` 被另一個同名舊 Vite 專案「個人記帳App」佔用，從來不是本專案的部署網址。
+2. team-scoped 網址開啟了 Deployment Protection（Vercel Authentication / SSO），外部開啟一律 302 到登入頁。
+
+**解決方案**：
+1. 本專案正式站為 `https://two-chi-74.vercel.app`（用戶提供並實測驗證新版已上線），capacitor.config.ts `server.url` 已更正（commit `d8d8a08`）。
+2. 程式面驗證部署改用 GitHub deployment statuses，繞過 SSO：
+```bash
+gh api repos/0908869905/Money/deployments
+# 讀取每筆 deployment 的 statuses → state（success）與 environment_url
+```
+
+**預防措施**：
+1. 部署驗證**不可信文件記載的網域**，應以 GitHub deployment statuses（`gh api`）的 state / environment_url + 頁面實際標記實測為準。
+2. 遇到 Vercel team-scoped 網址 302 到 SSO，改用公開正式網域或查 `gh api`，不要誤判為部署失敗。
+
+---
+
+*最後更新：2026-07-05*
+*新增：Vercel 正式站網域誤導（project-money.vercel.app 非本專案）*
